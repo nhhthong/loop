@@ -3,6 +3,7 @@ import type { Assets } from '../engine/Assets';
 import type { Physics } from '../engine/Physics';
 import { placeProp, type PropSpec } from './Props';
 import { CORRIDOR } from './Level';
+import { Q } from '../engine/Quality';
 
 const F = '/models/furniture/', D = '/models/decor/', A = '/models/architecture/';
 
@@ -61,9 +62,9 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   const mkLight = (color: number, intensity: number, dist: number, pos: THREE.Vector3, shadow: number, flicker = 0) => {
     const l = new THREE.PointLight(color, intensity, dist, 2);
     l.position.copy(pos);
-    if (shadow) {
+    if (shadow && Q.shadows) {
       l.castShadow = true;
-      l.shadow.mapSize.set(shadow, shadow);
+      l.shadow.mapSize.set(Math.min(shadow, Q.shadowMap), Math.min(shadow, Q.shadowMap));
       l.shadow.bias = -0.0015;
       l.shadow.normalBias = 0.03;
       l.shadow.radius = 5;

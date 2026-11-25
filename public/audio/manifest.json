@@ -60,16 +60,6 @@
   "duration": 0.6
  },
  {
-  "file": "phone_ring.mp3",
-  "item": "phone_ring",
-  "id": 556499,
-  "name": "Rotary Phone Ring loopable",
-  "author": "cookies+policy",
-  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
-  "url": "https://freesound.org/s/556499/",
-  "duration": 5.7
- },
- {
   "file": "light_buzz.mp3",
   "item": "light_buzz",
   "id": 553075,

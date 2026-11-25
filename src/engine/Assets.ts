@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { Q } from './Quality';
 
 /** Central asset cache with progress reporting. Missing files resolve to null (game keeps running). */
 export class Assets {
@@ -9,7 +10,7 @@ export class Assets {
   private readonly tex: THREE.TextureLoader;
   private readonly audio: THREE.AudioLoader;
   private readonly cache = new Map<string, Promise<unknown>>();
-  anisotropy = 8;
+  anisotropy = Q.anisotropy;
   onProgress: (loaded: number, total: number, url: string) => void = () => {};
 
   constructor() {
@@ -48,7 +49,7 @@ export class Assets {
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; roughnessMap: THREE.Texture; aoMap: THREE.Texture }
 
 export async function loadPBR(assets: Assets, name: string): Promise<PBRSet> {
-  const base = `/textures/${name}/`;
+  const base = `/textures/${name}${Q.texDir}/`;
   const [map, normalMap, roughnessMap, aoMap] = await Promise.all([
     assets.texture(base + 'diff.jpg', true), assets.texture(base + 'nor.jpg'),
     assets.texture(base + 'rough.jpg'), assets.texture(base + 'ao.jpg'),

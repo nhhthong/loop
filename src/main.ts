@@ -1,4 +1,5 @@
 import { Game } from './game/Game';
+import { Q, setQuality, type QualityLevel } from './engine/Quality';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const menu = document.getElementById('menu')!;
@@ -7,6 +8,11 @@ const bar = document.querySelector('#bar span') as HTMLElement;
 const loadText = document.getElementById('loadtext')!;
 const pause = document.getElementById('pause')!;
 const credits = document.getElementById('credits')!;
+
+document.querySelectorAll<HTMLButtonElement>('#quality button').forEach((b) => {
+  b.classList.toggle('on', b.dataset.q === Q.level);
+  b.addEventListener('click', () => { if (b.dataset.q !== Q.level) setQuality(b.dataset.q as QualityLevel); });
+});
 
 const game = new Game(canvas);
 (window as unknown as { game: Game }).game = game;

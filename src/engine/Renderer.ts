@@ -4,6 +4,7 @@ import {
   ToneMappingMode, ChromaticAberrationEffect, SMAAEffect, BlendFunction, DepthOfFieldEffect, BrightnessContrastEffect,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
+import { Q } from './Quality';
 
 /** Renderer + cinematic post stack (AO → DOF → bloom → tonemap → grain/vignette/CA). */
 export class Renderer {
@@ -16,18 +17,15 @@ export class Renderer {
   readonly ao: N8AOPostPass;
   private readonly bloom: BloomEffect;
 
-  static readonly params = new URLSearchParams(location.search);
-  static readonly low = Renderer.params.get('q') === 'low';
-
   constructor(canvas: HTMLCanvasElement, scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     const r = new THREE.WebGLRenderer({
       canvas, antialias: false, stencil: false, depth: true, powerPreference: 'high-performance',
     });
-    r.setPixelRatio(Renderer.low ? 0.75 : Math.min(window.devicePixelRatio, 1.5));
+    r.setPixelRatio(Q.pixelRatio);
     r.setSize(window.innerWidth, window.innerHeight);
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.NoToneMapping; // done in post
-    r.shadowMap.enabled = true;
+    r.shadowMap.enabled = Q.shadows;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer = r;
 
@@ -41,8 +39,8 @@ export class Renderer {
     ao.configuration.halfRes = true;
     ao.configuration.denoiseSamples = 8;
     ao.configuration.color = new THREE.Color(0, 0, 0);
-    ao.setQualityMode('Medium');
-    if (!Renderer.low && !Renderer.params.has('noao')) composer.addPass(ao);
+    ao.setQualityMode(Q.aoQuality);
+    if (Q.ao) composer.addPass(ao);
     this.ao = ao;
 
     this.dof = new DepthOfFieldEffect(camera, { focusDistance: 0.02, focalLength: 0.05, bokehScale: 0, height: 480 });
@@ -54,9 +52,9 @@ export class Renderer {
     const noise = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: false });
     noise.blendMode.opacity.value = 0.12;
 
-    if (!Renderer.params.has('nodof')) composer.addPass(new EffectPass(camera, this.dof));
-    composer.addPass(new EffectPass(camera, this.bloom, tone, this.exposure, this.chroma));
-    composer.addPass(new EffectPass(camera, this.vignette, noise, new SMAAEffect()));
+    if (Q.dof) composer.addPass(new EffectPass(camera, this.dof));
+    composer.addPass(Q.bloom ? new EffectPass(camera, this.bloom, tone, this.exposure, this.chroma) : new EffectPass(camera, tone, this.exposure));
+    composer.addPass(Q.smaa ? new EffectPass(camera, this.vignette, noise, new SMAAEffect()) : new EffectPass(camera, this.vignette, noise));
     this.composer = composer;
 
     window.addEventListener('resize', () => {

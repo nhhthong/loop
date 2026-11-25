@@ -4,7 +4,7 @@ import { Physics } from '../engine/Physics';
 import { Assets } from '../engine/Assets';
 import { Input } from '../engine/Input';
 import { AudioSys } from '../engine/Audio';
-import { Level, CORRIDOR, WIN_A, WIN_B } from '../world/Level';
+import { Level, CORRIDOR, WIN_A, WIN_B, DOOR, DIV_Z, END_DOOR, BATH_DOOR } from '../world/Level';
 import { furnish, type Furnished } from '../world/Furnish';
 import { buildWindow } from '../world/Window';
 import { Door } from '../world/Door';
@@ -14,9 +14,10 @@ import { sharedUniforms } from '../world/Materials';
 import { Player } from '../player/Player';
 import { Hands } from '../player/Hands';
 import { UI } from '../ui/UI';
+import { Q } from '../engine/Quality';
 
 const SOUNDS = ['breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'floor_creak', 'heartbeat',
-  'light_buzz', 'phone_ring', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window',
+  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window',
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5'];
 
 const ease = (x: number) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
@@ -45,11 +46,7 @@ export class Game {
   private paused = false;
   private ambC: THREE.Audio | null = null;
   private ambR: THREE.Audio | null = null;
-  private ring: THREE.PositionalAudio | null = null;
-  private phoneState: 'idle' | 'ringing' | 'answered' | 'done' = 'idle';
-  private roomEnterT = -1;
-  private reach: { t: number; target: THREE.Vector3; kind: 'door' | 'phone' } | null = null;
-  private scare = 0;
+  private doorT = -1;
   private bulbOut = 0;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -69,7 +66,7 @@ export class Game {
     this.player = new Player(this.physics, this.input, this.audio, this.scene, new THREE.Vector3(0.05, 0, 5.45));
     this.player.camera.add(this.audio.listener);
     this.renderer = new Renderer(this.canvas, this.scene, this.player.camera);
-    this.assets.anisotropy = this.renderer.renderer.capabilities.getMaxAnisotropy();
+    this.assets.anisotropy = Math.min(Q.anisotropy, this.renderer.renderer.capabilities.getMaxAnisotropy());
 
     total = 4;
     this.level = await new Level(this.physics, this.assets).build();
@@ -81,8 +78,13 @@ export class Game {
     const wb = buildWindow(WIN_B.x0, WIN_B.x1, WIN_B.y0, WIN_B.y1, -5, false, curtain);
     this.scene.add(wa.group, wb.group);
 
-    this.door = new Door(this.physics, this.level.mats.panel);
-    this.scene.add(this.door.pivot);
+    const wood = this.level.mats.panel;
+    this.door = new Door(this.physics, wood, { hinge: new THREE.Vector3(DOOR.x0 + 0.005, 0, DIV_Z - 0.05), width: DOOR.x1 - DOOR.x0, height: DOOR.h, baseYaw: 0, openSign: 1 });
+    // end of the L: shut tight, never opens
+    const endDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(5.06, 0, END_DOOR.z0 + 0.005), width: END_DOOR.z1 - END_DOOR.z0, height: END_DOOR.h, baseYaw: -Math.PI / 2, openSign: 1, color: 0x4a2f20 });
+    // bathroom: left ajar, opening into the dark
+    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.42, color: 0xb8ad98 });
+    this.scene.add(this.door.pivot, endDoor.pivot, bathDoor.pivot);
 
     const [furn] = await Promise.all([
       furnish(this.assets, this.physics, this.level.group),
@@ -111,8 +113,8 @@ export class Game {
 
     this.drips = new Drips(this.scene, this.audio, this.scene);
     const lampPos = this.furn.lamps.slice(0, 4).map((l) => l.light.position.clone());
-    this.dust = new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-1, 0.1, -5), new THREE.Vector3(5, 2.9, -0.2)), 1400, lampPos);
-    new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-0.55, 0.1, 0.2), new THREE.Vector3(0.55, 2.35, 6)), 300, [lampPos[3]]);
+    this.dust = new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-1, 0.1, -5), new THREE.Vector3(5, 2.9, -0.2)), Q.dust, lampPos);
+    new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-0.55, 0.1, 0.2), new THREE.Vector3(0.55, 2.35, 6)), Math.round(Q.dust / 4), [lampPos[3]]);
 
     this.bakeProbes();
     // positional loops
@@ -134,7 +136,7 @@ export class Game {
     const r = this.renderer.renderer;
     const pmrem = new THREE.PMREMGenerator(r);
     const bake = (pos: THREE.Vector3) => {
-      const rt = new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType });
+      const rt = new THREE.WebGLCubeRenderTarget(Q.probeSize, { type: THREE.HalfFloatType });
       const cam = new THREE.CubeCamera(0.05, 30, rt);
       cam.position.copy(pos);
       this.scene.add(cam);
@@ -205,7 +207,6 @@ export class Game {
     this.player.update(dt);
     this.physics.step(dt);
     this.updateInteract(dt);
-    this.updateEvents(dt);
     this.door.update(dt);
     this.hands.update(dt);
     this.drips.update(dt);
@@ -289,67 +290,29 @@ export class Game {
   }
 
   // ------------------------------------------------------------------ interaction
+  /** Only interaction: open the first door with E (no visible hand — latch, then swing). */
   private updateInteract(dt: number) {
     const P = this.player;
-    if (this.reach) {
-      const r = this.reach;
-      r.t += dt;
-      if (r.kind === 'door' && r.t > 0.6 && r.t - dt <= 0.6) {
-        this.audio.play3D('door_handle', this.door.handle, 0.8, { ref: 0.6 });
-      }
-      if (r.kind === 'door' && r.t > 0.8 && r.t - dt <= 0.8) {
+    if (this.doorT >= 0) {
+      const t0 = this.doorT;
+      this.doorT += dt;
+      if (t0 < 0.25 && this.doorT >= 0.25) {
         this.door.open();
         this.audio.play3D('door_creak', this.door.handle, 0.9, { ref: 0.8, rate: 0.85 });
       }
-      if (r.t > 1.6) this.reach = null;
+      if (this.doorT > 0.5) this.doorT = -1;
       return;
     }
-    if (P.control < 1) return;
+    if (P.control < 1 || this.door.isOpen) { this.ui.prompt(''); return; }
     const eye = P.eyePos();
-    const fwd = P.forward();
-    let label = '';
-    let action: (() => void) | null = null;
-    const near = (p: THREE.Vector3, dist: number, cone = 0.9) => {
-      const to = p.clone().sub(eye);
-      return to.length() < dist && to.normalize().dot(fwd) > cone;
-    };
-    const handle = this.door.handleWorld();
-    if (!this.door.isOpen && near(handle, 1.5, 0.82)) {
-      label = '[E]  Mở cửa';
-      action = () => { this.reach = { t: 0, target: handle.clone(), kind: 'door' }; };
+    const to = this.door.handleWorld().sub(eye);
+    const looking = to.length() < 1.5 && to.normalize().dot(P.forward()) > 0.82;
+    this.ui.prompt(looking ? '[E]  Mở cửa' : '');
+    if (looking && this.input.hit('KeyE')) {
+      this.ui.prompt('');
+      this.doorT = 0;
+      this.audio.play3D('door_handle', this.door.handle, 0.8, { ref: 0.6 });
     }
-    const phone = this.furn.props.get('phone');
-    if (phone && (this.phoneState === 'ringing') && near(phone.getWorldPosition(new THREE.Vector3()), 1.6, 0.8)) {
-      label = '[E]  Nhấc máy';
-      action = () => this.answerPhone();
-    }
-    this.ui.prompt(label);
-    if (action && this.input.hit('KeyE')) { action(); this.ui.prompt(''); }
-  }
-
-  private answerPhone() {
-    this.phoneState = 'answered';
-    this.ring?.stop();
-    const phone = this.furn.props.get('phone')!;
-    this.reach = { t: 0, target: phone.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.08, 0)), kind: 'phone' };
-    this.audio.play3D('door_handle', phone, 0.4, { rate: 1.6 });
-    setTimeout(() => this.audio.play2D('breath_wake', 0.18, false, 0.7), 1200);
-    setTimeout(() => this.ui.subtitle('(…tiếng thở nặng nề ở đầu dây bên kia…)', 3.5), 1300);
-    setTimeout(() => { this.ui.subtitle('“Đừng quay lại hành lang.”', 3.5); this.scare = 2.2; }, 5200);
-    setTimeout(() => { this.phoneState = 'done'; }, 9000);
-  }
-
-  // ------------------------------------------------------------------ scripted events
-  private updateEvents(dt: number) {
-    const p = this.player.position;
-    if (this.roomEnterT < 0 && p.z < -0.7) this.roomEnterT = this.time;
-    if (this.phoneState === 'idle' && this.roomEnterT > 0 && this.time - this.roomEnterT > 6) {
-      this.phoneState = 'ringing';
-      const phone = this.furn.props.get('phone');
-      if (phone) this.ring = this.audio.play3D('phone_ring', phone, 0.9, { loop: true, ref: 1.0 });
-      setTimeout(() => { if (this.phoneState === 'ringing') { this.ring?.stop(); this.phoneState = 'done'; } }, 30000);
-    }
-    if (this.scare > 0) this.scare -= dt;
   }
 
   // ------------------------------------------------------------------ lights
@@ -366,8 +329,6 @@ export class Game {
           if (this.bulbOut > 0) { this.bulbOut -= dt; k *= 0.05 + Math.random() * 0.15; }
         }
       }
-      if (this.scare > 0 && i !== 3) k *= Math.random() < 0.5 ? 0.05 : 1;
-      if (this.scare > 0 && i === 1) k = 0;
       if (i === 4) k = this.door.isOpen ? 0 : 1; // door leak
       l.light.intensity = l.base * k;
       if (l.glow) l.glow.visible = k > 0.25;

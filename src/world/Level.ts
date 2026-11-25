@@ -8,10 +8,11 @@ import { worldBox, pbrMaterial, makeWet, stainTexture, decal } from './Materials
  *
  *            x=-1       x=1                 x=5
  *   z=-5  +---[winA]--------------[winB]------+
- *         |  corner    |       LEG B          |
- *   z=-3  |            +----------------------+
- *         |  LEG A     |
- *         |  (2m wide) |
+ *         |  corner    |       LEG B       [endDoor]  (locked, never opens)
+ *   z=-3  |            +--[bath]-------------+
+ *         |  LEG A     |  bathroom (dark,    |
+ *         |  (2m wide) |  door ajar)         |
+ *   z=-1  |            +---------------------+
  *   z=0   +---[door]---+
  *              |  |
  *              |  |  concrete corridor (1.1m wide, 2.4m high)
@@ -25,6 +26,11 @@ export const DIV_Z = 0; // dividing wall center (door wall)
 export const DOOR = { x0: -0.45, x1: 0.45, h: 2.1 };
 export const WIN_A = { x0: -0.5, x1: 0.5, y0: 0.95, y1: 2.55 };
 export const WIN_B = { x0: 2.9, x1: 3.9, y0: 0.95, y1: 2.55 };
+/** locked door closing the end of the L (in the x=5 wall, spans z) */
+export const END_DOOR = { z0: -4.45, z1: -3.55, h: 2.1 };
+/** bathroom door (in the z=−3 wall, spans x), left ajar into a dark room */
+export const BATH_DOOR = { x0: 2.0, x1: 2.75, h: 2.05 };
+export const BATH = { x0: 1.24, x1: 3.3, z0: -2.76, z1: -1.0, h: 2.6 };
 
 interface Hole { a0: number; a1: number; y0: number; y1: number }
 type Mat = THREE.Material;
@@ -168,8 +174,11 @@ export class Level {
     this.wall('z', -1 - t / 2, -5.2, 0, H, t, [wp, wp, wp, wp, wp, wp], [], 1.6, 'r');
     this.wall('z', 1 + t / 2, -3 + t / 2, 0, H, t, [wp, wp, wp, wp, wp, wp], [], 1.6, 'r');
     // leg B walls
-    this.wall('x', -3 + t / 2, 1, 5.2, H, t, [wp, wp, wp, wp, wp, wp], [], 1.6, 'r');
-    this.wall('z', 5 + t / 2, -5.2, -2.8, H, t, [wp, wp, wp, wp, wp, wp], [], 1.6, 'r');
+    this.wall('x', -3 + t / 2, 1, 5.2, H, t, [wp, wp, wp, wp, wp, wp], [{ a0: BATH_DOOR.x0, a1: BATH_DOOR.x1, y0: 0, y1: BATH_DOOR.h }], 1.6, 'r');
+    this.wall('z', 5 + t / 2, -5.2, -2.8, H, t, [wp, wp, wp, wp, wp, wp], [{ a0: END_DOOR.z0, a1: END_DOOR.z1, y0: 0, y1: END_DOOR.h }], 1.6, 'r');
+    // solid backing behind the locked door (nothing exists beyond it)
+    this.box(0.1, END_DOOR.h + 0.1, END_DOOR.z1 - END_DOOR.z0 + 0.2, new THREE.MeshBasicMaterial({ color: 0x000000 }), new THREE.Vector3(5.3, END_DOOR.h / 2, (END_DOOR.z0 + END_DOOR.z1) / 2), 1, 'r');
+    this.buildBathroom();
     // back wall with two windows
     this.wall('x', -5 - t / 2, -1.2, 5.2, H, t, [wp, wp, pl, pl, pl, wp], [
       { a0: WIN_A.x0, a1: WIN_A.x1, y0: WIN_A.y0, y1: WIN_A.y1 },
@@ -180,14 +189,16 @@ export class Level {
     const faces: { p0: [number, number]; p1: [number, number]; n: [number, number]; gaps: [number, number][]; winGaps?: [number, number][] }[] = [
       { p0: [-1, -0.12], p1: [-1, -5], n: [1, 0], gaps: [] },
       { p0: [1, -0.12], p1: [1, -3], n: [-1, 0], gaps: [] },
-      { p0: [1, -3], p1: [5, -3], n: [0, -1], gaps: [] },
-      { p0: [5, -3], p1: [5, -5], n: [-1, 0], gaps: [] },
+      { p0: [1, -3], p1: [5, -3], n: [0, -1], gaps: [[BATH_DOOR.x0 - 1 - 0.09, BATH_DOOR.x1 - 1 + 0.09]] },
+      { p0: [5, -3], p1: [5, -5], n: [-1, 0], gaps: [[-3 - END_DOOR.z1 - 0.09, -3 - END_DOOR.z0 + 0.09]] },
       { p0: [-1, -5], p1: [5, -5], n: [0, 1], gaps: [], winGaps: [[WIN_A.x0 + 1, WIN_A.x1 + 1], [WIN_B.x0 + 1, WIN_B.x1 + 1]] },
       { p0: [-1, -0.12], p1: [1, -0.12], n: [0, -1], gaps: [[DOOR.x0 + 1 - 0.09, DOOR.x1 + 1 + 0.09]] },
     ];
     for (const f of faces) this.trimFace(f.p0, f.p1, f.n, f.gaps);
 
-    this.buildDoorFrame();
+    this.buildDoorFrame('x', DIV_Z, DOOR.x0, DOOR.x1, DOOR.h);
+    this.buildDoorFrame('x', -3 + t / 2, BATH_DOOR.x0, BATH_DOOR.x1, BATH_DOOR.h);
+    this.buildDoorFrame('z', 5 + t / 2, END_DOOR.z0, END_DOOR.z1, END_DOOR.h);
     this.buildWindowFrame(WIN_A.x0, WIN_A.x1);
     this.buildWindowFrame(WIN_B.x0, WIN_B.x1);
   }
@@ -228,31 +239,39 @@ export class Level {
     put(0, len, 2.35, 2.38, 0.025, M.trim, 0.5);
   }
 
-  private buildDoorFrame() {
+  /** Casings on both faces, jamb linings and threshold for an opening in a 0.24 m wall. */
+  private buildDoorFrame(along: 'x' | 'z', fixed: number, a0: number, a1: number, h: number) {
     const M = this.mats;
-    const w = 0.09, d = 0.03;
-    for (const side of [-1, 1]) { // -1 room side, +1 corridor side
-      const z = DIV_Z + side * (0.12 + d / 2);
-      const mat = side < 0 ? M.trim : M.trim;
-      for (const x of [DOOR.x0 - w / 2, DOOR.x1 + w / 2]) {
-        const m = new THREE.Mesh(worldBox(w, DOOR.h + w, d, 0.6), mat);
-        m.position.set(x, (DOOR.h + w) / 2, z); m.castShadow = m.receiveShadow = true; this.group.add(m);
-      }
-      const top = new THREE.Mesh(worldBox(DOOR.x1 - DOOR.x0 + w * 2 + 0.04, w + 0.02, d + 0.01, 0.6), mat);
-      top.position.set(0, DOOR.h + w / 2 + 0.01, z); top.castShadow = top.receiveShadow = true; this.group.add(top);
+    const w = 0.09, d = 0.03, mid = (a0 + a1) / 2, span = a1 - a0;
+    const add = (alongLen: number, hh: number, depth: number, a: number, y: number, off: number) => {
+      const [sx, sz] = along === 'x' ? [alongLen, depth] : [depth, alongLen];
+      const m = new THREE.Mesh(worldBox(sx, hh, sz, 0.6), M.trim);
+      m.position.set(along === 'x' ? a : fixed + off, y, along === 'x' ? fixed + off : a);
+      m.castShadow = m.receiveShadow = true;
+      this.group.add(m); this.roomMeshes.push(m);
+    };
+    for (const side of [-1, 1]) {
+      const off = side * (0.12 + d / 2);
+      add(w, h + w, d, a0 - w / 2, (h + w) / 2, off);
+      add(w, h + w, d, a1 + w / 2, (h + w) / 2, off);
+      add(span + w * 2 + 0.04, w + 0.02, d + 0.01, mid, h + w / 2 + 0.01, off);
     }
-    // jamb lining inside the opening
-    const jambs: [number, number, number, number, number][] = [
-      [DOOR.x0 + 0.01, DOOR.h / 2, 0.02, DOOR.h, 0.24], [DOOR.x1 - 0.01, DOOR.h / 2, 0.02, DOOR.h, 0.24],
-    ];
-    for (const [x, y, w2, h2, d2] of jambs) {
-      const m = new THREE.Mesh(worldBox(w2, h2, d2, 0.6), M.trim); m.position.set(x, y, DIV_Z); m.receiveShadow = true; this.group.add(m);
-    }
-    const head = new THREE.Mesh(worldBox(DOOR.x1 - DOOR.x0, 0.02, 0.24, 0.6), M.trim);
-    head.position.set(0, DOOR.h - 0.01, DIV_Z); this.group.add(head);
-    // threshold
-    const th = new THREE.Mesh(worldBox(DOOR.x1 - DOOR.x0 + 0.1, 0.02, 0.3, 0.5), M.trim);
-    th.position.set(0, 0.01, DIV_Z); th.receiveShadow = true; this.group.add(th);
+    add(0.02, h, 0.24, a0 + 0.01, h / 2, 0);
+    add(0.02, h, 0.24, a1 - 0.01, h / 2, 0);
+    add(span, 0.02, 0.24, mid, h - 0.01, 0);
+    add(span + 0.1, 0.02, 0.3, mid, 0.01, 0);
+  }
+
+  /** Small windowless bathroom behind the ajar door: no light source, so it reads as pitch black. */
+  private buildBathroom() {
+    const B = BATH, t = 0.2;
+    const tile = new THREE.MeshStandardMaterial({ color: 0x9a978f, roughness: 0.3, map: this.mats.plaster.map, normalMap: this.mats.plaster.normalMap });
+    const floor = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 0.4 });
+    const w = B.x1 - B.x0, d = B.z1 - B.z0, cx = (B.x0 + B.x1) / 2, cz = (B.z0 + B.z1) / 2;
+    this.box(w + 0.4, 0.2, d + 0.4, floor, new THREE.Vector3(cx, -0.1, cz), 0.3, 'r');
+    this.box(w + 0.4, 0.2, d + 0.4, tile, new THREE.Vector3(cx, B.h + 0.1, cz), 0.3, 'r');
+    this.wall('z', B.x1 + t / 2, B.z0 - 0.1, B.z1 + t, B.h, t, [tile, tile, tile, tile, tile, tile], [], 0.3, 'r');
+    this.wall('x', B.z1 + t / 2, B.x0, B.x1 + t, B.h, t, [tile, tile, tile, tile, tile, tile], [], 0.3, 'r');
   }
 
   /** Painted timber window: casing, sill, sash with mullions (glass handled by Window.ts). */
@@ -284,7 +303,7 @@ export class Level {
     for (const fy of [0.25, 0.75]) add(w - 0.1, 0.02, 0.03, cx, y0 + (y1 - y0) * fy, sz);
   }
 
-  /** Damp stains, mold, dirt decals — sells age and neglect. */
+  /** Dirt decals in the wet corridor only (the house itself is kept tidy). */
   private buildStains() {
     let seed = 7;
     const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -293,20 +312,7 @@ export class Level {
       d.position.copy(pos); d.rotation.copy(rot); d.rotateZ(rnd() * Math.PI * 2);
       this.group.add(d);
     };
-    const up = new THREE.Euler(-Math.PI / 2, 0, 0), down = new THREE.Euler(Math.PI / 2, 0, 0);
-    // ceiling water stains (room)
-    add('water', new THREE.Vector3(0.2, ROOM_H - 0.002, -1.6), down, 1.4);
-    add('water', new THREE.Vector3(-0.4, ROOM_H - 0.002, -4.3), down, 1.0);
-    add('water', new THREE.Vector3(3.6, ROOM_H - 0.002, -4.1), down, 1.7);
-    add('mold', new THREE.Vector3(4.7, ROOM_H - 0.002, -4.7), down, 0.9);
-    // mold creeping in the window corners
-    add('mold', new THREE.Vector3(-0.85, 2.7, -4.985), new THREE.Euler(0, 0, 0), 0.8);
-    add('mold', new THREE.Vector3(4.85, 2.6, -4.985), new THREE.Euler(0, 0, 0), 0.9);
-    add('mold', new THREE.Vector3(4.985, 2.3, -4.6), new THREE.Euler(0, -Math.PI / 2, 0), 1.1);
-    add('water', new THREE.Vector3(-0.985, 2.1, -2.5), new THREE.Euler(0, Math.PI / 2, 0), 1.0, 0.8);
-    // floor dirt / scuffs (room)
-    for (let i = 0; i < 9; i++) add('scuff', new THREE.Vector3(-0.8 + rnd() * 1.6, 0.003, -0.5 - rnd() * 4.3), up, 0.6 + rnd() * 0.8);
-    for (let i = 0; i < 6; i++) add('dirt', new THREE.Vector3(1.2 + rnd() * 3.6, 0.003, -3.2 - rnd() * 1.6), up, 0.5 + rnd() * 0.7);
+    const up = new THREE.Euler(-Math.PI / 2, 0, 0);
     // corridor floor muck
     for (let i = 0; i < 8; i++) add('dirt', new THREE.Vector3(-0.4 + rnd() * 0.8, 0.003, 0.5 + rnd() * 5.2), up, 0.5 + rnd() * 0.6);
   }

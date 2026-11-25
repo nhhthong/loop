@@ -2,9 +2,22 @@ import * as THREE from 'three';
 import type RAPIER from '@dimforge/rapier3d-compat';
 import type { Physics } from '../engine/Physics';
 import { worldBox } from './Materials';
-import { DOOR, DIV_Z } from './Level';
 
-/** Six-panel hardwood door hinged on the left jamb, swinging into the room. */
+export interface DoorOpts {
+  /** hinge point at floor level */
+  hinge: THREE.Vector3;
+  width: number;
+  height: number;
+  /** yaw that makes the leaf's local +X run along the wall from the hinge */
+  baseYaw: number;
+  /** +1 / −1: which way positive opening angle swings */
+  openSign: 1 | -1;
+  /** starting opening angle (rad), e.g. ajar */
+  angle?: number;
+  color?: number;
+}
+
+/** Six-panel hardwood door hinged at `hinge`. */
 export class Door {
   readonly pivot = new THREE.Group();
   readonly handle: THREE.Object3D;
@@ -13,19 +26,26 @@ export class Door {
   private target = 0;
   private vel = 0;
   isOpen = false;
-  readonly leafW = DOOR.x1 - DOOR.x0 - 0.01;
-  readonly leafH = DOOR.h - 0.025;
+  readonly leafW: number;
+  readonly leafH: number;
   readonly leafT = 0.045;
+  private readonly baseYaw: number;
+  private readonly openSign: number;
 
-  constructor(physics: Physics, wood: THREE.MeshStandardMaterial) {
+  constructor(physics: Physics, wood: THREE.MeshStandardMaterial, o: DoorOpts) {
+    this.leafW = o.width - 0.01;
+    this.leafH = o.height - 0.025;
+    this.baseYaw = o.baseYaw;
+    this.openSign = o.openSign;
+    this.angle = this.target = o.angle ?? 0;
     const W = this.leafW, H = this.leafH, T = this.leafT;
-    this.pivot.position.set(DOOR.x0 + 0.005, 0.012, DIV_Z - 0.05);
+    this.pivot.position.copy(o.hinge).add(new THREE.Vector3(0, 0.012, 0));
     const leaf = new THREE.Group();
     leaf.position.x = W / 2;
     this.pivot.add(leaf);
 
     const doorWood = wood.clone();
-    doorWood.color.set(0x6a4630);
+    doorWood.color.set(o.color ?? 0x6a4630);
     doorWood.roughness = 0.7;
     const add = (w: number, h: number, d: number, x: number, y: number, z: number, mat = doorWood) => {
       const m = new THREE.Mesh(worldBox(w, h, d, 0.8), mat);
@@ -68,6 +88,7 @@ export class Door {
       hinge.position.set(-W / 2 - 0.002, y, -T / 2); leaf.add(hinge);
     }
 
+    this.pivot.rotation.y = this.baseYaw + this.openSign * this.angle;
     const { body } = physics.addKinematicBox(new THREE.Vector3(W / 2, H / 2, T / 2));
     this.body = body;
     this.syncBody();
@@ -79,7 +100,7 @@ export class Door {
   open() {
     if (this.isOpen) return;
     this.isOpen = true;
-    this.target = -1.65; // swing into the room (−z)
+    this.target = 1.65;
   }
 
   update(dt: number) {
@@ -88,7 +109,7 @@ export class Door {
     const acc = (this.target - this.angle) * k - this.vel * c;
     this.vel += acc * dt;
     this.angle += this.vel * dt * 0.55;
-    this.pivot.rotation.y = -this.angle;
+    this.pivot.rotation.y = this.baseYaw + this.openSign * this.angle;
     this.syncBody();
   }
 

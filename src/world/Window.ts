@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { sharedUniforms } from './Materials';
+import { Q } from '../engine/Quality';
 
 /**
  * Night window: rain-streaked glass, a deep dark exterior with faint moonlit branches,
@@ -109,8 +110,8 @@ export function buildWindow(x0: number, x1: number, y0: number, y1: number, wall
   const moon = new THREE.SpotLight(0x8ea6d8, 6, 9, 0.5, 0.6, 1.2);
   moon.position.set(cx - 0.9, cy + 1.6, wallZ - 2.2);
   moon.target.position.set(cx + 0.3, 0, wallZ + 2.0);
-  moon.castShadow = castShadow;
-  moon.shadow.mapSize.set(1024, 1024);
+  moon.castShadow = castShadow && Q.shadows;
+  moon.shadow.mapSize.set(Q.shadowMap, Q.shadowMap);
   moon.shadow.bias = -0.0004;
   moon.shadow.normalBias = 0.02;
   moon.shadow.radius = 4;

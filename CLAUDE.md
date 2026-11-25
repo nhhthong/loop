@@ -82,14 +82,15 @@ First-person horror vignette. TypeScript · three.js r170 · Rapier (`@dimforge/
 
 ## Commands
 ```bash
-npm run dev        # http://localhost:5173  (?q=low, ?noao, ?nodof for weak GPUs)
+npm run dev        # http://localhost:5173  (?q=low|medium|high — also selectable in the menu)
 npm run typecheck  # tsc --noEmit — must pass before every commit
 npm run build
 ```
 
 ## Verification policy
 - Default check = `npm run typecheck`. Do **not** run e2e / headless full-game runs unless truly needed or asked.
-  The cloud container has no GPU: SwiftShader renders the full scene at ~14 s/frame and runs out of memory.
+  The cloud container has no GPU: only `?q=low` (no shadows/AO/DOF/bloom, 1K textures) is viable for headless screenshots.
+- Graphics presets live in `src/engine/Quality.ts` (`Q` singleton, read at boot; changing level reloads the page).
 - For isolated visual checks use the light dev pages instead: `inspect.html?f=group/model,...` (model orientation/scale),
   `handtest.html?fov=&tx=&ty=&tz=&roll=&curl=` (hand pose), `scanprobe.html` (hand-scan landmarks).
 - Scene-level look (lighting, prop placement) is verified by the owner on real hardware — ask for screenshots.
@@ -97,7 +98,9 @@ npm run build
 ## Layout (meters, Y up) — see diagram in `src/world/Level.ts`
 - Corridor: x∈[-0.55, 0.55], z∈[0.12, 6], height 2.4. Player wakes at z≈5.45 facing −z.
 - Door wall at z=0, door x∈[-0.45, 0.45], h 2.1, hinged left, swings into the room (−z).
-- L-room height 3: leg A x∈[-1, 1], z∈[-5, 0]; leg B x∈[1, 5], z∈[-5, -3]. Windows on back wall z=−5.
+- L-hallway of a classic house, height 3: leg A x∈[-1, 1], z∈[-5, 0]; leg B x∈[1, 5], z∈[-5, -3]. Two dark windows on back wall z=−5.
+- End of the L: locked door in the x=5 wall (never opens, nothing behind it). One side door (bathroom) in the z=−3 wall,
+  left ajar, pitch-black room behind (`BATH` in `Level.ts`).
 - Prop wall yaw convention (model front = +Z): left wall 90 · right wall −90 · z=−3 wall 180 · back wall 0 · x=5 wall −90.
 
 ## Code map
@@ -108,11 +111,17 @@ npm run build
 - `src/player` — `Player` (Rapier kinematic capsule), `Hands` (runtime auto-rig of a photogrammetry hand scan).
 - `src/game/Game.ts` — wake-up cinematic, interactions, scripted events, light flicker, ambience.
 
-## Hands — owner decisions (do not change without asking)
+## Owner decisions (do not change without asking)
+- **Phase 1 = layout of the house only.** No gameplay beyond walking and opening the first door with E.
+- No telephone interaction/ringing (the phone is a static prop). No scripted scares.
+- House is **tidy but deserted**: no damage, debris, stains or mold in the house. The entry corridor stays wet concrete with roaches.
+- Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
+
+## Hands
 - Model: `public/models/hands_bugs/male_hand_scan.glb` (photoscan, unrigged). Rig built in code from landmarks in `Hands.ts`.
 - **Show the hand only as long as the model is.** No sleeve, no procedural forearm extension.
 - The scan's wrist cut must never be on screen → the hand is shown only in framed close-ups
-  (intro: FOV 40, hand raised from below). Interactions (door, phone) currently play without a visible hand.
+  (intro: FOV 40, hand raised from below). The hand appears **only in the intro**.
 - Intro = heavy breathing + close-up of the hand (turning wrist, flexing fingers).
 
 ## Assets
