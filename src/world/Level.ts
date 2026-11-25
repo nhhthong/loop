@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Physics } from '../engine/Physics';
 import type { Assets } from '../engine/Assets';
-import { worldBox, pbrMaterial, makeWet, stainTexture, decal } from './Materials';
+import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal } from './Materials';
 
 /**
  * LAYOUT (meters, Y up, top view):
@@ -56,19 +56,19 @@ export class Level {
       pbrMaterial(A, 'concrete_wall_006', { tint: 0xb8b4aa }),
       pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x9a958c }),
       pbrMaterial(A, 'concrete_wall_003', { tint: 0x8a877f }),
-      pbrMaterial(A, 'laminate_floor_02', { tint: 0xe0d6c8, envIntensity: 0.9 }),
+      pbrMaterial(A, 'wood_floor', { tint: 0x7d6a58, envIntensity: 1.0 }),
       pbrMaterial(A, 'plastered_wall', { tint: 0xe6e1d8 }),
     ]);
     makeWet(concreteWall, 'wall', 1);
     makeWet(concreteFloor, 'floor', 1);
     makeWet(concreteCeil, 'ceiling', 0.8);
-    woodFloor.roughness = 0.7;
-    // painted drywall: same plaster maps, subtle orange-peel only, warm white (contemporary)
-    const wallPaint = plaster.clone();
-    wallPaint.color.set(0xe9e4da);
-    wallPaint.normalScale.set(0.25, 0.25);
-    // white semi-gloss trim (baseboards, casings, sills, doors)
-    const trim = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.4, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.1, 0.1) });
+    woodFloor.roughness = 0.6;
+    // aged ivory plaster walls with visible trowel texture and light grime
+    const wallPaint = makeGrime(plaster.clone(), 1);
+    wallPaint.color.set(0xd6cfbf);
+    wallPaint.normalScale.set(0.7, 0.7);
+    // off-white painted trim (baseboards, crown, casings, sills, doors)
+    const trim = new THREE.MeshStandardMaterial({ color: 0xd9d3c6, roughness: 0.45, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.15, 0.15) });
     const blackMetal = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.5, roughness: 0.5 });
     this.mats = { concreteWall, concreteFloor, concreteCeil, wallPaint, woodFloor, plaster, trim, blackMetal };
 
@@ -203,7 +203,7 @@ export class Level {
     this.buildWindowFrame(WIN_B.x0, WIN_B.x1);
   }
 
-  /** Baseboard along an interior face (gaps at doors). */
+  /** Baseboard (gaps at doors) + crown molding along an interior face. */
   private trimFace(p0: [number, number], p1: [number, number], n: [number, number], gaps: [number, number][]) {
     const M = this.mats;
     const dx = p1[0] - p0[0], dz = p1[1] - p0[1];
@@ -225,8 +225,17 @@ export class Level {
       m.castShadow = true; m.receiveShadow = true;
       this.group.add(m); this.roomMeshes.push(m);
     };
-    // contemporary: plain square baseboard only (no wainscot, rails or crown)
-    for (const [s0, s1] of segs) put(s0, s1, 0, 0.11, 0.015, M.trim, 0.5);
+    // tall baseboard with a stepped cap
+    for (const [s0, s1] of segs) {
+      put(s0, s1, 0, 0.17, 0.018, M.trim, 0.5);
+      put(s0, s1, 0.15, 0.17, 0.028, M.trim, 0.5);
+      put(s0, s1, 0, 0.025, 0.026, M.trim, 0.5);
+    }
+    // stepped crown molding (reads as a cove from below)
+    put(0, len, ROOM_H - 0.2, ROOM_H, 0.02, M.trim, 0.6);
+    put(0, len, ROOM_H - 0.13, ROOM_H, 0.05, M.trim, 0.6);
+    put(0, len, ROOM_H - 0.07, ROOM_H, 0.09, M.trim, 0.6);
+    put(0, len, ROOM_H - 0.03, ROOM_H, 0.13, M.trim, 0.6);
   }
 
   /** Casings on both faces, jamb linings and threshold for an opening in a 0.24 m wall. */
@@ -269,21 +278,27 @@ export class Level {
   private buildWindowFrame(x0: number, x1: number) {
     const M = this.mats;
     const z = -5, y0 = WIN_A.y0, y1 = WIN_A.y1, w = x1 - x0, cx = (x0 + x1) / 2;
-    const add = (ww: number, hh: number, dd: number, x: number, y: number, zz: number, mat: Mat) => {
+    const add = (ww: number, hh: number, dd: number, x: number, y: number, zz: number, mat: Mat = M.trim) => {
       const m = new THREE.Mesh(worldBox(ww, hh, dd, 0.5), mat);
       m.position.set(x, y, zz); m.castShadow = true; m.receiveShadow = true; this.group.add(m); this.roomMeshes.push(m);
     };
-    // drywall returns (no casing — contemporary), white stool sill
+    // casing, sill + apron
+    add(0.09, y1 - y0 + 0.18, 0.025, x0 - 0.045, (y0 + y1) / 2 + 0.045, z + 0.012);
+    add(0.09, y1 - y0 + 0.18, 0.025, x1 + 0.045, (y0 + y1) / 2 + 0.045, z + 0.012);
+    add(w + 0.26, 0.1, 0.03, cx, y1 + 0.06, z + 0.015);
+    add(w + 0.3, 0.035, 0.18, cx, y0 - 0.017, z + 0.02);
+    add(w + 0.18, 0.08, 0.022, cx, y0 - 0.075, z + 0.011);
+    // reveals
     add(0.02, y1 - y0, 0.24, x0 + 0.01, (y0 + y1) / 2, z - 0.12, M.wallPaint);
     add(0.02, y1 - y0, 0.24, x1 - 0.01, (y0 + y1) / 2, z - 0.12, M.wallPaint);
     add(w, 0.02, 0.24, cx, y1 - 0.01, z - 0.12, M.wallPaint);
-    add(w + 0.06, 0.03, 0.26, cx, y0 - 0.015, z - 0.1, M.trim);
-    // slim matte-black frame, single meeting rail (double-hung look, few divisions)
-    const sz = z - 0.16, fd = 0.05, f = 0.045;
-    const B = M.blackMetal;
-    add(w - 0.04, f, fd, cx, y0 + f / 2, sz, B); add(w - 0.04, f, fd, cx, y1 - f / 2, sz, B);
-    add(f, y1 - y0, fd, x0 + 0.02 + f / 2, (y0 + y1) / 2, sz, B); add(f, y1 - y0, fd, x1 - 0.02 - f / 2, (y0 + y1) / 2, sz, B);
-    add(w - 0.04, 0.035, fd + 0.02, cx, (y0 + y1) / 2, sz, B);
+    // painted sash: frame, meeting rail, glazing bars (6 over 6)
+    const sz = z - 0.16, fd = 0.05;
+    add(w - 0.04, 0.055, fd, cx, y0 + 0.028, sz); add(w - 0.04, 0.055, fd, cx, y1 - 0.028, sz);
+    add(0.055, y1 - y0, fd, x0 + 0.048, (y0 + y1) / 2, sz); add(0.055, y1 - y0, fd, x1 - 0.048, (y0 + y1) / 2, sz);
+    add(w - 0.04, 0.045, fd + 0.02, cx, (y0 + y1) / 2, sz);
+    for (const fx of [1 / 3, 2 / 3]) add(0.018, y1 - y0 - 0.1, 0.03, x0 + w * fx, (y0 + y1) / 2, sz);
+    for (const fy of [0.25, 0.75]) add(w - 0.1, 0.018, 0.03, cx, y0 + (y1 - y0) * fy, sz);
   }
 
   /** Dirt decals in the wet corridor only (the house itself is kept tidy). */

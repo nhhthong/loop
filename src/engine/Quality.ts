@@ -1,6 +1,6 @@
 /**
  * Graphics presets. Chosen via `?q=low|medium|high`, else the last menu choice (localStorage), else medium.
- * `low` is light enough for software rendering (headless screenshots): no shadows, no AO/DOF/bloom, 1K textures.
+ * `low` is light enough for software rendering (headless screenshots): one proxy shadow, no AO/DOF/bloom, 1K textures.
  */
 export type QualityLevel = 'low' | 'medium' | 'high';
 
@@ -8,6 +8,8 @@ export interface QualitySettings {
   level: QualityLevel;
   pixelRatio: number;
   shadows: boolean;
+  /** low only: a single shadow-casting light that follows the strongest lamp near the player */
+  shadowProxy: boolean;
   shadowMap: number;
   ao: boolean;
   aoQuality: 'Performance' | 'Low' | 'Medium';
@@ -22,9 +24,9 @@ export interface QualitySettings {
 }
 
 const PRESETS: Record<QualityLevel, Omit<QualitySettings, 'level'>> = {
-  low: { pixelRatio: 0.6, shadows: false, shadowMap: 256, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false, texDir: '/1k', probeSize: 64, dust: 300, anisotropy: 1 },
-  medium: { pixelRatio: 1, shadows: true, shadowMap: 512, ao: true, aoQuality: 'Low', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, dust: 900, anisotropy: 4 },
-  high: { pixelRatio: Math.min(window.devicePixelRatio, 2), shadows: true, shadowMap: 1024, ao: true, aoQuality: 'Medium', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 256, dust: 1400, anisotropy: 16 },
+  low: { pixelRatio: 0.6, shadows: false, shadowProxy: true, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false, texDir: '/1k', probeSize: 64, dust: 300, anisotropy: 1 },
+  medium: { pixelRatio: 1, shadows: true, shadowProxy: false, shadowMap: 512, ao: true, aoQuality: 'Low', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, dust: 900, anisotropy: 4 },
+  high: { pixelRatio: Math.min(window.devicePixelRatio, 2), shadows: true, shadowProxy: false, shadowMap: 1024, ao: true, aoQuality: 'Medium', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 256, dust: 1400, anisotropy: 16 },
 };
 
 const KEY = 'loop.quality';

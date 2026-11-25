@@ -3,8 +3,8 @@
 First-person horror vignette — TypeScript · three.js · Rapier · Vite · postprocessing (N8AO, DOF, bloom, AgX).
 
 You wake up gasping on the floor of a narrow, wet concrete corridor. Cockroaches crawl over walls and ceiling,
-water drips from the ceiling. A door leads into the L-shaped hallway (3 m high, 2 m wide) of a contemporary American
-house — tidy, deserted, lit by a few warm downlights and lamps — ending at a door that is shut tight.
+water drips from the ceiling. A door leads into the L-shaped hallway (3 m high, 2 m wide) of a deserted house — grimy ivory walls,
+picture frames, a few harsh lights, near-monochrome grade — ending at a door that is shut tight.
 
 ## Run
 ```bash

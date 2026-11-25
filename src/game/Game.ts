@@ -48,6 +48,8 @@ export class Game {
   private ambR: THREE.Audio | null = null;
   private doorT = -1;
   private bulbOut = 0;
+  private shadowProxy: THREE.PointLight | null = null;
+  private proxyFor = -1;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.input = new Input(canvas);
@@ -92,8 +94,19 @@ export class Game {
     this.furn = furn;
     tick('props');
 
+    if (Q.shadowProxy) {
+      const pl = new THREE.PointLight(0xffffff, 0, 6, 2);
+      pl.castShadow = true;
+      pl.shadow.mapSize.set(Q.shadowMap, Q.shadowMap);
+      pl.shadow.bias = -0.0015;
+      pl.shadow.normalBias = 0.03;
+      pl.shadow.camera.near = 0.05;
+      this.scene.add(pl);
+      this.shadowProxy = pl;
+    }
+
     // ambient fill so nothing is pure black
-    this.scene.add(new THREE.HemisphereLight(0x2a2f3a, 0x0d0a08, 0.12));
+    this.scene.add(new THREE.HemisphereLight(0x2a2f3a, 0x0d0a08, 0.05));
 
     // hands + roaches
     const [arms, roachA, roachB] = await Promise.all([
@@ -149,7 +162,7 @@ export class Game {
     const room = bake(new THREE.Vector3(0, 1.4, -2.5));
     const corr = bake(new THREE.Vector3(0, 1.3, 3.0));
     this.scene.environment = room;
-    this.scene.environmentIntensity = 0.3; // probes add reflections, not flat fill light
+    this.scene.environmentIntensity = 0.2; // probes add reflections, not flat fill light
     const setEnv = (m: THREE.Mesh, env: THREE.Texture) => {
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       mats.forEach((mm) => { if ((mm as THREE.MeshStandardMaterial).isMeshStandardMaterial) (mm as THREE.MeshStandardMaterial).envMap = env; });
@@ -182,7 +195,7 @@ export class Game {
     this.introT = -1;
     this.ui.setLids(1);
     this.renderer.setBlur(0);
-    this.renderer.vignette.darkness = 0.72;
+    this.renderer.vignette.darkness = 0.85;
     this.renderer.exposure.brightness = 0;
     this.player.eye = eye;
     this.player.camera.fov = 70; this.player.camera.updateProjectionMatrix();
@@ -246,7 +259,7 @@ export class Game {
     // focus pulls onto the hand; slight focus "hunting" while dazed
     const blur = 1 - seg(t, 2.2, 6.8);
     this.renderer.setBlur(Math.max(0, blur + Math.sin(t * 1.9) * 0.08 * blur));
-    this.renderer.vignette.darkness = 0.72 + (1 - seg(t, 2, 9)) * 0.25;
+    this.renderer.vignette.darkness = 0.85 + (1 - seg(t, 2, 9)) * 0.12;
     this.renderer.exposure.brightness = -0.22 * (1 - seg(t, 1.5, 7));
 
     // camera: sitting slumped against the end wall, zoomed in, chest heaving
@@ -335,6 +348,32 @@ export class Game {
       const inCorr = l.light.position.z > 0.2;
       l.light.shadow.autoUpdate = inCorr ? pz > -1.5 : pz < 2.5;
     });
+    if (this.shadowProxy) this.updateShadowProxy();
+  }
+
+  /**
+   * `low` quality: one shadow-casting point light stands in for the strongest lamp near the player
+   * (that lamp is muted while the proxy plays its part). Constant light count → no shader recompiles.
+   */
+  private updateShadowProxy() {
+    const proxy = this.shadowProxy!;
+    const p = this.player.eyePos();
+    const score = (l: THREE.Light) => l.intensity / (1 + l.position.distanceToSquared(p));
+    let best = this.proxyFor, bestScore = best >= 0 ? score(this.furn.lamps[best].light) * 1.3 : 0; // hysteresis
+    this.furn.lamps.forEach((l, i) => {
+      if (i === 4 || l.base <= 0) return; // skip the under-door leak
+      const sc = score(l.light);
+      if (sc > bestScore) { best = i; bestScore = sc; }
+    });
+    this.proxyFor = best;
+    if (best < 0) { proxy.intensity = 0; return; }
+    const src = this.furn.lamps[best].light;
+    proxy.position.copy(src.position);
+    proxy.color.copy(src.color);
+    proxy.distance = src.distance;
+    proxy.decay = src.decay;
+    proxy.intensity = src.intensity;
+    src.intensity = 0;
   }
 
   private updateAmbience(dt: number) {

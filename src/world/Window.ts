@@ -4,7 +4,7 @@ import { Q } from '../engine/Quality';
 
 /**
  * Night window: rain-streaked glass, a deep dark exterior with faint moonlit branches,
- * half-lowered venetian blinds, and a cold moonlight spot that throws the frame/slat shadows inside.
+ * and a cold moonlight spot that throws the glazing-bar shadows inside.
  */
 export function buildWindow(x0: number, x1: number, y0: number, y1: number, wallZ: number, castShadow: boolean) {
   const g = new THREE.Group();
@@ -74,26 +74,6 @@ export function buildWindow(x0: number, x1: number, y0: number, y1: number, wall
   pane.position.set(cx, cy, wallZ - 0.17);
   pane.renderOrder = 2;
   g.add(pane);
-
-  // --- venetian blinds, lowered about half way, slats tilted slightly open -------------------
-  const slatMat = new THREE.MeshStandardMaterial({ color: 0xdcd8cf, roughness: 0.55, side: THREE.DoubleSide });
-  const headMat = new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.5 });
-  const bw = w - 0.06, bz = wallZ - 0.06, top = y1 - 0.04, drop = (y1 - y0) * 0.52, pitch = 0.025;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.02, 0.04, 0.05), headMat);
-  head.position.set(cx, top, bz); head.castShadow = true; g.add(head);
-  const slatGeo = new THREE.BoxGeometry(bw, 0.0012, 0.025);
-  const n = Math.floor(drop / pitch);
-  const slats = new THREE.InstancedMesh(slatGeo, slatMat, n);
-  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.35);
-  for (let i = 0; i < n; i++) slats.setMatrixAt(i, mtx.compose(new THREE.Vector3(cx, top - 0.03 - i * pitch, bz), q, new THREE.Vector3(1, 1, 1)));
-  slats.castShadow = true; slats.receiveShadow = true;
-  g.add(slats);
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.012, 0.028), headMat);
-  rail.position.set(cx, top - 0.03 - n * pitch, bz); rail.castShadow = true; g.add(rail);
-  for (const fx of [0.2, 0.8]) { // ladder cords
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, n * pitch + 0.03, 4), headMat);
-    cord.position.set(x0 + 0.03 + bw * fx, top - (n * pitch + 0.03) / 2, bz); g.add(cord);
-  }
 
   // --- moonlight ------------------------------------------------------------------------
   const moon = new THREE.SpotLight(0x8ea6d8, 6, 9, 0.5, 0.6, 1.2);

@@ -11,18 +11,5 @@
     "faceCount": 9734,
     "sizeBytes": 1061880,
     "notes": "Photogrammetry scan of a small plush bear; clean-ish, not heavily dirtied. Good realism; add dirt/wear in shader if needed."
-  },
-  {
-    "file": "monstera_potted.glb",
-    "item": "large potted plant",
-    "uid": "1ab9bf841df04c07b1819be596327629",
-    "name": "Monstera Deliciosa Potted Mid-Century plant",
-    "author": "Giora",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/1ab9bf841df04c07b1819be596327629",
-    "faceCount": 9310,
-    "sizeBytes": 8187092,
-    "notes": "Potted Monstera with mid-century metal stand; tidy, healthy, somewhat stylized render. Largest like count among plants."
   }
 ]

@@ -1,15 +1,13 @@
 [
   {
-    "file": "persian_runner_rug.glb",
-    "item": "hallway runner rug (persian)",
-    "uid": "08fee343183d4287a9ac8269ec4e97c5",
-    "name": "Old Persian Carpet_14_MB",
-    "author": "ahmagh2e",
+    "file": "vintage_framed_photos.glb",
+    "item": "framed photos",
+    "uid": "d9b956abe2764d17aa901fe4f202f2b2",
+    "name": "Vintage Framed Art and Photos",
+    "author": "NatPlatt",
     "license_slug": "by",
-    "license_label": "CC Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/08fee343183d4287a9ac8269ec4e97c5",
-    "faceCount": 2732,
-    "sizeBytes": 1451344,
-    "notes": "Old Persian carpet, 2.7k faces, textured rug. Aspect looks elongated but it is not confirmed to be a strict long runner; the lamp is Moroccan-style brass lantern form rather than classic European fitting."
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/d9b956abe2764d17aa901fe4f202f2b2",
+    "faceCount": 216
   }
 ]

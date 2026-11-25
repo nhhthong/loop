@@ -37,5 +37,18 @@
     "faceCount": 11207,
     "sizeBytes": 4958372,
     "notes": "Floor pendulum clock in wooden case; 2048px case texture, moon dial."
+  },
+  {
+    "file": "antique_wall_sconce.glb",
+    "item": "wall sconce (vintage brass)",
+    "uid": "ba2bc42641f34e07aeb36a5c99f4e654",
+    "name": "Antique Wall Light",
+    "author": "rakshaan",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/ba2bc42641f34e07aeb36a5c99f4e654",
+    "faceCount": 19031,
+    "sizeBytes": 3534888,
+    "notes": "Two-arm brass wall sconce with fabric shades; 1024px fully PBR including emissive."
   }
 ]

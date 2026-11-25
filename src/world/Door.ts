@@ -17,7 +17,7 @@ export interface DoorOpts {
   color?: number;
 }
 
-/** Flat painted slab door with black lever, hinged at `hinge`. */
+/** Painted four-panel door with a bronze knob, hinged at `hinge`. */
 export class Door {
   readonly pivot = new THREE.Group();
   readonly handle: THREE.Object3D;
@@ -44,23 +44,35 @@ export class Door {
     leaf.position.x = W / 2;
     this.pivot.add(leaf);
 
-    // contemporary flat slab: painted white, square edges, matte black lever hardware
+    // painted four-panel door (stiles/rails proud of a thinner core), aged bronze knob
     const paint = wood.clone();
-    paint.color.set(o.color ?? 0xf0ede6);
-    paint.roughness = 0.45;
-    const slab = new THREE.Mesh(worldBox(W, H, T, 0.8), paint);
-    slab.position.set(0, H / 2, 0); slab.castShadow = true; slab.receiveShadow = true; leaf.add(slab);
-    const black = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.6, roughness: 0.45 });
+    paint.color.set(o.color ?? 0xd2cbbd);
+    paint.roughness = 0.5;
+    const add = (w: number, h: number, d: number, x: number, y: number, z: number) => {
+      const m = new THREE.Mesh(worldBox(w, h, d, 0.8), paint);
+      m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; leaf.add(m);
+    };
+    add(W - 0.02, H - 0.02, T * 0.6, 0, H / 2, 0);
+    const st = 0.11, rail = 0.12;
+    add(st, H, T, -W / 2 + st / 2, H / 2, 0);
+    add(st, H, T, W / 2 - st / 2, H / 2, 0);
+    for (const y of [rail / 2, H * 0.42, H - rail / 2]) add(W - st * 2, y === H * 0.42 ? 0.16 : rail, T, 0, y, 0);
+    add(0.09, H - rail * 2, T, 0, H / 2, 0);
+    const pw = (W - st * 2 - 0.09) / 2;
+    for (const [a0, b0] of [[rail, H * 0.42 - 0.08], [H * 0.42 + 0.08, H - rail]]) for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      add(pw - 0.06, b0 - a0 - 0.06, 0.008, sx * (pw / 2 + 0.045), (a0 + b0) / 2, sz * T * 0.34);
+    }
+    const black = new THREE.MeshStandardMaterial({ color: 0x3a2e22, metalness: 0.85, roughness: 0.5 });
     this.handle = new THREE.Group();
     this.handle.position.set(W / 2 - 0.065, 0.95, 0);
     leaf.add(this.handle);
     for (const s of [-1, 1]) {
-      const rose = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.008, 32), black);
+      const rose = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.008, 32), black);
       rose.rotation.x = Math.PI / 2; rose.position.set(0, 0, s * (T / 2 + 0.004)); this.handle.add(rose);
-      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.05, 16), black);
-      neck.rotation.x = Math.PI / 2; neck.position.set(0, 0, s * (T / 2 + 0.03)); this.handle.add(neck);
-      const lever = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.016, 0.012), black);
-      lever.position.set(-0.055, 0, s * (T / 2 + 0.055)); lever.castShadow = true; this.handle.add(lever);
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.011, 0.04, 16), black);
+      neck.rotation.x = Math.PI / 2; neck.position.set(0, 0, s * (T / 2 + 0.024)); this.handle.add(neck);
+      const knob = new THREE.Mesh(new THREE.SphereGeometry(0.027, 24, 16), black);
+      knob.scale.set(1, 1, 0.8); knob.position.set(0, 0, s * (T / 2 + 0.05)); knob.castShadow = true; this.handle.add(knob);
     }
     for (const y of [0.22, H / 2, H - 0.22]) {
       const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.09, 0.03), black);

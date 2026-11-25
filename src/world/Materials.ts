@@ -78,6 +78,30 @@ export function makeWet(mat: THREE.MeshStandardMaterial, kind: 'wall' | 'floor' 
   return mat;
 }
 
+/**
+ * Light grime on painted walls: scuffs/dirt rising from the baseboard, smoky darkening near the ceiling,
+ * and soft blotches — world-space, albedo + roughness only (no wetness).
+ */
+export function makeGrime(mat: THREE.MeshStandardMaterial, strength = 1) {
+  mat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWPos = (modelMatrix * vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>\nvarying vec3 vWPos;\n${NOISE_GLSL}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        vec2 gq = vec2(vWPos.x + vWPos.z, vWPos.y);
+        float low = smoothstep(0.45, 0.0, vWPos.y) * (0.4 + 0.6 * fbm(gq * vec2(6.0, 2.0)));
+        float high = smoothstep(2.3, 3.0, vWPos.y) * fbm(gq * 1.5 + 4.0);
+        float blot = smoothstep(0.58, 0.8, fbm(gq * 0.9 + 17.0)) * 0.6;
+        float streak = smoothstep(0.7, 0.95, fbm(vec2(gq.x * 7.0, gq.y * 0.35))) * smoothstep(0.2, 2.6, vWPos.y) * 0.35;
+        float g = clamp((low * 0.55 + high * 0.35 + blot * 0.35 + streak) * ${strength.toFixed(2)}, 0.0, 0.6);
+        diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.72, 0.62), g);`);
+  };
+  mat.customProgramCacheKey = () => 'grime';
+  return mat;
+}
+
 /** Procedural canvas texture: water stain / mold / dirt blotch with alpha. */
 export function stainTexture(seed: number, kind: 'water' | 'mold' | 'dirt' | 'scuff'): THREE.CanvasTexture {
   const S = 512;
