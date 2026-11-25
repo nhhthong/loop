@@ -1,0 +1,67 @@
+[
+  {
+    "file": "chest_of_drawers.glb",
+    "item": "chest of drawers / dresser (vintage wood)",
+    "uid": "3ee2cb9b3d9d441ea2e99e6c801ee0b8",
+    "name": "Old Dresser",
+    "author": "slls666",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/3ee2cb9b3d9d441ea2e99e6c801ee0b8",
+    "faceCount": 39383,
+    "sizeBytes": 4389724,
+    "notes": "Simple wooden two-drawer chest with golden knobs; includes albedo/normal/roughness/metalness maps."
+  },
+  {
+    "file": "brass_pendant_lamp.glb",
+    "item": "small ceiling pendant light (vintage brass)",
+    "uid": "f77c147b2b8940299ca85dd367f62122",
+    "name": "Lamp",
+    "author": "lptechrasika",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/f77c147b2b8940299ca85dd367f62122",
+    "faceCount": 27360,
+    "sizeBytes": 5707220,
+    "notes": "Antique golden hanging lantern pendant (brass look), 27k faces, ceiling-hung. Moroccan-style lantern form rather than classic European fitting."
+  },
+  {
+    "file": "persian_runner_rug.glb",
+    "item": "hallway runner rug (persian)",
+    "uid": "08fee343183d4287a9ac8269ec4e97c5",
+    "name": "Old Persian Carpet_14_MB",
+    "author": "ahmagh2e",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/08fee343183d4287a9ac8269ec4e97c5",
+    "faceCount": 2732,
+    "sizeBytes": 1451344,
+    "notes": "Old Persian carpet, 2.7k faces, textured rug. Aspect looks elongated but it is not confirmed to be a strict long runner; the lamp is Moroccan-style brass lantern form rather than classic European fitting."
+  },
+  {
+    "file": "ceramic_vase_orchids.glb",
+    "item": "ceramic vase with flowers",
+    "uid": "9e351f19b3ba4910b7d15954e49ae178",
+    "name": "Orchidea",
+    "author": "Rox3d",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/9e351f19b3ba4910b7d15954e49ae178",
+    "faceCount": 18248,
+    "sizeBytes": 1144156,
+    "notes": "Ceramic pot holding a pink phalaenopsis orchid stem; realistic-looking."
+  },
+  {
+    "file": "wooden_side_table.glb",
+    "item": "small side table (wooden)",
+    "uid": "e93ac78171c342f7b2424c6181ba4605",
+    "name": "Side Table Dresser",
+    "author": "Ryan_Nein",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/e93ac78171c342f7b2424c6181ba4605",
+    "faceCount": 6468,
+    "sizeBytes": 2878264,
+    "notes": "Wooden bedside/side table with two drawers and carved handles, classic styling."
+  }
+]
