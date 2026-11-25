@@ -150,7 +150,7 @@ export class Game {
     const room = bake(new THREE.Vector3(0, 1.4, -2.5));
     const corr = bake(new THREE.Vector3(0, 1.3, 3.0));
     this.scene.environment = room;
-    this.scene.environmentIntensity = 1;
+    this.scene.environmentIntensity = 0.3; // probes add reflections, not flat fill light
     const setEnv = (m: THREE.Mesh, env: THREE.Texture) => {
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       mats.forEach((mm) => { if ((mm as THREE.MeshStandardMaterial).isMeshStandardMaterial) (mm as THREE.MeshStandardMaterial).envMap = env; });
@@ -169,7 +169,7 @@ export class Game {
     this.player.control = 0;
     this.player.eye = 0.78;
     this.player.pitch = -0.18;
-    this.player.yaw = Math.PI + 0.12;
+    this.player.yaw = 0.12;
     this.player.camera.fov = 40;
     this.player.camera.updateProjectionMatrix();
     this.renderer.setBlur(1);
@@ -253,7 +253,7 @@ export class Game {
     // camera: sitting slumped against the end wall, zoomed in, chest heaving
     P.camera.fov = THREE.MathUtils.lerp(40, 70, seg(t, 11.3, 13.4));
     P.camera.updateProjectionMatrix();
-    P.yaw = Math.PI + 0.12;
+    P.yaw = 0.12;
     P.pitch = -0.18 + breath * 0.016 * amp + Math.sin(t * 0.7) * 0.01;
 
     // hand: close-up, trembling with the breath

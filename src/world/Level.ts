@@ -56,7 +56,7 @@ export class Level {
       pbrMaterial(A, 'concrete_wall_006', { tint: 0xb8b4aa }),
       pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x9a958c }),
       pbrMaterial(A, 'concrete_wall_003', { tint: 0x8a877f }),
-      pbrMaterial(A, 'decrepit_wallpaper', { tint: 0xd6c9b0 }),
+      pbrMaterial(A, 'damask_wallpaper', { tint: 0xe8e2d4 }),
       pbrMaterial(A, 'dark_paneled_wood', { tint: 0x8a6a4c, envIntensity: 0.6 }),
       pbrMaterial(A, 'herringbone_parquet', { tint: 0xc09070, envIntensity: 0.9 }),
       pbrMaterial(A, 'plastered_wall', { tint: 0xd8d0c0 }),
@@ -121,9 +121,8 @@ export class Level {
     const uv = g.attributes.uv as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / tile, pos.getZ(i) / tile);
     g.setAttribute('uv1', uv.clone());
-    if (!facingUp) { g.scale(1, -1, 1); g.computeVertexNormals(); }
-    const m = new THREE.Mesh(g, mat);
-    if (!facingUp) (m.material as THREE.Material).side = THREE.FrontSide;
+    // ceilings: render the underside (BackSide flips the normal for lighting)
+    const m = new THREE.Mesh(g, facingUp ? mat : Object.assign(mat.clone(), { side: THREE.BackSide }));
     m.position.y = y;
     m.receiveShadow = true;
     m.castShadow = !facingUp;

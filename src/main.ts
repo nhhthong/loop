@@ -47,7 +47,7 @@ pause.addEventListener('click', () => game.input.lock());
 
 document.getElementById('credits-link')!.addEventListener('click', async (e) => {
   e.preventDefault();
-  const groups = ['hands_bugs', 'furniture', 'decor', 'architecture'];
+  const groups = ['hands_bugs', 'furniture', 'decor', 'architecture', 'hallway'];
   const lines: string[] = ['3D MODELS (Sketchfab)'];
   for (const g of groups) {
     try {
@@ -60,7 +60,7 @@ document.getElementById('credits-link')!.addEventListener('click', async (e) => 
     const a = await (await fetch('/audio/manifest.json')).json() as { name?: string; author?: string; url?: string; item: string }[];
     for (const x of a) if (x.name) lines.push(`  ${x.item}: "${x.name}" by ${x.author ?? '?'} ${x.url ?? ''}`);
   } catch { /* ignore */ }
-  lines.push('', 'TEXTURES: Poly Haven (CC0) — polyhaven.com', '', '[click to close]');
+  lines.push('', 'TEXTURES: Poly Haven (CC0) — polyhaven.com; damask wallpaper: procedural', '', '[click to close]');
   credits.textContent = lines.join('\n');
   credits.style.whiteSpace = 'pre-wrap';
   credits.classList.remove('hidden');

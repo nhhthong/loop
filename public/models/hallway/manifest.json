@@ -1,5 +1,53 @@
 [
   {
+    "file": "wall_mirror.glb",
+    "item": "wall mirror with ornate gilt frame",
+    "uid": "a3ad19a9186b445b9fae07f9f36f3bce",
+    "name": "Ornate Mirror 01 4k",
+    "author": "mohamedhussien",
+    "license_slug": "by",
+    "license_label": "Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/a3ad19a9186b445b9fae07f9f36f3bce",
+    "faceCount": 14246,
+    "sizeBytes": 1457140,
+    "notes": "Arched gilt/bronze ornate frame, 4k PBR-style look. Detail page description says CC0 but the API license slug is 'by' (CC BY); attribution kept to be safe. Description says 'Ornate Mirror 01 4k'."
+  },
+  {
+    "file": "umbrella_stand.glb",
+    "item": "umbrella stand (with umbrellas if possible)",
+    "uid": "08045f47cdba4206b6895e9f18952821",
+    "name": "Victorian Umbrella Stand",
+    "author": "Cable",
+    "license_slug": "by",
+    "license_label": "Attribution (CC BY)",
+    "url": "https://sketchfab.com/3d-models/08045f47cdba4206b6895e9f18952821",
+    "faceCount": 8628,
+    "sizeBytes": 4153176,
+    "notes": "Cast-iron Victorian umbrella stand, no umbrellas included. Description says 'roughed up', so it may show some wear/rust. Umbrella-included options (7e9ab065b38c4222a7f9e0f07284ec15) were rejected as low poly."
+  },
+  {
+    "file": "vintage_framed_photos.glb",
+    "item": "framed photos",
+    "uid": "d9b956abe2764d17aa901fe4f202f2b2",
+    "name": "Vintage Framed Art and Photos",
+    "author": "NatPlatt",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/d9b956abe2764d17aa901fe4f202f2b2",
+    "faceCount": 216
+  },
+  {
+    "file": "wooden_coat_rack.glb",
+    "item": "coat rack",
+    "uid": "c66a2f1ba30f4115a33cfc6d5dedb778",
+    "name": "Early 1900s Wooden Coat Racks Type B",
+    "author": "Mad_Lobster_Workshop",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/c66a2f1ba30f4115a33cfc6d5dedb778",
+    "faceCount": 17800
+  },
+  {
     "file": "chest_of_drawers.glb",
     "item": "chest of drawers / dresser (vintage wood)",
     "uid": "3ee2cb9b3d9d441ea2e99e6c801ee0b8",
@@ -11,19 +59,6 @@
     "faceCount": 39383,
     "sizeBytes": 4389724,
     "notes": "Simple wooden two-drawer chest with golden knobs; includes albedo/normal/roughness/metalness maps."
-  },
-  {
-    "file": "brass_pendant_lamp.glb",
-    "item": "small ceiling pendant light (vintage brass)",
-    "uid": "f77c147b2b8940299ca85dd367f62122",
-    "name": "Lamp",
-    "author": "lptechrasika",
-    "license_slug": "by",
-    "license_label": "CC Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/f77c147b2b8940299ca85dd367f62122",
-    "faceCount": 27360,
-    "sizeBytes": 5707220,
-    "notes": "Antique golden hanging lantern pendant (brass look), 27k faces, ceiling-hung. Moroccan-style lantern form rather than classic European fitting."
   },
   {
     "file": "persian_runner_rug.glb",

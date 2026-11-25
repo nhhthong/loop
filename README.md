@@ -26,5 +26,5 @@ Controls: WASD · mouse · E interact · Shift run · C crouch · Esc pause.
 ## Assets
 All third-party assets allow commercial use. Attribution is required for CC-BY models.
 - Models: Sketchfab (CC-BY / CC0) — see `public/models/*/manifest.json` (in-game *Credits* lists them)
-- Textures: Poly Haven (CC0)
+- Textures: Poly Haven (CC0); `damask_wallpaper` is procedurally generated (own work)
 - Sounds: Freesound (CC0) — `public/audio/manifest.json`

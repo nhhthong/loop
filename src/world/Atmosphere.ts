@@ -103,7 +103,8 @@ export class Dust {
           for(int i=0;i<4;i++){ float d = distance(p,uL[i]); b += 1./(1.+d*d*6.); }
           vB = b * (.5+.5*sin(uTime*1.3+seed*90.));
           vec4 mv = modelViewMatrix*vec4(p,1.);
-          gl_PointSize = (2.0 + seed*3.0) * 30.0 / -mv.z;
+          gl_PointSize = min((2.0 + seed*3.0) * 30.0 / -mv.z, 5.0);
+          vB *= smoothstep(0.35, 0.9, -mv.z); // no huge motes right in front of the lens
           gl_Position = projectionMatrix*mv;
         }`,
       fragmentShader: `uniform sampler2D uTex; varying float vB;

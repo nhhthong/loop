@@ -13,7 +13,7 @@ export class Player {
   private body: RAPIER.RigidBody;
   private collider: RAPIER.Collider;
   private controller: RAPIER.KinematicCharacterController;
-  yaw = Math.PI;   // facing −z
+  yaw = 0;   // 0 = facing −z (toward the door)
   pitch = 0;
   private vel = new THREE.Vector3();
   private vy = 0;

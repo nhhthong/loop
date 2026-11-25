@@ -26,32 +26,6 @@
     "notes": "Potted Monstera with mid-century metal stand; tidy, healthy, somewhat stylized render. Largest like count among plants."
   },
   {
-    "file": "dried_potted_plant.glb",
-    "item": "dying/wilted potted plant",
-    "uid": "3df6babfa64442af83f90652324ba680",
-    "name": "Dried House Plant",
-    "author": "Christian Rehm",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/3df6babfa64442af83f90652324ba680",
-    "faceCount": 409686,
-    "sizeBytes": 12063440,
-    "notes": "Dried house plant with brown dead leaves in green pot. Exceeds 150k faces (409k); consider decimation or LOD if performance matters."
-  },
-  {
-    "file": "broken_vase.glb",
-    "item": "broken vase / ceramic shards",
-    "uid": "aa618cea451d445087925607b4051281",
-    "name": "Vase (Normal and Broken)",
-    "author": "Fridge",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/aa618cea451d445087925607b4051281",
-    "faceCount": 5604,
-    "sizeBytes": 499736,
-    "notes": "Set of vases including broken variants, Blender-textured. Modest realism; small file."
-  },
-  {
     "file": "book_stack.glb",
     "item": "stack of old books",
     "uid": "0ea43f7fdcb7411cb1123b987f297d41",
@@ -65,32 +39,6 @@
     "notes": "Medieval leather book stack. Clean, not especially dusty; add dust via shader or decals."
   },
   {
-    "file": "newspaper_stack.glb",
-    "item": "scattered paper / newspaper debris",
-    "uid": "c4311a0b918643af97904e10c7a34efc",
-    "name": "[CC0] Newspaper Stack - Ready to Unity HDRP",
-    "author": "karlwirbelwind",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/c4311a0b918643af97904e10c7a34efc",
-    "faceCount": 2132,
-    "sizeBytes": 3075600,
-    "notes": "Newspaper stacks, Unity HDRP-ready. Description claims CC0 but API license field reads CC-BY; attribute to karlwirbelwind to be safe."
-  },
-  {
-    "file": "broken_chair.glb",
-    "item": "broken chair / damaged furniture",
-    "uid": "0f5bf969c7404cf1ada939d09f17f350",
-    "name": "Imperfect & Broken Chair",
-    "author": "Jimmy Gunawan",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/0f5bf969c7404cf1ada939d09f17f350",
-    "faceCount": 6900,
-    "sizeBytes": 4612132,
-    "notes": "Photoscan of a real broken chair found on the street. Strong realism match for damaged furniture."
-  },
-  {
     "file": "persian_rug.glb",
     "item": "old rug / persian carpet",
     "uid": "fe13eecfc9b8405dab1fe76c5dd28a4c",
@@ -102,19 +50,6 @@
     "faceCount": 24,
     "sizeBytes": 3496992,
     "notes": "Single-quad Persian rug with photo texture (24 faces). Pristine, not worn; use as floor plane. Alternative with damage: \"Carpet Ruined Old Free\" (AMMediaGames, 270k faces, uid 050a7a44bc344e65a1d63d4902a64e21)."
-  },
-  {
-    "file": "old_suitcase.glb",
-    "item": "old suitcase",
-    "uid": "deb3558cd4824c1c9590246a69eb4859",
-    "name": "Old Vintage Suitcase | Game Ready Asset",
-    "author": "Andrew Konadu",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/deb3558cd4824c1c9590246a69eb4859",
-    "faceCount": 14196,
-    "sizeBytes": 3828660,
-    "notes": "Vintage leather trunk/suitcase with metal fittings. Good match for old suitcase."
   },
   {
     "file": "candles.glb",
