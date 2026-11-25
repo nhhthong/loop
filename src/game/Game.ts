@@ -50,6 +50,7 @@ export class Game {
   private bulbOut = 0;
   private shadowProxy: THREE.PointLight | null = null;
   private proxyFor = -1;
+  private readonly farAway = new THREE.Vector3(0, -100, 0);
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.input = new Input(canvas);
@@ -118,7 +119,14 @@ export class Game {
     if (arms) await this.hands.load(arms, this.player.camera);
     this.roaches = new Cockroaches(this.scene, this.audio);
     const cbox = new THREE.Box3(new THREE.Vector3(CORRIDOR.x0, 0, 0.3), new THREE.Vector3(CORRIDOR.x1, CORRIDOR.h, CORRIDOR.z1 - 0.1));
-    if (roachA) this.roaches.spawn(roachA, 7, cbox, ['x', 'y'], 0.042);
+    // a few start inside the wake-up view (floor ahead, both walls) so they're seen while looking at the hand
+    const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+    const introStarts = [
+      { p: V(CORRIDOR.x0, 0.7, 4.35), n: V(1, 0, 0) }, { p: V(CORRIDOR.x0, 0.42, 3.95), n: V(1, 0, 0) },
+      { p: V(-0.25, 0, 3.7), n: V(0, 1, 0) }, { p: V(0.05, 0, 3.3), n: V(0, 1, 0) },
+    ];
+    if (roachA) this.roaches.spawn(roachA, 4, cbox, ['x', 'y'], 0.05, 0, introStarts);
+    if (roachA) this.roaches.spawn(roachA, 3, cbox, ['x', 'y'], 0.042);
     if (roachB) this.roaches.spawn(roachB, 3, cbox, ['x', 'y'], 0.036);
     if (roachA) this.roaches.spawn(roachA, 2, new THREE.Box3(new THREE.Vector3(-0.95, 0, -4.9), new THREE.Vector3(0.95, 3, -0.3)), ['x'], 0.045);
     tick('creatures');
@@ -180,7 +188,7 @@ export class Game {
     this.audio.play2D('heartbeat', 0.5, false, 1.0);
     this.player.control = 0;
     this.player.eye = 0.78;
-    this.player.pitch = -0.18;
+    this.player.pitch = -0.26;
     this.player.yaw = 0.12;
     this.player.camera.fov = 40;
     this.player.camera.updateProjectionMatrix();
@@ -223,7 +231,8 @@ export class Game {
     this.hands.update(dt);
     this.drips.update(dt);
     this.dust.update(this.time);
-    this.roaches.update(dt, this.player.position);
+    // roaches only react once the player can move (they keep crawling around the waking player)
+    this.roaches.update(dt, this.player.control > 0.5 ? this.player.position : this.farAway);
     this.updateLights(dt);
     this.updateAmbience(dt);
     this.renderer.render(dt);
@@ -266,7 +275,7 @@ export class Game {
     P.camera.fov = THREE.MathUtils.lerp(40, 70, seg(t, 11.3, 13.4));
     P.camera.updateProjectionMatrix();
     P.yaw = 0.12;
-    P.pitch = -0.18 + breath * 0.016 * amp + Math.sin(t * 0.7) * 0.01;
+    P.pitch = -0.26 + breath * 0.016 * amp + Math.sin(t * 0.7) * 0.01;
 
     // hand: close-up, trembling with the breath
     H.setVisible(t < 11.3);
@@ -291,7 +300,7 @@ export class Game {
     // stand up
     const st = seg(t, 13, 15.2);
     P.eye = THREE.MathUtils.lerp(0.78, 1.62, st);
-    if (t > 11.3) P.pitch = THREE.MathUtils.lerp(-0.18, 0, seg(t, 11.3, 15.2)) + breath * 0.01 * amp;
+    if (t > 11.3) P.pitch = THREE.MathUtils.lerp(-0.26, 0, seg(t, 11.3, 15.2)) + breath * 0.01 * amp;
     if (t > 15.2) {
       this.introT = -1;
       P.control = 1;
@@ -333,7 +342,7 @@ export class Game {
     const pz = this.player.position.z;
     this.furn.lamps.forEach((l, i) => {
       let k = 1;
-      if (l.flicker > 0) {
+      if (l.flicker > 0 && !(i === 3 && this.introT >= 0)) { // corridor bulb holds steady while waking up
         const n = Math.sin(t * 13.1 + i * 7) * Math.sin(t * 7.3 + i) * Math.sin(t * 2.1 + i * 3);
         k = 1 - l.flicker * Math.max(0, n) * 0.6;
         if (i === 3) { // corridor bulb drop-outs

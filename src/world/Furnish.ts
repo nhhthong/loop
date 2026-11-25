@@ -36,9 +36,9 @@ export const PROPS: PropSpec[] = [
   { name: 'photoB3', url: H + 'vintage_framed_photos.glb', pos: [4.6, 1.5, -3.015], rot: 180, h: 0.2, floor: false, only: /^pictureFrame3_/, age: 0.1 },
   { name: 'art', url: M + 'wall_art_abstract.glb', pos: [1.55, 1.55, -4.985], rot: 0, h: 0.8, floor: false, age: 0.1 },
   // ---- Corridor (wet concrete, unchanged)
-  { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, 3.0], rot: 0, h: 0.32, floor: false, age: 0.4 },
-  { name: 'rubble', url: A + 'concrete_rubble.glb', pos: [0.22, 0, 1.2], rot: 40, w: 0.75, age: 0 },
-  { name: 'rubble2', url: A + 'concrete_rubble.glb', pos: [-0.3, 0, 4.4], rot: 160, w: 0.55, age: 0 },
+  { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, 4.75], rot: 0, h: 0.32, floor: false, age: 0.4, shadow: false },
+  { name: 'rubble', url: A + 'concrete_rubble.glb', pos: [0.22, 0, 1.2], rot: 40, w: 0.75, age: 0, tint: 0x6a645a },
+  { name: 'rubble2', url: A + 'concrete_rubble.glb', pos: [-0.3, 0, 2.3], rot: 160, w: 0.55, age: 0, tint: 0x6a645a },
   { name: 'switch', url: A + 'vintage_light_switch.glb', pos: [0.52, 1.3, 0.55], rot: -90, h: 0.085, floor: false, only: /^Object_4$/, age: 0.4 },
 ];
 
@@ -92,8 +92,9 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   mkLight(0xffe4c2, 4, 6, s3, 1024, 0.45).glow = bulb(scene, s3, 0xfff1dc, 0.02);
 
   // [3] corridor caged bulb (unstable)
-  const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, 3.0);
-  const lampD = mkLight(0xffdca8, 3.2, 5, bulbPos, 1024, 0.6);
+  // hangs just in front of / above where the player wakes, so it rakes across the raised hand
+  const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, 4.75);
+  const lampD = mkLight(0xffdca8, 30, 7, bulbPos, 1024, 0.6);
   lampD.glow = bulb(scene, bulbPos, 0xfff0c8);
 
   // [4] light leaking under/around the closed door into the corridor

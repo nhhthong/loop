@@ -61,6 +61,8 @@ export class Level {
     ]);
     makeWet(concreteWall, 'wall', 1);
     makeWet(concreteFloor, 'floor', 1);
+    // wetness reads through reflections: give the corridor surfaces a strong reflection response
+    concreteWall.envMapIntensity = concreteFloor.envMapIntensity = 2.5;
     makeWet(concreteCeil, 'ceiling', 0.8);
     woodFloor.roughness = 0.6;
     // aged ivory plaster walls with visible trowel texture and light grime

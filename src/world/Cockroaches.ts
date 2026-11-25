@@ -34,8 +34,17 @@ export class Cockroaches {
     return { k, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), clip: gltf.animations[0] };
   }
 
-  spawn(gltf: GLTF, count: number, box: THREE.Box3, climbAxes: ('x' | 'y' | 'z')[], length = 0.04, yawOffset = 0) {
+/** `starts` (optional) pins the first roaches to given surface points + inward normals instead of random spots. */
+  spawn(gltf: GLTF, count: number, box: THREE.Box3, climbAxes: ('x' | 'y' | 'z')[], length = 0.04, yawOffset = 0, starts: { p: THREE.Vector3; n: THREE.Vector3 }[] = []) {
     const prep = this.prepare(gltf, length);
+    // dark, glossy chitin (the source textures read too pale under the near-monochrome grade)
+    gltf.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || m.userData.roachMat) return;
+      const mats = (Array.isArray(m.material) ? m.material : [m.material]) as THREE.MeshStandardMaterial[];
+      mats.forEach((mt) => { mt.color.multiplyScalar(0.45); mt.roughness = Math.min(mt.roughness, 0.35); mt.metalness = 0; });
+      m.userData.roachMat = true;
+    });
     for (let i = 0; i < count; i++) {
       const model = skeletonClone(gltf.scene);
       model.position.copy(prep.offset);
@@ -60,7 +69,8 @@ export class Cockroaches {
         p.x = side ? box.max.x : box.min.x; p.y = box.min.y + Math.random() * s.y * 0.8;
         n.set(side ? -1 : 1, 0, 0);
       }
-      const d = new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5);
+      if (starts[i]) { p.copy(starts[i].p); n.copy(starts[i].n); }
+      const d = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
       d.sub(n.clone().multiplyScalar(d.dot(n))).normalize();
       if (d.lengthSq() < 0.1) d.set(0, 0, 1).sub(n.clone().multiplyScalar(n.z)).normalize();
       this.roaches.push({ obj, mixer, action, p, n, d, speed: 0, target: 0.05, pause: Math.random() * 2, turn: 0, box, climbAxes, scared: 0, skitter: null });

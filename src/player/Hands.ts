@@ -135,7 +135,7 @@ export class Hands {
     // ---- material: photo albedo + soft skin response + cheap subsurface
     const oldMat = src.material as THREE.MeshStandardMaterial;
     const skin = new THREE.MeshPhysicalMaterial({
-      map: oldMat.map, roughness: 0.52, metalness: 0, color: 0xf2e6e0,
+      map: oldMat.map, roughness: 0.52, metalness: 0, color: 0xd8ccc6,
       sheen: 0.25, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xc9786a),
       clearcoat: 0.08, clearcoatRoughness: 0.6, envMapIntensity: 0.4,
     });
