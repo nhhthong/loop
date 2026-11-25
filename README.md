@@ -3,8 +3,8 @@
 First-person horror vignette — TypeScript · three.js · Rapier · Vite · postprocessing (N8AO, DOF, bloom, AgX).
 
 You wake up gasping on the floor of a narrow, wet concrete corridor. Cockroaches crawl over walls and ceiling,
-water drips from the ceiling. A wooden door leads into a small, once-luxurious L-shaped room (3 m high, 2 m wide):
-herringbone parquet, wainscoting, dark rain-streaked windows, warm lamps, dust, damage… and a telephone.
+water drips from the ceiling. A door leads into the L-shaped hallway (3 m high, 2 m wide) of a contemporary American
+house — tidy, deserted, lit by a few warm downlights and lamps — ending at a door that is shut tight.
 
 ## Run
 ```bash
@@ -26,5 +26,5 @@ Controls: WASD · mouse · E interact · Shift run · C crouch · Esc pause.
 ## Assets
 All third-party assets allow commercial use. Attribution is required for CC-BY models.
 - Models: Sketchfab (CC-BY / CC0) — see `public/models/*/manifest.json` (in-game *Credits* lists them)
-- Textures: Poly Haven (CC0); `damask_wallpaper` is procedurally generated (own work)
+- Textures: Poly Haven (CC0)
 - Sounds: Freesound (CC0) — `public/audio/manifest.json`

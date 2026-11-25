@@ -98,7 +98,7 @@ npm run build
 ## Layout (meters, Y up) — see diagram in `src/world/Level.ts`
 - Corridor: x∈[-0.55, 0.55], z∈[0.12, 6], height 2.4. Player wakes at z≈5.45 facing −z.
 - Door wall at z=0, door x∈[-0.45, 0.45], h 2.1, hinged left, swings into the room (−z).
-- L-hallway of a classic house, height 3: leg A x∈[-1, 1], z∈[-5, 0]; leg B x∈[1, 5], z∈[-5, -3]. Two dark windows on back wall z=−5.
+- L-hallway of a contemporary house, height 3: leg A x∈[-1, 1], z∈[-5, 0]; leg B x∈[1, 5], z∈[-5, -3]. Two dark windows on back wall z=−5.
 - End of the L: locked door in the x=5 wall (never opens, nothing behind it). One side door (bathroom) in the z=−3 wall,
   left ajar, pitch-black room behind (`BATH` in `Level.ts`).
 - Prop wall yaw convention (model front = +Z): left wall 90 · right wall −90 · z=−3 wall 180 · back wall 0 · x=5 wall −90.
@@ -116,6 +116,9 @@ npm run build
 - No telephone interaction/ringing (the phone is a static prop). No scripted scares.
 - House is **tidy but deserted**: no damage, debris, stains or mold in the house. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
+- Style: **Contemporary American house** — warm-white painted drywall, light wide-plank oak floor, plain white baseboards
+  (no wainscot/crown), flat white slab doors with matte-black levers, slim black window frames with half-lowered venetian blinds,
+  recessed downlights (some dead, one flickering) + warm lamps. Heirlooms kept on purpose: grandfather clock, oil portrait, rotary phone.
 
 ## Hands
 - Model: `public/models/hands_bugs/male_hand_scan.glb` (photoscan, unrigged). Rig built in code from landmarks in `Hands.ts`.

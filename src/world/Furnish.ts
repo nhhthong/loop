@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Assets } from '../engine/Assets';
 import type { Physics } from '../engine/Physics';
 import { placeProp, type PropSpec } from './Props';
-import { CORRIDOR } from './Level';
+import { CORRIDOR, ROOM_H } from './Level';
 import { Q } from '../engine/Quality';
 
 const F = '/models/furniture/', D = '/models/decor/', A = '/models/architecture/', H = '/models/hallway/';
@@ -57,7 +57,7 @@ export const PROPS: PropSpec[] = [
 
 export interface Furnished {
   props: Map<string, THREE.Object3D>;
-  lamps: { light: THREE.PointLight; base: number; flicker: number; glow?: THREE.Mesh }[];
+  lamps: { light: THREE.PointLight | THREE.SpotLight; base: number; flicker: number; glow?: THREE.Mesh }[];
 }
 
 export async function furnish(assets: Assets, physics: Physics, scene: THREE.Group, onProp?: () => void): Promise<Furnished> {
@@ -99,12 +99,9 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   const lampB = mkLight(0xff9248, 2.6, 7, flPos, 1024, 0.35);
   lampB.glow = shadeGlow(scene, flPos.clone(), 0.08, 0.15, 0.2, 0xffb062);
 
-  // working sconce in leg B (the other one is dead)
-  const sc = props.get('sconce2');
-  const scBox = sc ? new THREE.Box3().setFromObject(sc) : null;
-  const scPos = scBox ? new THREE.Vector3(scBox.min.x + (scBox.max.x - scBox.min.x) * 0.3, scBox.max.y - 0.06, scBox.min.z + 0.05) : new THREE.Vector3(4.0, 2.2, -3.3);
-  const lampC = mkLight(0xffa860, 1.6, 6, scPos, 512, 0.08);
-  lampC.glow = bulb(scene, scPos, 0xffc890);
+  // recessed ceiling downlight in leg B (index 2 — order matters for Game.updateLights)
+  const lampC = downlight(scene, new THREE.Vector3(3.7, ROOM_H, -4.0), 14, 0.04);
+  lamps.push(lampC);
 
   // corridor caged bulb (unstable)
   const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, 3.0);
@@ -117,10 +114,39 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   scene.add(leak);
   lamps.push({ light: leak, base: 0.35, flicker: 0 });
 
+  // remaining downlights: some dead (keeps pools of darkness), one unstable
+  lamps.push(downlight(scene, new THREE.Vector3(0, ROOM_H, -2.4), 9, 0.02));
+  lamps.push(downlight(scene, new THREE.Vector3(0, ROOM_H, -3.95), 12, 0.5));
+  downlight(scene, new THREE.Vector3(0, ROOM_H, -0.9), 0, 0);
+  downlight(scene, new THREE.Vector3(2.3, ROOM_H, -4.0), 0, 0);
+
   // procedural rusty pipes along the corridor ceiling
   scene.add(pipes());
 
   return { props, lamps };
+}
+
+/** Recessed can light: white trim ring + lens disc; intensity 0 = dead bulb (no light). */
+function downlight(parent: THREE.Object3D, at: THREE.Vector3, intensity: number, flicker: number): Furnished['lamps'][number] {
+  const trim = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.012, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.4, side: THREE.DoubleSide }));
+  trim.position.copy(at).add(new THREE.Vector3(0, -0.006, 0));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.058, 0.08, 40), new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: 0.4 }));
+  ring.rotation.x = Math.PI / 2; ring.position.copy(at).add(new THREE.Vector3(0, -0.012, 0));
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(0.058, 40), new THREE.MeshBasicMaterial({ color: intensity > 0 ? new THREE.Color(0xffd6a0).multiplyScalar(5) : new THREE.Color(0x2a2824) }));
+  lens.rotation.x = Math.PI / 2; lens.position.copy(at).add(new THREE.Vector3(0, -0.004, 0));
+  parent.add(trim, ring, lens);
+  const l = new THREE.SpotLight(0xffc98a, intensity, 7, 0.95, 0.75, 2);
+  l.position.copy(at).add(new THREE.Vector3(0, -0.02, 0));
+  l.target.position.copy(at).setY(0);
+  if (intensity > 0 && Q.shadows) {
+    l.castShadow = true;
+    l.shadow.mapSize.set(Q.shadowMap, Q.shadowMap);
+    l.shadow.bias = -0.0008;
+    l.shadow.normalBias = 0.03;
+    l.shadow.camera.near = 0.05;
+  }
+  if (intensity > 0) parent.add(l, l.target);
+  return { light: l, base: intensity, flicker, glow: lens };
 }
 
 /** Additive translucent shell that makes a fabric shade look lit from inside. */

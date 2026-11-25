@@ -4,9 +4,9 @@ import { Q } from '../engine/Quality';
 
 /**
  * Night window: rain-streaked glass, a deep dark exterior with faint moonlit branches,
- * heavy velvet curtains, and a cold moonlight spot that throws the mullion shadows inside.
+ * half-lowered venetian blinds, and a cold moonlight spot that throws the frame/slat shadows inside.
  */
-export function buildWindow(x0: number, x1: number, y0: number, y1: number, wallZ: number, castShadow: boolean, curtainMat: THREE.Material) {
+export function buildWindow(x0: number, x1: number, y0: number, y1: number, wallZ: number, castShadow: boolean) {
   const g = new THREE.Group();
   const w = x1 - x0, h = y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
 
@@ -75,35 +75,24 @@ export function buildWindow(x0: number, x1: number, y0: number, y1: number, wall
   pane.renderOrder = 2;
   g.add(pane);
 
-  // --- curtains (velvet drapes with folds) ----------------------------------------------
-  const makeCurtain = (side: -1 | 1) => {
-    const cw = 0.55, ch = 2.75;
-    const geo = new THREE.PlaneGeometry(cw, ch, 48, 24);
-    const p = geo.attributes.position as THREE.BufferAttribute;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i);
-      const t = (y + ch / 2) / ch; // 0 bottom → 1 top
-      const folds = Math.sin(x * 38 + Math.sin(y * 1.3) * 0.6) * 0.035 * (0.6 + 0.4 * (1 - t))
-        + Math.sin(x * 13) * 0.02;
-      p.setZ(i, folds);
-      // gathered toward the wall at the bottom (tie-back look)
-      p.setX(i, x * (0.75 + 0.25 * t) + side * (1 - t) * 0.03);
-    }
-    geo.computeVertexNormals();
-    const m = new THREE.Mesh(geo, curtainMat);
-    m.position.set(side < 0 ? x0 - 0.12 : x1 + 0.12, 2.82 - ch / 2, wallZ + 0.1);
-    m.castShadow = true; m.receiveShadow = true;
-    return m;
-  };
-  g.add(makeCurtain(-1), makeCurtain(1));
-  // brass curtain rod
-  const brass = new THREE.MeshStandardMaterial({ color: 0x8a6a34, metalness: 1, roughness: 0.38 });
-  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, w + 0.9, 12), brass);
-  rod.rotation.z = Math.PI / 2; rod.position.set(cx, 2.84, wallZ + 0.12); rod.castShadow = true;
-  g.add(rod);
-  for (const s of [-1, 1]) {
-    const fin = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 12), brass);
-    fin.position.set(cx + s * (w / 2 + 0.45), 2.84, wallZ + 0.12); g.add(fin);
+  // --- venetian blinds, lowered about half way, slats tilted slightly open -------------------
+  const slatMat = new THREE.MeshStandardMaterial({ color: 0xdcd8cf, roughness: 0.55, side: THREE.DoubleSide });
+  const headMat = new THREE.MeshStandardMaterial({ color: 0xe6e2da, roughness: 0.5 });
+  const bw = w - 0.06, bz = wallZ - 0.06, top = y1 - 0.04, drop = (y1 - y0) * 0.52, pitch = 0.025;
+  const head = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.02, 0.04, 0.05), headMat);
+  head.position.set(cx, top, bz); head.castShadow = true; g.add(head);
+  const slatGeo = new THREE.BoxGeometry(bw, 0.0012, 0.025);
+  const n = Math.floor(drop / pitch);
+  const slats = new THREE.InstancedMesh(slatGeo, slatMat, n);
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.35);
+  for (let i = 0; i < n; i++) slats.setMatrixAt(i, mtx.compose(new THREE.Vector3(cx, top - 0.03 - i * pitch, bz), q, new THREE.Vector3(1, 1, 1)));
+  slats.castShadow = true; slats.receiveShadow = true;
+  g.add(slats);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.012, 0.028), headMat);
+  rail.position.set(cx, top - 0.03 - n * pitch, bz); rail.castShadow = true; g.add(rail);
+  for (const fx of [0.2, 0.8]) { // ladder cords
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, n * pitch + 0.03, 4), headMat);
+    cord.position.set(x0 + 0.03 + bw * fx, top - (n * pitch + 0.03) / 2, bz); g.add(cord);
   }
 
   // --- moonlight ------------------------------------------------------------------------

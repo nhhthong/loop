@@ -73,17 +73,16 @@ export class Game {
     this.scene.add(this.level.group);
     tick('level');
 
-    const curtain = new THREE.MeshPhysicalMaterial({ color: 0x3a0d10, roughness: 0.85, sheen: 1, sheenColor: new THREE.Color(0x8a3038), sheenRoughness: 0.4, side: THREE.DoubleSide });
-    const wa = buildWindow(WIN_A.x0, WIN_A.x1, WIN_A.y0, WIN_A.y1, -5, true, curtain);
-    const wb = buildWindow(WIN_B.x0, WIN_B.x1, WIN_B.y0, WIN_B.y1, -5, false, curtain);
+    const wa = buildWindow(WIN_A.x0, WIN_A.x1, WIN_A.y0, WIN_A.y1, -5, true);
+    const wb = buildWindow(WIN_B.x0, WIN_B.x1, WIN_B.y0, WIN_B.y1, -5, false);
     this.scene.add(wa.group, wb.group);
 
-    const wood = this.level.mats.panel;
+    const wood = this.level.mats.trim;
     this.door = new Door(this.physics, wood, { hinge: new THREE.Vector3(DOOR.x0 + 0.005, 0, DIV_Z - 0.05), width: DOOR.x1 - DOOR.x0, height: DOOR.h, baseYaw: 0, openSign: 1 });
     // end of the L: shut tight, never opens
-    const endDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(5.06, 0, END_DOOR.z0 + 0.005), width: END_DOOR.z1 - END_DOOR.z0, height: END_DOOR.h, baseYaw: -Math.PI / 2, openSign: 1, color: 0x4a2f20 });
+    const endDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(5.06, 0, END_DOOR.z0 + 0.005), width: END_DOOR.z1 - END_DOOR.z0, height: END_DOOR.h, baseYaw: -Math.PI / 2, openSign: 1 });
     // bathroom: left ajar, opening into the dark
-    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.42, color: 0xb8ad98 });
+    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.42 });
     this.scene.add(this.door.pivot, endDoor.pivot, bathDoor.pivot);
 
     const [furn] = await Promise.all([

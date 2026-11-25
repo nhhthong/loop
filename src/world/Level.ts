@@ -37,8 +37,8 @@ type Mat = THREE.Material;
 
 export interface LevelMats {
   concreteWall: THREE.MeshStandardMaterial; concreteFloor: THREE.MeshStandardMaterial; concreteCeil: THREE.MeshStandardMaterial;
-  wallpaper: THREE.MeshStandardMaterial; panel: THREE.MeshStandardMaterial; parquet: THREE.MeshStandardMaterial;
-  plaster: THREE.MeshStandardMaterial; trim: THREE.MeshStandardMaterial; paintedWood: THREE.MeshStandardMaterial;
+  wallPaint: THREE.MeshStandardMaterial; woodFloor: THREE.MeshStandardMaterial;
+  plaster: THREE.MeshStandardMaterial; trim: THREE.MeshStandardMaterial; blackMetal: THREE.MeshStandardMaterial;
 }
 
 export class Level {
@@ -52,24 +52,25 @@ export class Level {
 
   async build() {
     const A = this.assets;
-    const [concreteWall, concreteFloor, concreteCeil, wallpaper, panel, parquet, plaster] = await Promise.all([
+    const [concreteWall, concreteFloor, concreteCeil, woodFloor, plaster] = await Promise.all([
       pbrMaterial(A, 'concrete_wall_006', { tint: 0xb8b4aa }),
       pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x9a958c }),
       pbrMaterial(A, 'concrete_wall_003', { tint: 0x8a877f }),
-      pbrMaterial(A, 'damask_wallpaper', { tint: 0xe8e2d4 }),
-      pbrMaterial(A, 'dark_paneled_wood', { tint: 0x8a6a4c, envIntensity: 0.6 }),
-      pbrMaterial(A, 'herringbone_parquet', { tint: 0xc09070, envIntensity: 0.9 }),
-      pbrMaterial(A, 'plastered_wall', { tint: 0xd8d0c0 }),
+      pbrMaterial(A, 'laminate_floor_02', { tint: 0xe0d6c8, envIntensity: 0.9 }),
+      pbrMaterial(A, 'plastered_wall', { tint: 0xe6e1d8 }),
     ]);
     makeWet(concreteWall, 'wall', 1);
     makeWet(concreteFloor, 'floor', 1);
     makeWet(concreteCeil, 'ceiling', 0.8);
-    // Parquet: polished but worn — keep roughness map, lower overall
-    parquet.roughness = 0.75;
-    const trim = panel.clone();
-    trim.color.set(0x5a3e28);
-    const paintedWood = new THREE.MeshStandardMaterial({ color: 0xcfc6b2, roughness: 0.55, map: plaster.map, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.3, 0.3) });
-    this.mats = { concreteWall, concreteFloor, concreteCeil, wallpaper, panel, parquet, plaster, trim, paintedWood };
+    woodFloor.roughness = 0.7;
+    // painted drywall: same plaster maps, subtle orange-peel only, warm white (contemporary)
+    const wallPaint = plaster.clone();
+    wallPaint.color.set(0xe9e4da);
+    wallPaint.normalScale.set(0.25, 0.25);
+    // white semi-gloss trim (baseboards, casings, sills, doors)
+    const trim = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.4, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.1, 0.1) });
+    const blackMetal = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.5, roughness: 0.5 });
+    this.mats = { concreteWall, concreteFloor, concreteCeil, wallPaint, woodFloor, plaster, trim, blackMetal };
 
     this.buildCorridor();
     this.buildRoom();
@@ -156,10 +157,10 @@ export class Level {
   private buildRoom() {
     const M = this.mats;
     const t = 0.24, H = ROOM_H;
-    const wp = M.wallpaper, pl = M.plaster;
+    const wp = M.wallPaint, pl = M.plaster;
     // floor (L polygon) + physics
     const L: [number, number][] = [[-1, -0.12], [1, -0.12], [1, -3], [5, -3], [5, -5], [-1, -5]];
-    this.roomMeshes.push(this.slab(L, 0, M.parquet, 1.4, true));
+    this.roomMeshes.push(this.slab(L, 0, M.woodFloor, 1.6, true));
     const ceil = this.slab(L, H, M.plaster, 1.8, false);
     this.roomMeshes.push(ceil);
     this.physics.addBox(new THREE.Vector3(0, -0.1, -2.6), new THREE.Vector3(1.2, 0.1, 2.6));
@@ -202,7 +203,7 @@ export class Level {
     this.buildWindowFrame(WIN_B.x0, WIN_B.x1);
   }
 
-  /** Wainscot panels + chair rail + baseboard + crown molding along an interior face. */
+  /** Baseboard along an interior face (gaps at doors). */
   private trimFace(p0: [number, number], p1: [number, number], n: [number, number], gaps: [number, number][]) {
     const M = this.mats;
     const dx = p1[0] - p0[0], dz = p1[1] - p0[1];
@@ -224,18 +225,8 @@ export class Level {
       m.castShadow = true; m.receiveShadow = true;
       this.group.add(m); this.roomMeshes.push(m);
     };
-    for (const [s0, s1] of segs) {
-      put(s0, s1, 0, 0.92, 0.018, M.panel, 1.2);        // wainscot
-      put(s0, s1, 0, 0.16, 0.03, M.trim, 0.5);          // baseboard
-      put(s0, s1, 0.9, 0.96, 0.04, M.trim, 0.5);        // chair rail
-      put(s0, s1, 0.96, 0.975, 0.02, M.trim, 0.5);      // rail lip
-    }
-    // crown molding runs the full length (stepped profile)
-    put(0, len, ROOM_H - 0.16, ROOM_H, 0.03, M.paintedWood, 0.6);
-    put(0, len, ROOM_H - 0.08, ROOM_H, 0.07, M.paintedWood, 0.6);
-    put(0, len, ROOM_H - 0.03, ROOM_H, 0.11, M.paintedWood, 0.6);
-    // picture rail
-    put(0, len, 2.35, 2.38, 0.025, M.trim, 0.5);
+    // contemporary: plain square baseboard only (no wainscot, rails or crown)
+    for (const [s0, s1] of segs) put(s0, s1, 0, 0.11, 0.015, M.trim, 0.5);
   }
 
   /** Casings on both faces, jamb linings and threshold for an opening in a 0.24 m wall. */
@@ -277,29 +268,21 @@ export class Level {
   private buildWindowFrame(x0: number, x1: number) {
     const M = this.mats;
     const z = -5, y0 = WIN_A.y0, y1 = WIN_A.y1, w = x1 - x0, cx = (x0 + x1) / 2;
-    const pw = M.paintedWood;
-    const add = (ww: number, hh: number, dd: number, x: number, y: number, zz: number, mat: Mat = pw) => {
+    const add = (ww: number, hh: number, dd: number, x: number, y: number, zz: number, mat: Mat) => {
       const m = new THREE.Mesh(worldBox(ww, hh, dd, 0.5), mat);
       m.position.set(x, y, zz); m.castShadow = true; m.receiveShadow = true; this.group.add(m); this.roomMeshes.push(m);
     };
-    // casing (room side)
-    add(0.1, y1 - y0 + 0.2, 0.03, x0 - 0.05, (y0 + y1) / 2 + 0.05, z + 0.015);
-    add(0.1, y1 - y0 + 0.2, 0.03, x1 + 0.05, (y0 + y1) / 2 + 0.05, z + 0.015);
-    add(w + 0.3, 0.12, 0.035, cx, y1 + 0.08, z + 0.017);
-    // sill + apron
-    add(w + 0.34, 0.04, 0.2, cx, y0 - 0.02, z + 0.02);
-    add(w + 0.2, 0.09, 0.025, cx, y0 - 0.085, z + 0.012);
-    // reveal linings
-    add(0.02, y1 - y0, 0.24, x0 + 0.01, (y0 + y1) / 2, z - 0.12);
-    add(0.02, y1 - y0, 0.24, x1 - 0.01, (y0 + y1) / 2, z - 0.12);
-    add(w, 0.02, 0.24, cx, y1 - 0.01, z - 0.12);
-    // sash: outer frame + meeting rail + glazing bars (6 over 6)
-    const sz = z - 0.16, fd = 0.05;
-    add(w - 0.04, 0.06, fd, cx, y0 + 0.03, sz); add(w - 0.04, 0.06, fd, cx, y1 - 0.03, sz);
-    add(0.06, y1 - y0, fd, x0 + 0.05, (y0 + y1) / 2, sz); add(0.06, y1 - y0, fd, x1 - 0.05, (y0 + y1) / 2, sz);
-    add(w - 0.04, 0.05, fd + 0.02, cx, (y0 + y1) / 2, sz);
-    for (const fx of [1 / 3, 2 / 3]) add(0.02, y1 - y0 - 0.1, 0.03, x0 + w * fx, (y0 + y1) / 2, sz);
-    for (const fy of [0.25, 0.75]) add(w - 0.1, 0.02, 0.03, cx, y0 + (y1 - y0) * fy, sz);
+    // drywall returns (no casing — contemporary), white stool sill
+    add(0.02, y1 - y0, 0.24, x0 + 0.01, (y0 + y1) / 2, z - 0.12, M.wallPaint);
+    add(0.02, y1 - y0, 0.24, x1 - 0.01, (y0 + y1) / 2, z - 0.12, M.wallPaint);
+    add(w, 0.02, 0.24, cx, y1 - 0.01, z - 0.12, M.wallPaint);
+    add(w + 0.06, 0.03, 0.26, cx, y0 - 0.015, z - 0.1, M.trim);
+    // slim matte-black frame, single meeting rail (double-hung look, few divisions)
+    const sz = z - 0.16, fd = 0.05, f = 0.045;
+    const B = M.blackMetal;
+    add(w - 0.04, f, fd, cx, y0 + f / 2, sz, B); add(w - 0.04, f, fd, cx, y1 - f / 2, sz, B);
+    add(f, y1 - y0, fd, x0 + 0.02 + f / 2, (y0 + y1) / 2, sz, B); add(f, y1 - y0, fd, x1 - 0.02 - f / 2, (y0 + y1) / 2, sz, B);
+    add(w - 0.04, 0.035, fd + 0.02, cx, (y0 + y1) / 2, sz, B);
   }
 
   /** Dirt decals in the wet corridor only (the house itself is kept tidy). */
