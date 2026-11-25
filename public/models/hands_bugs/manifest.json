@@ -1,0 +1,39 @@
+[
+  {
+    "file": "male_hand_scan.glb",
+    "uid": "26b30d91fa114254a8defeca49042434",
+    "name": "Male Hand",
+    "author": "thesidekick",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/26b30d91fa114254a8defeca49042434",
+    "faceCount": 7902,
+    "notes": "Photogrammetry hand (photo texture). Unrigged: auto-rigged at runtime in src/player/Hands.ts."
+  },
+  {
+    "file": "american_cockroach_walk.glb",
+    "uid": "00bac801cb3f48fd915e5728d27cf2ae",
+    "name": "American Cockroach Walk Cycle",
+    "author": "BONOMI STUDIO",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/00bac801cb3f48fd915e5728d27cf2ae",
+    "faceCount": 4134,
+    "animationCount": 1,
+    "sizeBytes": 7829400,
+    "notes": "Realistic American cockroach (Periplaneta americana) with a walk-cycle animation ('Modelo Cucaracha'). Skinned, 46 bone joints (Bone001_..Bone0xx_xx naming), 8 materials, 24 embedded textures (PBR-style Substance export). Good crawl candidate; under the 60k-face limit at ~4.1k tris. Scale unknown: check and normalize after loading."
+  },
+  {
+    "file": "cockroach_xcellf.glb",
+    "uid": "cead55b8aa8643d48d67240bad028592",
+    "name": "Cockroach",
+    "author": "CK",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/cead55b8aa8643d48d67240bad028592",
+    "faceCount": 29454,
+    "animationCount": 1,
+    "sizeBytes": 4399504,
+    "notes": "Cockroach with a single skinned armature (roach.fbx: spine_03, hip_00, head, tail, 6-leg chains) and one 'Take 001' animation (likely a crawl/idle, not verified). ~29.5k tris, 1 material, 3 textures. Less polished than the BONOMISTUDIO model (appearance is a simpler look). Good as a second variant for crowd variety. Scale unknown."
+  }
+]

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOOP</title>
+  <link rel="stylesheet" href="/src/ui/style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="eyelids"><div class="lid top"></div><div class="lid bottom"></div></div>
+  <div id="hud">
+    <div id="crosshair"></div>
+    <div id="prompt"></div>
+    <div id="subtitle"></div>
+    <div id="hint"></div>
+  </div>
+  <div id="menu">
+    <h1>LOOP</h1>
+    <div id="loading"><div id="bar"><span></span></div><p id="loadtext">Đang tải…</p></div>
+    <button id="start" disabled>Bắt đầu</button>
+    <p class="tip">Nên dùng tai nghe · WASD di chuyển · Chuột nhìn · E tương tác · Shift chạy · C cúi</p>
+    <a id="credits-link" href="#">Credits</a>
+  </div>
+  <div id="pause" class="hidden"><p>Tạm dừng — click để tiếp tục</p></div>
+  <div id="credits" class="hidden"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

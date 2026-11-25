@@ -1,0 +1,153 @@
+[
+ {
+  "file": "water_drip_1.mp3",
+  "item": "water_drip",
+  "id": 683102,
+  "name": "water drop",
+  "author": "florianreichelt",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/683102/",
+  "duration": 1.66898
+ },
+ {
+  "file": "water_drip_2.mp3",
+  "item": "water_drip",
+  "id": 792924,
+  "name": "Bottle Drip",
+  "author": "qubodup",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/792924/",
+  "duration": 0.4
+ },
+ {
+  "file": "corridor_ambience.mp3",
+  "item": "corridor_ambience",
+  "id": 803970,
+  "name": "Abandoned Basement Drone",
+  "author": "Ixwolf",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/803970/",
+  "duration": 61.0
+ },
+ {
+  "file": "room_ambience.mp3",
+  "item": "room_ambience",
+  "id": 697579,
+  "name": "1800's Church Room Tone",
+  "author": "composingatnig",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/697579/",
+  "duration": 61.4
+ },
+ {
+  "file": "door_creak.mp3",
+  "item": "door_creak",
+  "id": 710510,
+  "name": "Door Opening Creaking",
+  "author": "dleverett",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/710510/",
+  "duration": 3.0
+ },
+ {
+  "file": "door_handle.mp3",
+  "item": "door_handle",
+  "id": 335747,
+  "name": "doorlatch.wav",
+  "author": "j1987",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/335747/",
+  "duration": 0.6
+ },
+ {
+  "file": "phone_ring.mp3",
+  "item": "phone_ring",
+  "id": 556499,
+  "name": "Rotary Phone Ring loopable",
+  "author": "cookies+policy",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/556499/",
+  "duration": 5.7
+ },
+ {
+  "file": "light_buzz.mp3",
+  "item": "light_buzz",
+  "id": 553075,
+  "name": "Foley_Mechanism_Light_Buzz_Short_Loop_Mono_DR",
+  "author": "Nox_Sound",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/553075/",
+  "duration": 20.0
+ },
+ {
+  "file": "heartbeat.mp3",
+  "item": "heartbeat",
+  "id": 840157,
+  "name": "Retro quiet heartbeat",
+  "author": "Reprieve",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/840157/",
+  "duration": 10.5
+ },
+ {
+  "file": "breath_wake.mp3",
+  "item": "breath_wake",
+  "id": 547906,
+  "name": "Quick deep breath",
+  "author": "abrmy",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/547906/",
+  "duration": 3.4
+ },
+ {
+  "file": "wind_window.mp3",
+  "item": "wind_window",
+  "id": 117611,
+  "name": "wind_howl2_stereo.wav",
+  "author": "swiftoid",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/117611/",
+  "duration": 36.5
+ },
+ {
+  "file": "clock_tick.mp3",
+  "item": "clock_tick",
+  "id": 232257,
+  "name": "plasticclocktick03.wav",
+  "author": "klangfabrik",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/232257/",
+  "duration": 20.0
+ },
+ {
+  "file": "step_concrete_1-4.mp3",
+  "item": "footstep_concrete",
+  "note": "sliced",
+  "source": "see original Freesound concrete footsteps entry (agent pick)"
+ },
+ {
+  "file": "floor_creak.mp3",
+  "item": "floor_creak",
+  "author": "qubodup",
+  "license": "CC0",
+  "name": "Creaking Floorboards 13"
+ },
+ {
+  "file": "step_wood_1-5.mp3",
+  "item": "footstep_wood",
+  "id": 565716,
+  "name": "Footsteps Walking On Wooden Floor Medium Pace.wav",
+  "author": "ralph.whitehead",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/565716/"
+ },
+ {
+  "file": "cockroach_skitter.mp3",
+  "item": "cockroach_skitter",
+  "id": 767054,
+  "name": "Cockroaches scurrying and scratching within a cage",
+  "author": "ThabzMalik",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/767054/"
+ }
+]
