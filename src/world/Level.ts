@@ -255,8 +255,9 @@ export class Level {
   /** Small windowless bathroom behind the ajar door: no light source, so it reads as pitch black. */
   private buildBathroom() {
     const B = BATH, t = 0.2;
-    const tile = new THREE.MeshStandardMaterial({ color: 0x9a978f, roughness: 0.3, map: this.mats.plaster.map, normalMap: this.mats.plaster.normalMap });
-    const floor = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 0.4 });
+    // near-black surfaces: reads as pitch black even on `low` (no shadows to block the hallway lights)
+    const tile = new THREE.MeshStandardMaterial({ color: 0x0c0c0b, roughness: 0.35, normalMap: this.mats.plaster.normalMap });
+    const floor = new THREE.MeshStandardMaterial({ color: 0x080807, roughness: 0.4 });
     const w = B.x1 - B.x0, d = B.z1 - B.z0, cx = (B.x0 + B.x1) / 2, cz = (B.z0 + B.z1) / 2;
     this.box(w + 0.4, 0.2, d + 0.4, floor, new THREE.Vector3(cx, -0.1, cz), 0.3, 'r');
     this.box(w + 0.4, 0.2, d + 0.4, tile, new THREE.Vector3(cx, B.h + 0.1, cz), 0.3, 'r');

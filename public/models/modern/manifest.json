@@ -1,0 +1,54 @@
+[
+  {
+    "file": "accent_armchair.glb",
+    "item": "modern accent armchair (boucl\u00e9, wooden legs)",
+    "uid": "f3f7a2d489ac4fa9a007064f9eeeb880",
+    "name": "Chair Boucl\u00e9",
+    "author": "Visth\u00e9tique",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/f3f7a2d489ac4fa9a007064f9eeeb880",
+    "faceCount": 19252,
+    "sizeBytes": 6751860,
+    "notes": "Boucl\u00e9 lounge chair with dark wooden legs; close match to brief. Cream/white, not light oak. 19k faces."
+  },
+  {
+    "file": "floor_lamp.glb",
+    "item": "modern floor lamp (tripod, black drum shade)",
+    "uid": "1aa6739d774348efa691340e3a12b870",
+    "name": "Drum shade floor lamp",
+    "author": "alpaca.",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/1aa6739d774348efa691340e3a12b870",
+    "faceCount": 67866,
+    "sizeBytes": 5689896,
+    "notes": "Tripod floor lamp with black drum shade (matte black metal). Shade and base look plausible; not verified at close range. 67.9k faces."
+  },
+  {
+    "file": "plant_snake.glb",
+    "item": "large indoor plant (snake plant in ceramic pot)",
+    "uid": "68b8acaeb29e402ea4dc7c981cb5b497",
+    "name": "Snake plant In Pot",
+    "author": "FranklySketch",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/68b8acaeb29e402ea4dc7c981cb5b497",
+    "faceCount": 25000,
+    "sizeBytes": 2397420,
+    "notes": "Potted snake plant (sansevieria) in woven ceramic pot. Photoreal-looking render. Requested species matches. 25k faces."
+  },
+  {
+    "file": "wall_art_abstract.glb",
+    "item": "modern abstract canvas (single plane, no frame)",
+    "uid": "e17189a89f714457907b372c3a83eb1e",
+    "name": "picture painting abstract broken black",
+    "author": "eisperle",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/e17189a89f714457907b372c3a83eb1e",
+    "faceCount": 2,
+    "sizeBytes": 784856,
+    "notes": "Abstract textured plane (2 faces) with no frame; weak match to brief (no black-frame poster). Verify texture quality before use."
+  }
+]

@@ -1,66 +1,5 @@
 [
   {
-    "file": "wall_mirror.glb",
-    "item": "wall mirror with ornate gilt frame",
-    "uid": "a3ad19a9186b445b9fae07f9f36f3bce",
-    "name": "Ornate Mirror 01 4k",
-    "author": "mohamedhussien",
-    "license_slug": "by",
-    "license_label": "Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/a3ad19a9186b445b9fae07f9f36f3bce",
-    "faceCount": 14246,
-    "sizeBytes": 1457140,
-    "notes": "Arched gilt/bronze ornate frame, 4k PBR-style look. Detail page description says CC0 but the API license slug is 'by' (CC BY); attribution kept to be safe. Description says 'Ornate Mirror 01 4k'."
-  },
-  {
-    "file": "umbrella_stand.glb",
-    "item": "umbrella stand (with umbrellas if possible)",
-    "uid": "08045f47cdba4206b6895e9f18952821",
-    "name": "Victorian Umbrella Stand",
-    "author": "Cable",
-    "license_slug": "by",
-    "license_label": "Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/08045f47cdba4206b6895e9f18952821",
-    "faceCount": 8628,
-    "sizeBytes": 4153176,
-    "notes": "Cast-iron Victorian umbrella stand, no umbrellas included. Description says 'roughed up', so it may show some wear/rust. Umbrella-included options (7e9ab065b38c4222a7f9e0f07284ec15) were rejected as low poly."
-  },
-  {
-    "file": "vintage_framed_photos.glb",
-    "item": "framed photos",
-    "uid": "d9b956abe2764d17aa901fe4f202f2b2",
-    "name": "Vintage Framed Art and Photos",
-    "author": "NatPlatt",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/d9b956abe2764d17aa901fe4f202f2b2",
-    "faceCount": 216
-  },
-  {
-    "file": "wooden_coat_rack.glb",
-    "item": "coat rack",
-    "uid": "c66a2f1ba30f4115a33cfc6d5dedb778",
-    "name": "Early 1900s Wooden Coat Racks Type B",
-    "author": "Mad_Lobster_Workshop",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/c66a2f1ba30f4115a33cfc6d5dedb778",
-    "faceCount": 17800
-  },
-  {
-    "file": "chest_of_drawers.glb",
-    "item": "chest of drawers / dresser (vintage wood)",
-    "uid": "3ee2cb9b3d9d441ea2e99e6c801ee0b8",
-    "name": "Old Dresser",
-    "author": "slls666",
-    "license_slug": "by",
-    "license_label": "CC Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/3ee2cb9b3d9d441ea2e99e6c801ee0b8",
-    "faceCount": 39383,
-    "sizeBytes": 4389724,
-    "notes": "Simple wooden two-drawer chest with golden knobs; includes albedo/normal/roughness/metalness maps."
-  },
-  {
     "file": "persian_runner_rug.glb",
     "item": "hallway runner rug (persian)",
     "uid": "08fee343183d4287a9ac8269ec4e97c5",
@@ -72,31 +11,5 @@
     "faceCount": 2732,
     "sizeBytes": 1451344,
     "notes": "Old Persian carpet, 2.7k faces, textured rug. Aspect looks elongated but it is not confirmed to be a strict long runner; the lamp is Moroccan-style brass lantern form rather than classic European fitting."
-  },
-  {
-    "file": "ceramic_vase_orchids.glb",
-    "item": "ceramic vase with flowers",
-    "uid": "9e351f19b3ba4910b7d15954e49ae178",
-    "name": "Orchidea",
-    "author": "Rox3d",
-    "license_slug": "by",
-    "license_label": "CC Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/9e351f19b3ba4910b7d15954e49ae178",
-    "faceCount": 18248,
-    "sizeBytes": 1144156,
-    "notes": "Ceramic pot holding a pink phalaenopsis orchid stem; realistic-looking."
-  },
-  {
-    "file": "wooden_side_table.glb",
-    "item": "small side table (wooden)",
-    "uid": "e93ac78171c342f7b2424c6181ba4605",
-    "name": "Side Table Dresser",
-    "author": "Ryan_Nein",
-    "license_slug": "by",
-    "license_label": "CC Attribution (CC BY)",
-    "url": "https://sketchfab.com/3d-models/e93ac78171c342f7b2424c6181ba4605",
-    "faceCount": 6468,
-    "sizeBytes": 2878264,
-    "notes": "Wooden bedside/side table with two drawers and carved handles, classic styling."
   }
 ]

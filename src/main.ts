@@ -47,7 +47,7 @@ pause.addEventListener('click', () => game.input.lock());
 
 document.getElementById('credits-link')!.addEventListener('click', async (e) => {
   e.preventDefault();
-  const groups = ['hands_bugs', 'furniture', 'decor', 'architecture', 'hallway'];
+  const groups = ['hands_bugs', 'furniture', 'decor', 'architecture', 'hallway', 'modern'];
   const lines: string[] = ['3D MODELS (Sketchfab)'];
   for (const g of groups) {
     try {

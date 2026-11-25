@@ -24,44 +24,5 @@
     "faceCount": 9310,
     "sizeBytes": 8187092,
     "notes": "Potted Monstera with mid-century metal stand; tidy, healthy, somewhat stylized render. Largest like count among plants."
-  },
-  {
-    "file": "book_stack.glb",
-    "item": "stack of old books",
-    "uid": "0ea43f7fdcb7411cb1123b987f297d41",
-    "name": "Medieval Book Stack",
-    "author": "GetDeadEntertainment",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/0ea43f7fdcb7411cb1123b987f297d41",
-    "faceCount": 2968,
-    "sizeBytes": 3112956,
-    "notes": "Medieval leather book stack. Clean, not especially dusty; add dust via shader or decals."
-  },
-  {
-    "file": "persian_rug.glb",
-    "item": "old rug / persian carpet",
-    "uid": "fe13eecfc9b8405dab1fe76c5dd28a4c",
-    "name": "Persian Rug",
-    "author": "Nicholas Record",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/fe13eecfc9b8405dab1fe76c5dd28a4c",
-    "faceCount": 24,
-    "sizeBytes": 3496992,
-    "notes": "Single-quad Persian rug with photo texture (24 faces). Pristine, not worn; use as floor plane. Alternative with damage: \"Carpet Ruined Old Free\" (AMMediaGames, 270k faces, uid 050a7a44bc344e65a1d63d4902a64e21)."
-  },
-  {
-    "file": "candles.glb",
-    "item": "candles (candle item)",
-    "uid": "92bb9f59fd9046b1beb9dca6b21489e2",
-    "name": "Candles",
-    "author": "thegraphicsgeek",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/92bb9f59fd9046b1beb9dca6b21489e2",
-    "faceCount": 22564,
-    "sizeBytes": 1992020,
-    "notes": "Set of candles, creamy PBR. Glass bottles alternative: uid 334377879cb4475d9a4720a2f7c4cf55 (FrodoUndead)."
   }
 ]

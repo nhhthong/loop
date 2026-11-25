@@ -82,7 +82,7 @@ export class Game {
     // end of the L: shut tight, never opens
     const endDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(5.06, 0, END_DOOR.z0 + 0.005), width: END_DOOR.z1 - END_DOOR.z0, height: END_DOOR.h, baseYaw: -Math.PI / 2, openSign: 1 });
     // bathroom: left ajar, opening into the dark
-    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.42 });
+    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.6 });
     this.scene.add(this.door.pivot, endDoor.pivot, bathDoor.pivot);
 
     const [furn] = await Promise.all([
