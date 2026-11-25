@@ -21,10 +21,10 @@ class GradeEffect extends Effect {
         outputColor = vec4(c, inputColor.a);
       }`, {
       uniforms: new Map<string, THREE.Uniform>([
-        ['saturation', new THREE.Uniform(0.22)],
+        ['saturation', new THREE.Uniform(0.3)],
         ['tint', new THREE.Uniform(new THREE.Color(1.0, 0.95, 0.86))],
-        ['lift', new THREE.Uniform(-0.015)],
-        ['gamma', new THREE.Uniform(1.12)],
+        ['lift', new THREE.Uniform(0.0)],
+        ['gamma', new THREE.Uniform(1.06)],
       ]),
     });
   }
@@ -70,8 +70,8 @@ export class Renderer {
     this.dof = new DepthOfFieldEffect(camera, { focusDistance: 0.02, focalLength: 0.05, bokehScale: 0, height: 480 });
     this.bloom = new BloomEffect({ intensity: 1.3, luminanceThreshold: 0.6, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.8 });
     this.chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0013, 0.0013), radialModulation: true, modulationOffset: 0.3 });
-    this.vignette = new VignetteEffect({ offset: 0.22, darkness: 0.85 });
-    this.exposure = new BrightnessContrastEffect({ brightness: 0, contrast: 0.06 });
+    this.vignette = new VignetteEffect({ offset: 0.28, darkness: 0.72 });
+    this.exposure = new BrightnessContrastEffect({ brightness: 0, contrast: 0.12 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
     const noise = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: false });
     noise.blendMode.opacity.value = 0.2;

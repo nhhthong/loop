@@ -50,8 +50,8 @@ export function makeWet(mat: THREE.MeshStandardMaterial, kind: 'wall' | 'floor' 
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWPos = (modelMatrix * vec4(transformed,1.0)).xyz;');
     const wetFn = kind === 'floor'
-      ? `float wetMask(vec3 p){ float n = fbm(p.xz*1.3 + 7.1); float edge = smoothstep(.35,.0,min(abs(p.x-0.55),abs(p.x+0.55)));
-           return clamp(smoothstep(.52,.62,n) + edge*0.6*smoothstep(.35,.6,fbm(p.xz*3.)),0.,1.); }`
+      ? `float wetMask(vec3 p){ float n = fbm(p.xz*1.1 + 7.1); float edge = smoothstep(.35,.0,min(abs(p.x-0.55),abs(p.x+0.55)));
+           return clamp(smoothstep(.40,.52,n) + edge*0.7*smoothstep(.3,.55,fbm(p.xz*3.)) + 0.25,0.,1.); }`
       : kind === 'ceiling'
         ? `float wetMask(vec3 p){ return smoothstep(.55,.75,fbm(p.xz*1.7+3.3)); }`
         : `float wetMask(vec3 p){
@@ -65,12 +65,12 @@ export function makeWet(mat: THREE.MeshStandardMaterial, kind: 'wall' | 'floor' 
       .replace('#include <common>', `#include <common>\nvarying vec3 vWPos;\nuniform float uTime;\nuniform float uWetStrength;\n${NOISE_GLSL}\n${wetFn}`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         float wet = wetMask(vWPos) * uWetStrength;
-        diffuseColor.rgb *= mix(1.0, 0.45, wet);`)
+        diffuseColor.rgb *= mix(1.0, ${kind === 'floor' ? '0.35' : '0.6'}, wet);`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
         float trickle = 0.0;
         ${kind === 'wall' ? `vec2 tq = vec2((vWPos.x+vWPos.z)*14.0, vWPos.y*3.0 + uTime*0.35);
         trickle = smoothstep(.72,.95, vnoise(tq)) * wet;` : ''}
-        roughnessFactor = mix(roughnessFactor, ${kind === 'floor' ? '0.04' : '0.12'}, wet) * (1.0 - trickle*0.8);`)
+        roughnessFactor = mix(roughnessFactor, ${kind === 'floor' ? '0.02' : '0.07'}, wet) * (1.0 - trickle*0.8);`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         normal = normalize(mix(normal, normalize(vNormal), wet*${kind === 'floor' ? '0.85' : '0.4'}));`);
   };

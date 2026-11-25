@@ -112,13 +112,15 @@ npm run build
 - `src/game/Game.ts` — wake-up cinematic, interactions, scripted events, light flicker, ambience.
 
 ## Owner decisions (do not change without asking)
-- **Phase 1 = layout of the house only.** No gameplay beyond walking and opening the first door with E.
+- **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and opening the first door with E.
+  Ask the owner what Phase 2 contains before adding any mechanic.
 - No telephone interaction/ringing (the phone is a static prop). No scripted scares.
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
 - Visual direction (owner's reference image = photoreal horror hallway; take the genre look, do **not** copy any specific game's layout/assets):
   near-monochrome warm-grey grade (`GradeEffect` in `Renderer.ts`), few harsh light sources with hard shadows, deep blacks,
-  strong grain/vignette/chromatic aberration, bloom halos on bulbs.
+  grain/vignette/chromatic aberration, bloom halos on bulbs. Owner feedback: not too dark — wet surfaces must visibly shine and
+  reflect the lights (wet = dark glossy puddles + specular streaks, `makeWet`; polished house floor).
 - Architecture: aged ivory plaster walls with **light grime only** (`makeGrime`, no trash on the floor), dark wood floor,
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains).
 - Sparse furnishing, many picture frames along the walls. Lights: 2 lit sconces (one flickering), 1 dead sconce, bare bulb at the end

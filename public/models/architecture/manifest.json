@@ -24,18 +24,5 @@
     "faceCount": 9090,
     "sizeBytes": 13960620,
     "notes": "Antique light switch Type C; Type B (20.4MB) exceeded size cap"
-  },
-  {
-    "file": "concrete_rubble.glb",
-    "item": "rubble",
-    "uid": "0d654a6e33624665ad20c5191f5d9d95",
-    "name": "Set of 4 Concrete rubble chunks",
-    "author": "matousekfoto",
-    "license_slug": "by",
-    "license_label": "CC Attribution",
-    "url": "https://sketchfab.com/3d-models/0d654a6e33624665ad20c5191f5d9d95",
-    "faceCount": 132998,
-    "sizeBytes": 7547024,
-    "notes": "Set of 4 concrete rubble chunks; high-poly"
   }
 ]

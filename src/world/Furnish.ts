@@ -37,8 +37,6 @@ export const PROPS: PropSpec[] = [
   { name: 'art', url: M + 'wall_art_abstract.glb', pos: [1.55, 1.55, -4.985], rot: 0, h: 0.8, floor: false, age: 0.1 },
   // ---- Corridor (wet concrete, unchanged)
   { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, 4.75], rot: 0, h: 0.32, floor: false, age: 0.4, shadow: false },
-  { name: 'rubble', url: A + 'concrete_rubble.glb', pos: [0.22, 0, 1.2], rot: 40, w: 0.75, age: 0, tint: 0x6a645a },
-  { name: 'rubble2', url: A + 'concrete_rubble.glb', pos: [-0.3, 0, 2.3], rot: 160, w: 0.55, age: 0, tint: 0x6a645a },
   { name: 'switch', url: A + 'vintage_light_switch.glb', pos: [0.52, 1.3, 0.55], rot: -90, h: 0.085, floor: false, only: /^Object_4$/, age: 0.4 },
 ];
 
@@ -76,7 +74,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   const tl = props.get('tableLamp');
   const tlTop = tl ? new THREE.Box3().setFromObject(tl) : null;
   const lampPos = tlTop ? new THREE.Vector3((tlTop.min.x + tlTop.max.x) / 2, tlTop.max.y - 0.16, (tlTop.min.z + tlTop.max.z) / 2) : new THREE.Vector3(-0.8, 1.15, -2.8);
-  const lampA = mkLight(0xffd2a0, 0.9, 3, lampPos, 0, 0.02);
+  const lampA = mkLight(0xffd2a0, 2.2, 4, lampPos, 0, 0.02);
   lampA.glow = shadeGlow(scene, lampPos.clone().add(new THREE.Vector3(0, 0.02, 0)), 0.12, 0.12, 0.17, 0x8a7458);
 
   // [1] lit sconce near the entrance, [2] flickering sconce in leg B (sconce2 stays dark)
@@ -87,9 +85,9 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
     return new THREE.Vector3((bb.min.x + bb.max.x) / 2, bb.max.y - 0.07, (bb.min.z + bb.max.z) / 2);
   };
   const s1 = sconceBulb('sconce1', new THREE.Vector3(-0.8, 2.15, -1.3));
-  mkLight(0xffe4c2, 5, 7, s1, 1024, 0.02).glow = bulb(scene, s1, 0xfff1dc, 0.02);
+  mkLight(0xffe4c2, 9, 8, s1, 1024, 0.02).glow = bulb(scene, s1, 0xfff1dc, 0.02);
   const s3 = sconceBulb('sconce3', new THREE.Vector3(3.25, 2.15, -3.2));
-  mkLight(0xffe4c2, 4, 6, s3, 1024, 0.45).glow = bulb(scene, s3, 0xfff1dc, 0.02);
+  mkLight(0xffe4c2, 8, 8, s3, 1024, 0.45).glow = bulb(scene, s3, 0xfff1dc, 0.02);
 
   // [3] corridor caged bulb (unstable)
   // hangs just in front of / above where the player wakes, so it rakes across the raised hand
@@ -110,7 +108,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   const canopy = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.02, 20), new THREE.MeshStandardMaterial({ color: 0xd9d3c6, roughness: 0.5 }));
   canopy.position.set(endBulb.x, ROOM_H - 0.01, endBulb.z);
   scene.add(cord, canopy);
-  mkLight(0xfff0dc, 7, 8, endBulb, 1024, 0.03).glow = bulb(scene, endBulb, 0xfff6e8, 0.03);
+  mkLight(0xfff0dc, 8, 9, endBulb, 1024, 0.03).glow = bulb(scene, endBulb, 0xfff6e8, 0.03);
 
   // procedural rusty pipes along the corridor ceiling
   scene.add(pipes());

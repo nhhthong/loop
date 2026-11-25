@@ -107,7 +107,7 @@ export class Game {
     }
 
     // ambient fill so nothing is pure black
-    this.scene.add(new THREE.HemisphereLight(0x2a2f3a, 0x0d0a08, 0.05));
+    this.scene.add(new THREE.HemisphereLight(0x3a3d44, 0x15110d, 0.1));
 
     // hands + roaches
     const [arms, roachA, roachB] = await Promise.all([
@@ -170,7 +170,7 @@ export class Game {
     const room = bake(new THREE.Vector3(0, 1.4, -2.5));
     const corr = bake(new THREE.Vector3(0, 1.3, 3.0));
     this.scene.environment = room;
-    this.scene.environmentIntensity = 0.2; // probes add reflections, not flat fill light
+    this.scene.environmentIntensity = 0.45; // probes add reflections, not flat fill light
     const setEnv = (m: THREE.Mesh, env: THREE.Texture) => {
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       mats.forEach((mm) => { if ((mm as THREE.MeshStandardMaterial).isMeshStandardMaterial) (mm as THREE.MeshStandardMaterial).envMap = env; });
@@ -203,7 +203,7 @@ export class Game {
     this.introT = -1;
     this.ui.setLids(1);
     this.renderer.setBlur(0);
-    this.renderer.vignette.darkness = 0.85;
+    this.renderer.vignette.darkness = 0.72;
     this.renderer.exposure.brightness = 0;
     this.player.eye = eye;
     this.player.camera.fov = 70; this.player.camera.updateProjectionMatrix();
@@ -268,7 +268,7 @@ export class Game {
     // focus pulls onto the hand; slight focus "hunting" while dazed
     const blur = 1 - seg(t, 2.2, 6.8);
     this.renderer.setBlur(Math.max(0, blur + Math.sin(t * 1.9) * 0.08 * blur));
-    this.renderer.vignette.darkness = 0.85 + (1 - seg(t, 2, 9)) * 0.12;
+    this.renderer.vignette.darkness = 0.72 + (1 - seg(t, 2, 9)) * 0.2;
     this.renderer.exposure.brightness = -0.22 * (1 - seg(t, 1.5, 7));
 
     // camera: sitting slumped against the end wall, zoomed in, chest heaving
