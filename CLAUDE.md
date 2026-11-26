@@ -97,8 +97,9 @@ npm run build
 
 ## Layout (meters, Y up) — rooms/openings are data in `src/world/Level.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
 - Based on the owner's floor plan; walkway 2 m wide, ceilings 3 m; the void around the fan (atrium RA + stairwell RS + gallery RG) is 6 m.
-- Corridor (wet concrete): x∈[-0.55, 0.55], z∈[0.12, 6], h 2.4. Player wakes at z≈5.45 facing −z; door at z=0 into R1.
-- R1 entrance leg (planter + plants + sconce east, dresser/mirror west) → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
+- Corridor (wet concrete): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
+- R1 entrance leg, 6.5 m (owner asked +3 m): first thing seen is a small wooden cabinet with a digital clock frozen at **23:59** + plant (east wall),
+  then planter + plants + sconce east, dresser/mirror west → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
 - North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
 - RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
 - RS stairs rise +z to a landing/gallery RG at y=3 (railing seen from below, dark, night light). RN nook beside the stairs (coat rack, cabinet).
@@ -116,7 +117,7 @@ npm run build
 ## Owner decisions (do not change without asking)
 - **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and opening the first door with E.
   Ask the owner what Phase 2 contains before adding any mechanic.
-- No telephone interaction/ringing (the phone is a static prop). No scripted scares.
+- No telephone interaction/ringing (the phone is a static prop). No scripted scares. No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
 - Visual direction (owner's reference image = photoreal horror hallway; take the genre look, do **not** copy any specific game's layout/assets):

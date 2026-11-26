@@ -14,6 +14,10 @@ const F = '/models/furniture/', D = '/models/decor/', A = '/models/architecture/
  * Sconce's room side is −Z: west −90 · east 90 · north 180 · south 0.
  */
 export const PROPS: PropSpec[] = [
+  // ---- R1, first thing seen after opening the door: small wooden cabinet (east wall) with the digital clock (23:59), plant beside it
+  { name: 'clockCabinet', url: H + 'wooden_side_table.glb', pos: [0.77, 0, 1.75], rot: -90, h: 0.78, collide: true, age: 0.05 },
+  { name: 'doorPlant', url: M + 'plant_snake.glb', pos: [0.76, 0, 1.05], rot: 45, h: 0.75, collide: true, age: 0 },
+  { name: 'sconceE', url: F + 'antique_wall_sconce.glb', pos: [-0.86, 1.95, 1.6], rot: -90, h: 0.45, floor: false, age: 0.1, shadow: false },
   // ---- R1 entrance leg: umbrella stand, dresser + mirror, frame (west); planter with plants + sconce (east, procedural box)
   { name: 'umbrella', url: H + 'umbrella_stand.glb', pos: [-0.78, 0, -0.4], rot: 0, h: 0.72, collide: true, age: 0.05 },
   { name: 'dresserA', url: H + 'wooden_side_table.glb', pos: [-0.77, 0, -1.65], rot: 90, h: 0.78, collide: true, age: 0.05 },
@@ -54,8 +58,8 @@ export const PROPS: PropSpec[] = [
   { name: 'photoE1', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.62, -5.485], rot: 0, h: 0.18, floor: false, only: /^pictureFrame1_/, age: 0.05 },
   { name: 'photoE2', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.38, -5.485], rot: 0, h: 0.16, floor: false, only: /^pictureFrame3_/, age: 0.05 },
   // ---- Corridor (wet concrete, unchanged)
-  { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, 4.75], rot: 0, h: 0.32, floor: false, age: 0.4, shadow: false },
-  { name: 'switch', url: A + 'vintage_light_switch.glb', pos: [0.52, 1.3, 0.55], rot: -90, h: 0.085, floor: false, only: /^Object_4$/, age: 0.4 },
+  { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, CORRIDOR.z0 + 4.63], rot: 0, h: 0.32, floor: false, age: 0.4, shadow: false },
+  { name: 'switch', url: A + 'vintage_light_switch.glb', pos: [0.52, 1.3, CORRIDOR.z0 + 0.43], rot: -90, h: 0.085, floor: false, only: /^Object_4$/, age: 0.4 },
 ];
 
 export type LampTag = 'corridor' | 'leak' | 'lamp';
@@ -76,6 +80,11 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
     onProp?.();
   }));
   scene.add(planter(physics));
+  const cab = props.get('clockCabinet');
+  if (cab) {
+    const bb = new THREE.Box3().setFromObject(cab);
+    scene.add(digitalClock(new THREE.Vector3(0.84, bb.max.y, 1.85), -Math.PI / 2));
+  }
 
   const lamps: Furnished['lamps'] = [];
   const mkLight = (color: number, intensity: number, dist: number, pos: THREE.Vector3, shadow: boolean, flicker = 0, tag: LampTag = 'lamp') => {
@@ -100,6 +109,8 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   };
 
   // Warm, cosy pools of light with dark gaps between them (atrium/stairs/gallery stay unlit).
+  const se = top('sconceE', 0.07, new THREE.Vector3(-0.8, 2.25, 1.6));
+  mkLight(WARM_BULB, 5, 7, se, true, 0.02).glow = bulb(scene, se, 0xfff0d8, 0.02);
   const sp = top('sconceP', 0.07, new THREE.Vector3(0.8, 2.25, -1.75));
   mkLight(WARM_BULB, 6, 7, sp, true, 0.02).glow = bulb(scene, sp, 0xfff0d8, 0.02);
   const fl = top('floorLamp', 0.14, new THREE.Vector3(1.22, 1.5, -6.35));
@@ -115,12 +126,12 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
 
   // faint night light on the upper landing: silhouettes the treads and balusters, the void above stays dark
   const nl = new THREE.Vector3(5.6, 3.35, 0.25);
-  mkLight(WARM_SHADE, 2.2, 5.5, nl, true, 0.05).glow = bulb(scene, nl, 0xffd8a8, 0.02);
+  mkLight(WARM_SHADE, 5, 7, nl, true, 0.05).glow = bulb(scene, nl, 0xffd8a8, 0.02);
 
   // corridor caged bulb (unstable) and the light leaking under the closed door
-  const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, 4.75);
+  const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, CORRIDOR.z0 + 4.63);
   mkLight(0xffdca8, 30, 7, bulbPos, true, 0.6, 'corridor').glow = bulb(scene, bulbPos, 0xfff0c8);
-  mkLight(0xffa860, 0.35, 1.6, new THREE.Vector3(0, 0.04, 0.25), false, 0, 'leak');
+  mkLight(0xffa860, 0.35, 1.6, new THREE.Vector3(0, 0.04, CORRIDOR.z0 + 0.13), false, 0, 'leak');
 
   // bare bulb near door 9 at the far end of the east hall (dim, unsteady)
   const eb = new THREE.Vector3(9.2, 2.55, -4.5);
@@ -131,6 +142,11 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
 
   scene.add(pipes());
   const fan = await ceilingFan(assets, scene);
+  if (fan) {
+    // the fan's own light kit, dimmed: lights the atrium and stairs from above, blades sweep shadows across the ceiling
+    const fp = fan.root.position.clone().add(new THREE.Vector3(0, -0.32, 0));
+    mkLight(WARM_BULB, 7, 9, fp, true, 0.06).glow = bulb(scene, fp, 0xfff0d8, 0.035);
+  }
   return { props, lamps, fan };
 }
 
@@ -157,6 +173,50 @@ async function ceilingFan(assets: Assets, parent: THREE.Object3D): Promise<Furni
   root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   parent.add(root);
   return { root, blades: model.getObjectByName('Vent_Blades') ?? null };
+}
+
+/** Bedside-style digital clock showing a frozen 23:59 in red 7-segment LEDs (unlit segments faintly visible). */
+function digitalClock(at: THREE.Vector3, yaw: number) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 192;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#050403'; g.fillRect(0, 0, 512, 192);
+  // segment layout per digit (a..g) in a 70×130 cell
+  const W = 70, H = 130, T = 12;
+  const segs: [number, number, number, number][] = [
+    [T, 0, W - 2 * T, T], [W - T, T, T, H / 2 - 1.5 * T], [W - T, H / 2 + T / 2, T, H / 2 - 1.5 * T],
+    [T, H - T, W - 2 * T, T], [0, H / 2 + T / 2, T, H / 2 - 1.5 * T], [0, T, T, H / 2 - 1.5 * T], [T, H / 2 - T / 2, W - 2 * T, T],
+  ];
+  const ON: Record<string, string> = { '2': 'abged', '3': 'abgcd', '5': 'afgcd', '9': 'abfgcd' };
+  const digit = (ch: string, x: number) => {
+    segs.forEach((r, i) => {
+      const lit = ON[ch].includes('abcdefg'[i]);
+      g.fillStyle = lit ? '#ff2a1a' : 'rgba(80,10,6,0.35)';
+      if (lit) { g.shadowColor = '#ff3020'; g.shadowBlur = 14; } else g.shadowBlur = 0;
+      g.fillRect(x + r[0] + 2, 30 + r[1] + 2, r[2] - 4, r[3] - 4);
+    });
+  };
+  digit('2', 40); digit('3', 130); digit('5', 290); digit('9', 380);
+  g.fillStyle = '#ff2a1a'; g.shadowBlur = 14;
+  g.fillRect(244, 70, 14, 14); g.fillRect(244, 120, 14, 14);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+
+  const root = new THREE.Group();
+  root.position.copy(at);
+  root.rotation.y = yaw;
+  const plastic = new THREE.MeshStandardMaterial({ color: 0x0c0c0c, roughness: 0.35 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.075, 0.07), plastic);
+  body.position.set(0, 0.0375, 0); body.rotation.x = -0.12; body.castShadow = true; body.receiveShadow = true;
+  root.add(body);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.056), new THREE.MeshStandardMaterial({
+    map: tex, emissiveMap: tex, emissive: new THREE.Color(0xffffff), emissiveIntensity: 2.2, roughness: 0.15, color: 0x111111,
+  }));
+  face.position.set(0, 0.0375, 0.0361); face.rotation.x = -0.12;
+  root.add(face);
+  const glow = new THREE.PointLight(0xff2a1a, 0.06, 0.7, 2);
+  glow.position.set(0, 0.04, 0.12);
+  root.add(glow);
+  return root;
 }
 
 /** Low wooden planter trough along the east wall of the entrance leg (plants sit on top). */

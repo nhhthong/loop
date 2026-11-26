@@ -16,19 +16,19 @@ import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal } from '
  *  z=-3.5 │R1├──── RB bath ────┐ ┌ RS stairs ┐┌ RN nook ┐      └──────────────────────┘
  *         │  │   (dark, ajar)   │ │ (rise +z) ││coat rack│  RG gallery above RN/RS top (floor y=3)
  *         │  └─────────────────┘ └───────────┘└─────────┘
- *  z=0    └──[door]──┘  x=-1..1
+ *  z=3    └──[door]──┘  x=-1..1   (entrance leg R1 is 6.5 m long)
  *              |  |  concrete corridor (1.1 m wide, 2.4 m high)
- *  z=6         +--+  ← player wakes here
+ *  z=9         +--+  ← player wakes here
  */
-export const CORRIDOR = { x0: -0.55, x1: 0.55, z0: 0.12, z1: 6.0, h: 2.4 };
+export const CORRIDOR = { x0: -0.55, x1: 0.55, z0: 3.12, z1: 9.0, h: 2.4 };
 export const ROOM_H = 3.0;
-export const DIV_Z = 0; // dividing wall center (door wall between corridor and house)
+export const DIV_Z = 3; // dividing wall center (door wall between corridor and house)
 export const DOOR = { x0: -0.45, x1: 0.45, h: 2.1 };
 const WALL_T = 0.12; // auto walls sit outside their room, interior face on the room edge
 
 export interface Room { name: string; x0: number; x1: number; z0: number; z1: number; y0: number; h: number; dark?: boolean; skip?: ('n' | 's' | 'e' | 'w')[] }
 export const ROOMS: Room[] = [
-  { name: 'R1', x0: -1, x1: 1, z0: -3.5, z1: 0, y0: 0, h: 3, skip: ['s'] },
+  { name: 'R1', x0: -1, x1: 1, z0: -3.5, z1: DIV_Z, y0: 0, h: 3, skip: ['s'] },
   { name: 'R2', x0: -1, x1: 3.4, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
   { name: 'R6', x0: -1, x1: 1.6, z0: -6.6, z1: -5.5, y0: 0, h: 3 },
   { name: 'R3', x0: 1.9, x1: 2.9, z0: -6.05, z1: -5.5, y0: 0, h: 3 },
@@ -195,7 +195,7 @@ export class Level {
     // dividing wall between corridor and house: +z face = corridor concrete, −z face = paint
     const pl = M.plaster, cc = M.concreteWall, wp = M.wallPaint;
     this.wall('x', DIV_Z, -1.12, 1.12, ROOM_H, 0.24, [pl, pl, pl, pl, cc, wp], [{ a0: DOOR.x0, a1: DOOR.x1, y0: 0, y1: DOOR.h }], 1.6, 'r');
-    this.trims([-1, -0.12], [1, -0.12], [0, -1], [[DOOR.x0 + 1 - 0.09, DOOR.x1 + 1 + 0.09]], 0, ROOM_H, true, true);
+    this.trims([-1, DIV_Z - 0.12], [1, DIV_Z - 0.12], [0, -1], [[DOOR.x0 + 1 - 0.09, DOOR.x1 + 1 + 0.09]], 0, ROOM_H, true, true);
     this.buildDoorFrame('x', DIV_Z, DOOR.x0, DOOR.x1, DOOR.h, 0.24);
     this.buildDoorFrame('x', BATH_DOOR.at, BATH_DOOR.a0, BATH_DOOR.a1, BATH_DOOR.y1, 0.24);
     this.buildDoorFrame('x', EXIT_DOOR.at - WALL_T / 2, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, WALL_T);
@@ -397,6 +397,6 @@ export class Level {
     };
     const up = new THREE.Euler(-Math.PI / 2, 0, 0);
     // corridor floor muck
-    for (let i = 0; i < 8; i++) add('dirt', new THREE.Vector3(-0.4 + rnd() * 0.8, 0.003, 0.5 + rnd() * 5.2), up, 0.5 + rnd() * 0.6);
+    for (let i = 0; i < 8; i++) add('dirt', new THREE.Vector3(-0.4 + rnd() * 0.8, 0.003, CORRIDOR.z0 + 0.4 + rnd() * 5.2), up, 0.5 + rnd() * 0.6);
   }
 }

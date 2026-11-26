@@ -8,7 +8,7 @@ import { Level, CORRIDOR, WIN_A, WIN_B, DOOR, DIV_Z, STORE_DOOR, BATH_DOOR, EXIT
 import { furnish, type Furnished } from '../world/Furnish';
 import { buildWindow } from '../world/Window';
 import { Door, buildGrandDoor } from '../world/Door';
-import { Drips, Dust } from '../world/Atmosphere';
+import { Drips } from '../world/Atmosphere';
 import { Cockroaches } from '../world/Cockroaches';
 import { sharedUniforms } from '../world/Materials';
 import { Player } from '../player/Player';
@@ -37,7 +37,6 @@ export class Game {
   door!: Door;
   furn!: Furnished;
   drips!: Drips;
-  dust!: Dust;
   roaches!: Cockroaches;
   private clock = new THREE.Clock();
   private time = 0;
@@ -66,7 +65,7 @@ export class Game {
 
     // player first (camera needed by renderer)
     this.audio = new AudioSys(new THREE.PerspectiveCamera(), this.assets);
-    this.player = new Player(this.physics, this.input, this.audio, this.scene, new THREE.Vector3(0.05, 0, 5.45));
+    this.player = new Player(this.physics, this.input, this.audio, this.scene, new THREE.Vector3(0.05, 0, CORRIDOR.z0 + 5.33));
     this.player.camera.add(this.audio.listener);
     this.renderer = new Renderer(this.canvas, this.scene, this.player.camera);
     this.assets.anisotropy = Math.min(Q.anisotropy, this.renderer.renderer.capabilities.getMaxAnisotropy());
@@ -124,12 +123,12 @@ export class Game {
     this.hands = new Hands();
     if (arms) await this.hands.load(arms, this.player.camera);
     this.roaches = new Cockroaches(this.scene, this.audio);
-    const cbox = new THREE.Box3(new THREE.Vector3(CORRIDOR.x0, 0, 0.3), new THREE.Vector3(CORRIDOR.x1, CORRIDOR.h, CORRIDOR.z1 - 0.1));
+    const cbox = new THREE.Box3(new THREE.Vector3(CORRIDOR.x0, 0, CORRIDOR.z0 + 0.18), new THREE.Vector3(CORRIDOR.x1, CORRIDOR.h, CORRIDOR.z1 - 0.1));
     // a few start inside the wake-up view (floor ahead, both walls) so they're seen while looking at the hand
     const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
     const introStarts = [
-      { p: V(CORRIDOR.x0, 0.7, 4.35), n: V(1, 0, 0) }, { p: V(CORRIDOR.x0, 0.42, 3.95), n: V(1, 0, 0) },
-      { p: V(-0.25, 0, 3.7), n: V(0, 1, 0) }, { p: V(0.05, 0, 3.3), n: V(0, 1, 0) },
+      { p: V(CORRIDOR.x0, 0.7, CORRIDOR.z0 + 4.23), n: V(1, 0, 0) }, { p: V(CORRIDOR.x0, 0.42, CORRIDOR.z0 + 3.83), n: V(1, 0, 0) },
+      { p: V(-0.25, 0, CORRIDOR.z0 + 3.58), n: V(0, 1, 0) }, { p: V(0.05, 0, CORRIDOR.z0 + 3.18), n: V(0, 1, 0) },
     ];
     if (roachA) this.roaches.spawn(roachA, 4, cbox, ['x', 'y'], 0.05, 0, introStarts);
     if (roachA) this.roaches.spawn(roachA, 3, cbox, ['x', 'y'], 0.042);
@@ -138,10 +137,6 @@ export class Game {
     tick('creatures');
 
     this.drips = new Drips(this.scene, this.audio, this.scene);
-    const houseLamps = this.furn.lamps.filter((l) => l.tag === 'lamp').map((l) => l.light.position.clone());
-    const corrLamp = this.furn.lamps.find((l) => l.tag === 'corridor')!.light.position.clone();
-    this.dust = new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-1, 0.1, -6.6), new THREE.Vector3(7.2, 2.9, -0.2)), Q.dust, houseLamps);
-    new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-0.55, 0.1, 0.2), new THREE.Vector3(0.55, 2.35, 6)), Math.round(Q.dust / 4), [corrLamp]);
     if (this.furn.fan) this.audio.play3D('fan_creak', this.furn.fan.root, 0.55, { loop: true, ref: 1.6 });
 
     this.bakeProbes();
@@ -176,7 +171,7 @@ export class Game {
       return env;
     };
     const room = bake(new THREE.Vector3(2.5, 1.5, -4.5));
-    const corr = bake(new THREE.Vector3(0, 1.3, 3.0));
+    const corr = bake(new THREE.Vector3(0, 1.3, CORRIDOR.z0 + 2.9));
     this.scene.environment = room;
     this.scene.environmentIntensity = 0.45; // probes add reflections, not flat fill light
     const setEnv = (m: THREE.Mesh, env: THREE.Texture) => {
@@ -184,7 +179,7 @@ export class Game {
       mats.forEach((mm) => { if ((mm as THREE.MeshStandardMaterial).isMeshStandardMaterial) (mm as THREE.MeshStandardMaterial).envMap = env; });
     };
     this.level.corridorMeshes.forEach((m) => setEnv(m, corr));
-    this.scene.traverse((o) => { if ((o as THREE.Mesh).isMesh && o.position.z > 0.3 && o.parent === this.scene) setEnv(o as THREE.Mesh, corr); });
+    this.scene.traverse((o) => { if ((o as THREE.Mesh).isMesh && o.position.z > DIV_Z + 0.3 && o.parent === this.scene) setEnv(o as THREE.Mesh, corr); });
   }
 
   start() {
@@ -238,7 +233,6 @@ export class Game {
     this.door.update(dt);
     this.hands.update(dt);
     this.drips.update(dt);
-    this.dust.update(this.time);
     // roaches only react once the player can move (they keep crawling around the waking player)
     this.roaches.update(dt, this.player.control > 0.5 ? this.player.position : this.farAway);
     this.updateLights(dt);
@@ -406,7 +400,7 @@ export class Game {
 
   private updateAmbience(dt: number) {
     const z = this.player.position.z;
-    const inRoom = THREE.MathUtils.clamp(0.5 - z / 1.5, 0, 1);
+    const inRoom = THREE.MathUtils.clamp(0.5 - (z - DIV_Z) / 1.5, 0, 1);
     const fade = this.introT >= 0 ? seg(this.introT, 1.5, 6) : 1;
     if (this.ambC) this.ambC.setVolume(THREE.MathUtils.lerp(this.ambC.getVolume(), 0.5 * (1 - inRoom * 0.8) * fade, dt * 2));
     if (this.ambR) this.ambR.setVolume(THREE.MathUtils.lerp(this.ambR.getVolume(), 0.45 * (0.2 + inRoom * 0.8) * fade, dt * 2));
