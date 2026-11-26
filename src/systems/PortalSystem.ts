@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { System } from '../core/System';
 import type { Player } from '../player/Player';
 import type { Renderer } from '../engine/Renderer';
+import { Q } from '../engine/Quality';
 
 /**
  * A doorway that shows (and leads to) another place. While `active`, the scene is rendered into a target from a
@@ -14,6 +15,7 @@ export class PortalSystem implements System {
   private readonly target: THREE.WebGLRenderTarget;
   private readonly plane: THREE.Mesh;
   private readonly size = new THREE.Vector2();
+  private readonly rtSize = new THREE.Vector2();
 
   /**
    * @param plane  doorway rectangle in world space: centre, width (along the wall), height, normal pointing *through* it
@@ -34,7 +36,7 @@ export class PortalSystem implements System {
     this.cam.matrixAutoUpdate = false;
     this.cam.matrixWorldAutoUpdate = false;
     renderer.renderer.getDrawingBufferSize(this.size);
-    this.target = new THREE.WebGLRenderTarget(this.size.x, this.size.y, { type: THREE.HalfFloatType });
+    this.target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });
     const mat = new THREE.ShaderMaterial({
       uniforms: { tMap: { value: this.target.texture }, uSize: { value: this.size } },
       vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -50,6 +52,9 @@ export class PortalSystem implements System {
   }
 
   get active() { return this.plane.visible; }
+
+  /** where the virtual camera is (the player's eye carried through the portal), or null when closed */
+  viewPoint(): THREE.Vector3 | null { return this.plane.visible ? this.player.eyePos().applyMatrix4(this.map) : null; }
 
   update() {
     this.plane.visible = this.isOpen();
@@ -67,7 +72,8 @@ export class PortalSystem implements System {
     if (!this.plane.visible) return;
     const r = this.renderer.renderer, main = this.player.camera;
     r.getDrawingBufferSize(this.size);
-    if (this.target.width !== this.size.x || this.target.height !== this.size.y) this.target.setSize(this.size.x, this.size.y);
+    this.rtSize.copy(this.size).multiplyScalar(Q.portalScale).round();
+    if (this.target.width !== this.rtSize.x || this.target.height !== this.rtSize.y) this.target.setSize(this.rtSize.x, this.rtSize.y);
     main.updateMatrixWorld();
     this.cam.projectionMatrix.copy(main.projectionMatrix);
     this.cam.projectionMatrixInverse.copy(main.projectionMatrixInverse);

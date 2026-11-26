@@ -6,13 +6,21 @@ import { configureShadow, type Lamp } from '../world/Furnish';
 
 const SHADOW_REFRESH_DIST = 7;
 const PROXY_HYSTERESIS = 1.3;
+const POOL_FADE = 0.3; // s: a lamp fades in/out when it joins/leaves the light pool
 
-/** Lamp flicker, corridor bulb drop-outs, per-lamp drivers, shadow refresh gating and the `low`-quality shadow proxy. */
+/**
+ * Lamp flicker, corridor bulb drop-outs, per-lamp drivers, shadow refresh gating, the `low`-quality shadow proxy and,
+ * with `Q.lightPool`, the light pool (a fixed number of scene lights fed by the most relevant lamps).
+ */
 export class LightingSystem implements System {
   private time = 0;
   private bulbOut = 0;
   private proxy: THREE.PointLight | null = null;
   private proxyFor = -1;
+  /** light pool slots: which lamp each pooled light currently shows, and its fade (0..1) */
+  private readonly pool: { light: THREE.PointLight; lamp: number; fade: number }[] = [];
+  /** a second place the pool must light (e.g. what a portal shows); null when none */
+  extraFocus: () => THREE.Vector3 | null = () => null;
 
   /** `holdCorridor`: while true the corridor bulb burns steady (wake-up). */
   constructor(private readonly lamps: Lamp[], private readonly player: Player, scene: THREE.Scene, private readonly holdCorridor: () => boolean) {
@@ -20,6 +28,11 @@ export class LightingSystem implements System {
       this.proxy = new THREE.PointLight(0xffffff, 0, 6, 2);
       configureShadow(this.proxy);
       scene.add(this.proxy);
+    }
+    for (let i = 0; i < Q.lightPool; i++) {
+      const light = new THREE.PointLight(0xffffff, 0, 1, 2);
+      scene.add(light);
+      this.pool.push({ light, lamp: -1, fade: 0 });
     }
   }
 
@@ -43,6 +56,41 @@ export class LightingSystem implements System {
       l.light.shadow.autoUpdate = l.light.position.distanceTo(pp) < SHADOW_REFRESH_DIST;
     });
     if (this.proxy) this.updateShadowProxy(this.proxy);
+    if (this.pool.length) this.updatePool(dt);
+  }
+
+  /**
+   * Light pool: the K lamps scoring highest near the player (intensity / (1 + d²), members boosted for hysteresis) are
+   * rendered by the K pooled lights; a lamp leaving fades out before its slot is reused, a newcomer fades in.
+   */
+  private updatePool(dt: number) {
+    const p = this.player.eyePos(), q = this.extraFocus();
+    const d2 = (v: THREE.Vector3) => Math.min(v.distanceToSquared(p), q ? v.distanceToSquared(q) : Infinity);
+    const member = new Set(this.pool.filter((s) => s.lamp >= 0 && s.fade > 0).map((s) => s.lamp));
+    const wanted = this.lamps
+      .map((l, i) => ({ i, score: (l.light.intensity / (1 + d2(l.light.position))) * (member.has(i) ? PROXY_HYSTERESIS : 1) }))
+      .filter((c) => c.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, this.pool.length)
+      .map((c) => c.i);
+    const step = dt / POOL_FADE;
+    for (const s of this.pool) {
+      if (s.lamp >= 0 && wanted.includes(s.lamp)) s.fade = Math.min(1, s.fade + step);
+      else if (s.lamp >= 0 && (s.fade -= step) <= 0) { s.lamp = -1; s.fade = 0; }
+    }
+    for (const i of wanted) {
+      if (this.pool.some((s) => s.lamp === i)) continue;
+      const free = this.pool.find((s) => s.lamp < 0);
+      if (free) { free.lamp = i; free.fade = 0; }
+    }
+    for (const s of this.pool) {
+      if (s.lamp < 0) { s.light.intensity = 0; continue; }
+      const src = this.lamps[s.lamp].light;
+      s.light.position.copy(src.position);
+      s.light.color.copy(src.color);
+      s.light.distance = src.distance;
+      s.light.intensity = src.intensity * s.fade;
+    }
   }
 
   /**

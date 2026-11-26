@@ -56,7 +56,7 @@ function buildLamp(s: LightSpec, props: Map<string, THREE.Object3D>, parent: THR
   const light = new THREE.PointLight(s.color, s.intensity, s.dist, 2);
   light.position.copy(pos);
   if (s.shadow && Q.shadows) configureShadow(light);
-  parent.add(light);
+  if (!Q.lightPool) parent.add(light); // pooled: the light is a parameter holder, LightingSystem's pool renders it
   const cordMesh = s.cord ? cord(parent, pos, s.cord) : undefined;
   let glow: THREE.Mesh | undefined;
   if (s.glow && 'bulb' in s.glow) glow = bulb(parent, pos, s.glow.bulb, s.glow.r);

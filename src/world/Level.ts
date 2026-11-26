@@ -24,6 +24,8 @@ export class Level {
   readonly roomMeshes: THREE.Mesh[] = [];
   /** scrolling water normal maps (stairwell stream + wall seepage), advanced by WaterSystem in m/s along the flow */
   readonly flowing: { tex: THREE.Texture; speed: number }[] = [];
+  /** stairwell behind door 9 (own group so it can be hidden when it cannot be seen) */
+  readonly stairwell = new THREE.Group();
 
   constructor(private readonly physics: Physics, private readonly assets: Assets) {}
 
@@ -58,7 +60,10 @@ export class Level {
 
     this.buildCorridor();
     this.buildRoom();
+    const n0 = this.group.children.length;
     this.buildStairwell();
+    this.stairwell.add(...this.group.children.slice(n0));
+    this.group.add(this.stairwell);
     this.buildStains();
     return this;
   }
