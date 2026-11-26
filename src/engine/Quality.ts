@@ -1,7 +1,9 @@
 /**
- * Graphics presets. Chosen via `?q=low|medium|high`, else the last menu choice (localStorage), else medium.
+ * Graphics presets. Chosen via `?q=low|medium|high`, else the last menu choice (localStorage), else low on touch devices / medium elsewhere.
  * `low` is light enough for software rendering (headless screenshots): one proxy shadow, no AO/DOF/bloom, 1K textures.
  */
+import { IS_TOUCH } from './Input';
+
 export type QualityLevel = 'low' | 'medium' | 'high';
 
 export interface QualitySettings {
@@ -35,7 +37,7 @@ function pick(): QualityLevel {
   const url = new URLSearchParams(location.search).get('q');
   if (isLevel(url)) return url;
   try { const s = localStorage.getItem(KEY); if (isLevel(s)) return s; } catch { /* storage blocked */ }
-  return 'medium';
+  return IS_TOUCH ? 'low' : 'medium';
 }
 
 const level = pick();
