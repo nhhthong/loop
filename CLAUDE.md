@@ -128,7 +128,7 @@ npm run build
   monochrome and strongly amber; lamps warm-white. Cosy pools of light with dark gaps; hard shadows, deep blacks,
   grain/vignette/chromatic aberration, bloom halos on bulbs. Owner feedback: not too dark — wet surfaces must visibly shine and
   reflect the lights (wet = dark glossy puddles + specular streaks, `makeWet`; polished house floor).
-- Architecture: aged ivory plaster walls with **light grime only** (`makeGrime`, no trash on the floor), dark wood floor,
+- Architecture: aged ivory plaster walls in **semi-gloss paint** (roughness ~0.32, lamps leave sheen streaks) with **light grime only** — grime patches matte (`makeGrime`, no trash on the floor), dark wood floor,
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains);
   outside the windows is pure black (no sky/moon/rain), glass keeps only a faint reflection.
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are tagged in `Furnish.ts` (`corridor`, `leak`, `lamp`).

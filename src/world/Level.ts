@@ -97,6 +97,10 @@ export class Level {
     const wallPaint = makeGrime(plaster.clone(), 1);
     wallPaint.color.set(0xd6cfbf);
     wallPaint.normalScale.set(0.7, 0.7);
+    // semi-gloss paint over the plaster texture: lamps leave sheen streaks along the walls (grime areas stay matte)
+    wallPaint.roughnessMap = null;
+    wallPaint.roughness = 0.32;
+    wallPaint.envMapIntensity = 1.2;
     // off-white painted trim (baseboards, crown, casings, sills, doors)
     const trim = new THREE.MeshStandardMaterial({ color: 0xd9d3c6, roughness: 0.45, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.15, 0.15) });
     const blackMetal = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.5, roughness: 0.5 });

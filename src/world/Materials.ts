@@ -96,7 +96,9 @@ export function makeGrime(mat: THREE.MeshStandardMaterial, strength = 1) {
         float blot = smoothstep(0.58, 0.8, fbm(gq * 0.9 + 17.0)) * 0.6;
         float streak = smoothstep(0.7, 0.95, fbm(vec2(gq.x * 7.0, gq.y * 0.35))) * smoothstep(0.2, 2.6, vWPos.y) * 0.35;
         float g = clamp((low * 0.55 + high * 0.35 + blot * 0.35 + streak) * ${strength.toFixed(2)}, 0.0, 0.6);
-        diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.72, 0.62), g);`);
+        diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.72, 0.62), g);`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = mix(roughnessFactor, 0.85, g * 1.4);`);
   };
   mat.customProgramCacheKey = () => 'grime';
   return mat;
