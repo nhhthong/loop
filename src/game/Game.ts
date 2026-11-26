@@ -4,7 +4,7 @@ import { Physics } from '../engine/Physics';
 import { Assets } from '../engine/Assets';
 import { Input } from '../engine/Input';
 import { AudioSys } from '../engine/Audio';
-import { Level, CORRIDOR, WIN_A, WIN_B, DOOR, DIV_Z, STORE_DOOR, BATH_DOOR, EXIT_DOOR } from '../world/Level';
+import { Level, CORRIDOR, WIN_A, WIN_B, WIN_C, DOOR, DIV_Z, STORE_DOOR, BATH_DOOR, EXIT_DOOR } from '../world/Level';
 import { furnish, type Furnished } from '../world/Furnish';
 import { buildWindow } from '../world/Window';
 import { Door, buildGrandDoor } from '../world/Door';
@@ -16,7 +16,7 @@ import { Hands } from '../player/Hands';
 import { UI } from '../ui/UI';
 import { Q } from '../engine/Quality';
 
-const SOUNDS = ['breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'floor_creak', 'heartbeat',
+const SOUNDS = ['breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'door_locked_1', 'door_locked_2', 'heartbeat',
   'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak',
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5'];
 
@@ -46,6 +46,10 @@ export class Game {
   private ambC: THREE.Audio | null = null;
   private ambR: THREE.Audio | null = null;
   private doorT = -1;
+  storeDoor!: Door;
+  exitDoor!: THREE.Group;
+  private exitHandle = new THREE.Vector3();
+  private exitShake = 0;
   private bulbOut = 0;
   private shadowProxy: THREE.PointLight | null = null;
   private proxyFor = -1;
@@ -61,7 +65,6 @@ export class Game {
     this.assets.onProgress = (l, t, url) => onProgress(Math.min(0.99, l / Math.max(t, 1)), url.split('/').pop() ?? '');
     await this.physics.init();
     this.scene.background = new THREE.Color(0x000000);
-    this.scene.fog = new THREE.FogExp2(0x050403, 0.06);
 
     // player first (camera needed by renderer)
     this.audio = new AudioSys(new THREE.PerspectiveCamera(), this.assets);
@@ -75,22 +78,24 @@ export class Game {
     this.scene.add(this.level.group);
     tick('level');
 
-    // windows in the west wall: built facing +z at the origin, then turned to face +x
-    [WIN_A, WIN_B].forEach((o) => {
+    // windows (west and north walls): built facing +z at the origin, then placed/turned
+    [WIN_A, WIN_B, WIN_C].forEach((o) => {
       const w = buildWindow(-(o.a1 - o.a0) / 2, (o.a1 - o.a0) / 2, o.y0, o.y1, 0);
-      w.group.position.set(o.at, 0, (o.a0 + o.a1) / 2);
-      w.group.rotation.y = Math.PI / 2;
+      if (o.along === 'z') w.group.position.set(o.at, 0, (o.a0 + o.a1) / 2);
+      else w.group.position.set((o.a0 + o.a1) / 2, 0, o.at);
+      w.group.rotation.y = o.along === 'z' ? Math.PI / 2 : 0;
       this.scene.add(w.group);
     });
 
     const wood = this.level.mats.trim;
     this.door = new Door(this.physics, wood, { hinge: new THREE.Vector3(DOOR.x0 + 0.005, 0, DIV_Z - 0.05), width: DOOR.x1 - DOOR.x0, height: DOOR.h, baseYaw: 0, openSign: 1 });
     // door 9 at the end of the east hall: down to the store, same kind of door as the one from the basement — shut
-    const storeDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(STORE_DOOR.at + 0.04, 0, STORE_DOOR.a0 + 0.005), width: STORE_DOOR.a1 - STORE_DOOR.a0, height: STORE_DOOR.y1, baseYaw: -Math.PI / 2, openSign: 1 });
+    const storeDoor = this.storeDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(STORE_DOOR.at + 0.04, 0, STORE_DOOR.a0 + 0.005), width: STORE_DOOR.a1 - STORE_DOOR.a0, height: STORE_DOOR.y1, baseYaw: -Math.PI / 2, openSign: 1 });
     // bathroom: left ajar, opening into the dark
     const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.a0 + 0.005, 0, -3.3), width: BATH_DOOR.a1 - BATH_DOOR.a0, height: BATH_DOOR.y1, baseYaw: 0, openSign: -1, angle: 0.6 });
     // the front entrance: grand double doors at the end of the narrow passage (locked)
-    const exit = buildGrandDoor(this.physics, this.level.mats.woodFloor, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, EXIT_DOOR.at - 0.06);
+    const exit = this.exitDoor = buildGrandDoor(this.physics, this.level.mats.woodFloor, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, EXIT_DOOR.at - 0.06);
+    this.exitHandle.set((EXIT_DOOR.a0 + EXIT_DOOR.a1) / 2, 1.0, EXIT_DOOR.at);
     this.scene.add(this.door.pivot, storeDoor.pivot, bathDoor.pivot, exit);
 
     const [furn] = await Promise.all([
@@ -206,7 +211,7 @@ export class Game {
     this.introT = -1;
     this.ui.setLids(1);
     this.renderer.setBlur(0);
-    this.renderer.vignette.darkness = 0.72;
+    this.renderer.vignette.darkness = 0.55;
     this.renderer.exposure.brightness = 0;
     this.player.eye = eye;
     this.player.camera.fov = 70; this.player.camera.updateProjectionMatrix();
@@ -231,6 +236,7 @@ export class Game {
     this.physics.step(dt);
     this.updateInteract(dt);
     this.door.update(dt);
+    this.storeDoor.update(dt);
     this.hands.update(dt);
     this.drips.update(dt);
     // roaches only react once the player can move (they keep crawling around the waking player)
@@ -270,7 +276,7 @@ export class Game {
     // focus pulls onto the hand; slight focus "hunting" while dazed
     const blur = 1 - seg(t, 2.2, 6.8);
     this.renderer.setBlur(Math.max(0, blur + Math.sin(t * 1.9) * 0.08 * blur));
-    this.renderer.vignette.darkness = 0.72 + (1 - seg(t, 2, 9)) * 0.2;
+    this.renderer.vignette.darkness = 0.55 + (1 - seg(t, 2, 9)) * 0.3;
     this.renderer.exposure.brightness = -0.22 * (1 - seg(t, 1.5, 7));
 
     // camera: sitting slumped against the end wall, zoomed in, chest heaving
@@ -293,7 +299,7 @@ export class Game {
     const wave = seg(t, 6.4, 6.9) * (1 - seg(t, 8.4, 8.8));
     const fist = seg(t, 8.9, 9.7) * (1 - seg(t, 10.1, 10.8));
     H.curls = [0, 1, 2, 3, 4].map((i) => {
-      const limp = 0.16 + i * 0.04 + breath * 0.02 * amp;
+      const limp = 0.16 + Math.min(i, 3) * 0.015 + breath * 0.02 * amp;
       const w = 0.5 * (1 + Math.sin(t * 5.2 - i * 0.9)) * 0.7;
       return Math.max(limp + wave * w, fist * (i === 4 ? 0.8 : 1.0));
     });
@@ -325,16 +331,37 @@ export class Game {
       if (this.doorT > 0.5) this.doorT = -1;
       return;
     }
-    if (P.control < 1 || this.door.isOpen) { this.ui.prompt(''); return; }
-    const eye = P.eyePos();
-    const to = this.door.handleWorld().sub(eye);
-    const looking = to.length() < 1.5 && to.normalize().dot(P.forward()) > 0.82;
-    this.ui.prompt(looking ? '[E]  Open door' : '');
-    if (looking && this.input.hit('KeyE')) {
-      this.ui.prompt('');
-      this.doorT = 0;
-      this.audio.play3D('door_handle', this.door.handle, 0.8, { ref: 0.6 });
+    // the door swings shut behind the player once they are inside, and is locked from then on
+    if (this.door.isOpen && !this.door.locked && P.position.z < DIV_Z - 1.4) {
+      this.door.close();
+      this.door.locked = true;
+      this.audio.play3D('door_creak', this.door.handle, 0.7, { ref: 0.8, rate: 1.1 });
+      window.setTimeout(() => this.audio.play3D('door_handle', this.door.handle, 0.9, { ref: 0.8, rate: 0.8 }), 1300);
     }
+    if (P.control < 1) { this.ui.prompt(''); return; }
+    const eye = P.eyePos(), fwd = P.forward();
+    const near = (p: THREE.Vector3) => { const to = p.clone().sub(eye); return to.length() < 1.5 && to.normalize().dot(fwd) > 0.82; };
+    let target: { pos: THREE.Vector3; use: () => void } | null = null;
+    if (!this.door.isOpen && near(this.door.handleWorld())) {
+      target = this.door.locked
+        ? { pos: this.door.handleWorld(), use: () => this.lockedRattle(this.door.handle, () => this.door.rattle()) }
+        : { pos: this.door.handleWorld(), use: () => { this.doorT = 0; this.audio.play3D('door_handle', this.door.handle, 0.8, { ref: 0.6 }); } };
+    } else if (near(this.storeDoor.handleWorld())) {
+      target = { pos: this.storeDoor.handleWorld(), use: () => this.lockedRattle(this.storeDoor.handle, () => this.storeDoor.rattle()) };
+    } else if (near(this.exitHandle)) {
+      target = { pos: this.exitHandle, use: () => { this.lockedRattle(this.exitDoor, () => { this.exitShake = 0.6; }); } };
+    }
+    this.ui.prompt(target ? '[E]  Open door' : '');
+    if (target && this.input.hit('KeyE')) target.use();
+    if (this.exitShake > 0) {
+      this.exitShake = Math.max(0, this.exitShake - dt);
+      this.exitDoor.position.z = Math.sin(this.exitShake * 60) * 0.003 * (this.exitShake / 0.6);
+    }
+  }
+
+  private lockedRattle(at: THREE.Object3D, anim: () => void) {
+    anim();
+    this.audio.play3D(Math.random() < 0.5 ? 'door_locked_1' : 'door_locked_2', at, 0.9, { ref: 0.8, rate: 0.95 + Math.random() * 0.1 });
   }
 
   // ------------------------------------------------------------------ lights

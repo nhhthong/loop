@@ -28,7 +28,7 @@ const SCALE = 1.26; // scan → real adult hand (wrist crease → middle tip ≈
 const v3 = (a: number[]) => new THREE.Vector3(a[0], a[1], a[2]).multiplyScalar(SCALE);
 const Q = () => new THREE.Quaternion();
 
-interface Finger { bones: THREE.Bone[]; axes: THREE.Vector3[]; amt: number[] }
+interface Finger { bones: THREE.Bone[]; axes: THREE.Vector3[]; amt: number[]; spread?: THREE.Quaternion }
 
 export class Hands {
   readonly rig = new THREE.Group();
@@ -105,6 +105,14 @@ export class Hands {
         return dir.clone().cross(isThumb ? thumbN : palmN).normalize();
       });
       this.fingers.push({ bones: fb, axes, amt: isThumb ? [0.45, 0.75, 0.9] : [1.35, 1.6, 1.05] });
+      // the scan's little finger (and ring finger slightly) read undersized next to the others — enlarge from the knuckle
+      // fingertips of index/middle/ring read bulbous on the scan: shrink the distal segment about its joint
+      if (fi <= 2) fb[2].scale.setScalar(0.78);
+      if (fi === 3) {
+        fb[0].scale.setScalar(1.5);
+        // and it splays outward in the scan: close it toward the ring finger
+        this.fingers[3].spread = Q().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -0.22);
+      }
     });
 
     // ---- 3. skin weights
@@ -196,8 +204,11 @@ export class Hands {
     this.forearm.position.copy(W).addScaledVector(fore, -this.foreLen);
     this.hand.quaternion.copy(qFore.clone().invert().multiply(qHand));
     this.fingers.forEach((fg, fi) => {
-      const c = this.curls[fi] ?? 0;
-      fg.bones.forEach((b, s) => b.quaternion.setFromAxisAngle(fg.axes[s], c * fg.amt[s]));
+      const c = (this.curls[fi] ?? 0) * (fi === 3 ? 0.55 : 1); // little finger stays straighter so it doesn't foreshorten
+      fg.bones.forEach((b, s) => {
+        b.quaternion.setFromAxisAngle(fg.axes[s], c * fg.amt[s]);
+        if (s === 0 && fg.spread) b.quaternion.premultiply(fg.spread);
+      });
     });
   }
 }

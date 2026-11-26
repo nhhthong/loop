@@ -100,7 +100,8 @@ npm run build
 - Corridor (wet, dark basement concrete `concrete_wall_005`): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
 - R1 entrance leg, 6.5 m (owner asked +3 m): first thing seen is a small wooden cabinet with a digital clock frozen at **23:59** + plant (east wall),
   then planter + plants + sconce east, dresser/mirror west → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
-- North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
+- Flat north wall (owner: too many recesses looked unnatural): grandfather clock, window `WIN_C`, credenza (two lamps, rotary phone, painting).
+  Bathroom RB south of R2 (ajar, pitch black).
 - RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
 - L-shaped stair (owner chose option A): flight 1 (8 treads, riser 18 cm, tread 27 cm) rises +z in RS from the atrium, open east side
   with dark balustrade + newels → mid landing (y 1.63) turns 90° → flight 2 rises +x between walls (RF2) → dark upper landing RU (y 3.25)
@@ -118,11 +119,13 @@ npm run build
 - `src/game/Game.ts` — wake-up cinematic, interactions, scripted events, light flicker, ambience.
 
 ## Owner decisions (do not change without asking)
-- **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and opening the first door with E.
+- **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and doors:
+  the basement door opens with E, swings shut and locks behind the player; every closed door then only rattles (locked) on E.
   Ask the owner what Phase 2 contains before adding any mechanic.
 - No telephone interaction/ringing (the phone is a static prop). No scripted scares. No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
-- Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
+- Outside the intro there is no visible hand/body: only camera movement + footstep sounds (no floor creaks).
+- Image must be crisp (AAA, not hazy): no fog, subtle grain/CA, bloom only on bright sources, DOF only during the wake-up.
 - Visual direction (owner's reference image = photoreal horror hallway; take the genre look, do **not** copy any specific game's layout/assets):
   muted, near-neutral warm-grey grade with a faint olive cast (`GradeEffect`, saturation ~0.4) — owner rejected both
   monochrome and strongly amber; lamps warm-white. Cosy pools of light with dark gaps; hard shadows, deep blacks,
@@ -137,6 +140,7 @@ npm run build
 
 ## Hands
 - Model: `public/models/hands_bugs/male_hand_scan.glb` (photoscan, unrigged). Rig built in code from landmarks in `Hands.ts`.
+- Finger fixes in `Hands.ts`: distal segments of index/middle/ring scaled 0.78, little finger ×1.5, tucked in and curled less.
 - **Show the hand only as long as the model is.** No sleeve, no procedural forearm extension.
 - The scan's wrist cut must never be on screen → the hand is shown only in framed close-ups
   (intro: FOV 40, hand raised from below). The hand appears **only in the intro**.

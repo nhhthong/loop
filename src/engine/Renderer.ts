@@ -35,6 +35,7 @@ export class Renderer {
   readonly renderer: THREE.WebGLRenderer;
   readonly composer: EffectComposer;
   readonly dof: DepthOfFieldEffect;
+  private readonly dofPass: EffectPass;
   readonly vignette: VignetteEffect;
   readonly chroma: ChromaticAberrationEffect;
   readonly exposure: BrightnessContrastEffect;
@@ -60,7 +61,7 @@ export class Renderer {
     ao.configuration.aoRadius = 0.6;
     ao.configuration.distanceFalloff = 0.4;
     ao.configuration.intensity = 3.2;
-    ao.configuration.halfRes = true;
+    ao.configuration.halfRes = Q.level !== 'high';
     ao.configuration.denoiseSamples = 8;
     ao.configuration.color = new THREE.Color(0, 0, 0);
     ao.setQualityMode(Q.aoQuality);
@@ -68,16 +69,20 @@ export class Renderer {
     this.ao = ao;
 
     this.dof = new DepthOfFieldEffect(camera, { focusDistance: 0.02, focalLength: 0.05, bokehScale: 0, height: 480 });
-    this.bloom = new BloomEffect({ intensity: 1.3, luminanceThreshold: 0.6, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.8 });
-    this.chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0013, 0.0013), radialModulation: true, modulationOffset: 0.3 });
-    this.vignette = new VignetteEffect({ offset: 0.28, darkness: 0.72 });
+    // bloom only on genuinely bright sources (bulbs, shades) — a low threshold hazes the whole frame
+    this.bloom = new BloomEffect({ intensity: 0.55, luminanceThreshold: 0.88, luminanceSmoothing: 0.12, mipmapBlur: true, radius: 0.55 });
+    this.chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.00035, 0.00035), radialModulation: true, modulationOffset: 0.3 });
+    this.vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
     this.exposure = new BrightnessContrastEffect({ brightness: 0, contrast: 0.12 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
     const noise = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: false });
-    noise.blendMode.opacity.value = 0.2;
+    noise.blendMode.opacity.value = 0.06; // subtle sensor grain, not a veil
     const grade = new GradeEffect();
 
-    if (Q.dof) composer.addPass(new EffectPass(camera, this.dof));
+    // DOF is only for the wake-up blur; the pass is switched off once the image is sharp
+    this.dofPass = new EffectPass(camera, this.dof);
+    this.dofPass.enabled = false;
+    if (Q.dof) composer.addPass(this.dofPass);
     composer.addPass(Q.bloom ? new EffectPass(camera, this.bloom, tone, grade, this.exposure, this.chroma) : new EffectPass(camera, tone, grade, this.exposure, this.chroma));
     composer.addPass(Q.smaa ? new EffectPass(camera, this.vignette, noise, new SMAAEffect()) : new EffectPass(camera, this.vignette, noise));
     this.composer = composer;
@@ -92,6 +97,7 @@ export class Renderer {
 
   /** 0 = sharp, 1 = very blurry (used for the wake-up). */
   setBlur(amount: number) {
+    this.dofPass.enabled = amount > 0.001;
     this.dof.bokehScale = amount * 9;
     this.dof.cocMaterial.focusDistance = 0.0;
     this.dof.cocMaterial.focalLength = THREE.MathUtils.lerp(0.4, 0.004, amount);
