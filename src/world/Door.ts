@@ -26,6 +26,9 @@ export class Door {
   private target = 0;
   private vel = 0;
   isOpen = false;
+  /** once locked, E only rattles the handle */
+  locked = false;
+  private rattleT = 0;
   readonly leafW: number;
   readonly leafH: number;
   readonly leafT = 0.045;
@@ -94,13 +97,29 @@ export class Door {
     this.target = 1.65;
   }
 
+  close() {
+    if (!this.isOpen) return;
+    this.isOpen = false;
+    this.target = 0;
+  }
+
+  /** Locked: jiggle the handle and shake the leaf in its frame for a moment. */
+  rattle() { this.rattleT = 0.6; }
+
   update(dt: number) {
     // critically-damped spring with a slight heavy-door ease
     const k = 6, c = 2 * Math.sqrt(k) * 0.9;
     const acc = (this.target - this.angle) * k - this.vel * c;
     this.vel += acc * dt;
     this.angle += this.vel * dt * 0.55;
-    this.pivot.rotation.y = this.baseYaw + this.openSign * this.angle;
+    let shake = 0;
+    if (this.rattleT > 0) {
+      this.rattleT = Math.max(0, this.rattleT - dt);
+      const k = this.rattleT / 0.6;
+      shake = Math.sin(this.rattleT * 70) * 0.004 * k;
+      this.handle.rotation.z = Math.sin(this.rattleT * 45) * 0.35 * k;
+    }
+    this.pivot.rotation.y = this.baseYaw + this.openSign * (this.angle + shake);
     this.syncBody();
   }
 

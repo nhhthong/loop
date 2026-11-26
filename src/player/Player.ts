@@ -104,7 +104,6 @@ export class Player {
     this.stepIdx = (this.stepIdx + 1 + Math.floor(Math.random() * 2)) % (concrete ? 4 : 5);
     const name = concrete ? `step_concrete_${this.stepIdx + 1}` : `step_wood_${this.stepIdx + 1}`;
     this.audio.play2D(name, (concrete ? 0.35 : 0.45) * (0.7 + speed * 0.2), false, 0.92 + Math.random() * 0.16);
-    if (!concrete && Math.random() < 0.12) this.audio.play2D('floor_creak', 0.25, false, 0.9 + Math.random() * 0.2);
   }
 
   private syncHead(hs: number) {

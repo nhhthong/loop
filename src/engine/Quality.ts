@@ -23,8 +23,8 @@ export interface QualitySettings {
 }
 
 const PRESETS: Record<QualityLevel, Omit<QualitySettings, 'level'>> = {
-  low: { pixelRatio: 0.6, shadows: false, shadowProxy: true, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false, texDir: '/1k', probeSize: 64, anisotropy: 1 },
-  medium: { pixelRatio: 1, shadows: true, shadowProxy: false, shadowMap: 512, ao: true, aoQuality: 'Low', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, anisotropy: 4 },
+  low: { pixelRatio: 0.75, shadows: false, shadowProxy: true, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false, texDir: '/1k', probeSize: 64, anisotropy: 1 },
+  medium: { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadows: true, shadowProxy: false, shadowMap: 512, ao: true, aoQuality: 'Low', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, anisotropy: 4 },
   high: { pixelRatio: Math.min(window.devicePixelRatio, 2), shadows: true, shadowProxy: false, shadowMap: 1024, ao: true, aoQuality: 'Medium', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 256, anisotropy: 16 },
 };
 

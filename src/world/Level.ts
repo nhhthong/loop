@@ -9,8 +9,8 @@ import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal } from '
  *
  *                                [exit: double wooden doors]   z=-9.6
  *                                   | R8 |  narrow passage
- *  z=-6.6 ┌── R6 alcove ──┐┌R3┐  ┌─Rs─┐|    |
- *         │ (rug, chair)  │└──┘  └────┘|    |
+ *  z=-6.6 ┌── R6 alcove ──┐            |    |
+ *         │ (rug, chair)  │ clock [win] credenza |
  *  z=-5.5 W┌──────────── R2 ───────────┬──── RA atrium (6 m) ───┬──── RE east hall ────┐
  *         W│                            │   fan                   │                [door 9 → store]
  *  z=-3.5 │R1├──── RB bath ────┐ ┌ RS stairs ┐┌ RN nook ┐      └──────────────────────┘
@@ -32,8 +32,6 @@ export const ROOMS: Room[] = [
   { name: 'R1', x0: -1, x1: 1, z0: -3.5, z1: DIV_Z, y0: 0, h: 3, skip: ['s'] },
   { name: 'R2', x0: -1, x1: 3.4, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
   { name: 'R6', x0: -1, x1: 1.6, z0: -6.6, z1: -5.5, y0: 0, h: 3 },
-  { name: 'R3', x0: 1.9, x1: 2.9, z0: -6.05, z1: -5.5, y0: 0, h: 3 },
-  { name: 'Rs', x0: 3.7, x1: 5.3, z0: -6.05, z1: -5.5, y0: 0, h: 3 },
   { name: 'RA', x0: 3.4, x1: 7.2, z0: -5.5, z1: -3.5, y0: 0, h: 6 },
   { name: 'R8', x0: 5.6, x1: 6.8, z0: -9.6, z1: -5.5, y0: 0, h: 3 },
   { name: 'RE', x0: 7.2, x1: 10, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
@@ -54,9 +52,11 @@ export const EXIT_DOOR: Opening = { along: 'x', at: -9.6, a0: 5.65, a1: 6.75, y0
 export const STORE_DOOR: Opening = { along: 'z', at: 10, a0: -4.95, a1: -4.05, y0: 0, y1: 2.1 };
 export const WIN_A: Opening = { along: 'z', at: -1, a0: -5.0, a1: -4.0, y0: 0.95, y1: 2.55 };
 export const WIN_B: Opening = { along: 'z', at: -1, a0: -6.35, a1: -5.65, y0: 0.95, y1: 2.55 };
+/** window in the flat north wall between the grandfather clock and the credenza */
+export const WIN_C: Opening = { along: 'x', at: -5.5, a0: 2.45, a1: 3.15, y0: 0.95, y1: 2.55 };
 /** dark doorway off the upper landing (opens onto black) */
 export const UPPER_DOOR: Opening = { along: 'z', at: 7.6, a0: -0.75, a1: 0.15, y0: 3.25, y1: 5.35 };
-const OPENINGS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, WIN_A, WIN_B, UPPER_DOOR];
+const OPENINGS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, WIN_A, WIN_B, WIN_C, UPPER_DOOR];
 const DOORS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, UPPER_DOOR];
 
 interface Hole { a0: number; a1: number; y0: number; y1: number }
@@ -215,7 +215,7 @@ export class Level {
     this.box(0.05, STORE_DOOR.y1 + 0.2, STORE_DOOR.a1 - STORE_DOOR.a0 + 0.3, black, new THREE.Vector3(STORE_DOOR.at + WALL_T + 0.05, STORE_DOOR.y1 / 2, (STORE_DOOR.a0 + STORE_DOOR.a1) / 2), 1, 'r');
     // void behind the upper doorway
     this.box(0.05, 2.3, 1.1, black, new THREE.Vector3(UPPER_DOOR.at + WALL_T + 0.3, (UPPER_DOOR.y0 + UPPER_DOOR.y1) / 2, (UPPER_DOOR.a0 + UPPER_DOOR.a1) / 2), 1, 'r');
-    for (const w of [WIN_A, WIN_B]) this.buildWindowFrame(w);
+    for (const w of [WIN_A, WIN_B, WIN_C]) this.buildWindowFrame(w);
     this.buildStairs();
   }
 
@@ -312,12 +312,12 @@ export class Level {
     add(span + 0.1, 0.02, t + 0.06, mid, 0.01, 0);
   }
 
-  /** Painted 6-over-6 sash window in a west (x = const) wall, built in a local frame (wall plane z=0, room +z). */
+  /** Painted 6-over-6 sash window in a west or north wall, built in a local frame (wall plane z=0, room +z). */
   private buildWindowFrame(o: Opening) {
     const M = this.mats;
     const g = new THREE.Group();
-    g.position.set(o.at, 0, (o.a0 + o.a1) / 2);
-    g.rotation.y = Math.PI / 2; // local +z (room side) → world +x
+    if (o.along === 'z') g.position.set(o.at, 0, (o.a0 + o.a1) / 2); else g.position.set((o.a0 + o.a1) / 2, 0, o.at);
+    g.rotation.y = o.along === 'z' ? Math.PI / 2 : 0; // local +z (room side) → world +x (west walls) / +z (north walls)
     const w = o.a1 - o.a0, x0 = -w / 2, x1 = w / 2, y0 = o.y0, y1 = o.y1, z = 0;
     const add = (ww: number, hh: number, dd: number, x: number, y: number, zz: number, mat: Mat = M.trim) => {
       const m = new THREE.Mesh(worldBox(ww, hh, dd, 0.5), mat);

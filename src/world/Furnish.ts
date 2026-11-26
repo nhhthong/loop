@@ -35,14 +35,13 @@ export const PROPS: PropSpec[] = [
   { name: 'teddy', url: D + 'teddy_bear.glb', pos: [0.55, 0.43, -5.95], rot: 200, h: 0.3, age: 0.1 },
   { name: 'floorLamp', url: F + 'leather_armchair.glb', pos: [1.22, 0, -6.35], rot: 200, h: 1.62, only: /FLOORLAMP/, collide: true, age: 0.05 },
   { name: 'monsteraA', url: D + 'monstera_potted.glb', pos: [-0.66, 0, -6.3], rot: 30, h: 1.2, collide: true, age: 0 },
-  // ---- R3 recess: grandfather clock (heirloom)
-  { name: 'clock', url: F + 'grandfather_clock.glb', pos: [2.4, 0, -5.82], rot: -90, h: 2.1, collide: true, age: 0.1 },
-  // ---- Rs recess: credenza with two fabric lamps, rotary phone (heirloom), landscape painting
-  { name: 'console', url: M + 'console_table.glb', pos: [4.5, 0, -5.8], rot: -90, h: 0.7, collide: true, age: 0.05 },
-  { name: 'lampL', url: F + 'table_lamp_fabric.glb', pos: [3.97, 0.7, -5.85], rot: 0, h: 0.6, age: 0, shadow: false },
-  { name: 'lampR', url: F + 'table_lamp_fabric.glb', pos: [5.03, 0.7, -5.85], rot: 0, h: 0.6, age: 0, shadow: false },
-  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.5, 0.7, -5.75], rot: 20, w: 0.25, age: 0.1 },
-  { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -6.035], rot: 0, h: 0.7, floor: false, age: 0.05 },
+  // ---- flat north wall: grandfather clock (heirloom), window, then the credenza group
+  { name: 'clock', url: F + 'grandfather_clock.glb', pos: [1.95, 0, -5.33], rot: -90, h: 2.1, collide: true, age: 0.1 },
+  { name: 'console', url: M + 'console_table.glb', pos: [4.5, 0, -5.27], rot: -90, h: 0.7, collide: true, age: 0.05 },
+  { name: 'lampL', url: F + 'table_lamp_fabric.glb', pos: [3.97, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
+  { name: 'lampR', url: F + 'table_lamp_fabric.glb', pos: [5.03, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
+  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.5, 0.7, -5.22], rot: 20, w: 0.25, age: 0.1 },
+  { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -5.485], rot: 0, h: 0.7, floor: false, age: 0.05 },
   // ---- RN nook beside the stairs: coat rack + small wooden cabinet
   { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.15, 0, -1.6], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05 },
   { name: 'dresserN', url: H + 'wooden_side_table.glb', pos: [5.95, 0, -1.5], rot: 180, h: 0.78, collide: true, age: 0.05 },
@@ -115,9 +114,9 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   mkLight(WARM_BULB, 6, 7, sp, true, 0.02).glow = bulb(scene, sp, 0xfff0d8, 0.02);
   const fl = top('floorLamp', 0.14, new THREE.Vector3(1.22, 1.5, -6.35));
   mkLight(WARM_SHADE, 5, 6, fl, true, 0.04).glow = shadeGlow(scene, fl, 0.08, 0.15, 0.2, 0xffb062);
-  const ll = top('lampL', 0.16, new THREE.Vector3(3.97, 1.15, -5.85));
+  const ll = top('lampL', 0.16, new THREE.Vector3(3.97, 1.15, -5.32));
   mkLight(WARM_SHADE, 4, 6, ll, true, 0.01).glow = shadeGlow(scene, ll.clone().add(new THREE.Vector3(0, 0.02, 0)), 0.11, 0.17, 0.22, 0xffc27a);
-  const lr = top('lampR', 0.16, new THREE.Vector3(5.03, 1.15, -5.85));
+  const lr = top('lampR', 0.16, new THREE.Vector3(5.03, 1.15, -5.32));
   mkLight(WARM_SHADE, 3, 5, lr, false, 0.01).glow = shadeGlow(scene, lr.clone().add(new THREE.Vector3(0, 0.02, 0)), 0.11, 0.17, 0.22, 0xffc27a);
   const s8a = top('sconce8a', 0.07, new THREE.Vector3(5.8, 2.2, -7.0));
   mkLight(WARM_BULB, 5, 6, s8a, true, 0.02).glow = bulb(scene, s8a, 0xfff0d8, 0.02);
