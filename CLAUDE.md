@@ -86,6 +86,8 @@ npm run dev        # http://localhost:5173  (?q=low|medium|high — also selecta
 npm run typecheck  # tsc --noEmit — must pass before every commit
 npm run build
 ```
+- Deployed by `.github/workflows/pages.yml` on every push to main → https://nhhthong.github.io/loop/ (Vite `base: './'`;
+  load assets via root paths `/models/...` — `assetUrl()` / the LoadingManager URL modifier map them under the base). `ci.yml` = typecheck + build.
 
 ## Verification policy
 - Default check = `npm run typecheck`. Do **not** run e2e / headless full-game runs unless truly needed or asked.
@@ -124,7 +126,8 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`), `TriggerZone` (enter region → action).
 - `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`.
 - `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`).
-- `src/player` — `Player` (Rapier kinematic capsule, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
+- `src/ui` — `UI` (lids, prompt, hint, crosshair), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
+- `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
 - Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?)`, `game.debugIntro(t)`, `game.door` (basement door).
 
 ### Extending (planned loop: door 9 → basement → basement door → start of R1, seamless; small changes per loop)
@@ -153,6 +156,12 @@ Not implemented yet — ask the owner before building. Intended plug-in points:
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are data in `data/lights.ts`, tagged `corridor`, `leak`, `lamp`.
   Heirlooms kept: grandfather clock, oil portrait, rotary phone.
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
+
+## Mobile (Phase 2, owner decisions)
+- Touch devices (`IS_TOUCH` in `Input.ts`): minimal controls only — left virtual stick (move), drag to look, E button, pause button (top right).
+  No run/crouch on mobile. Hand-coded (no library). Default quality `low` on touch (menu can change it).
+- Landscape required: portrait shows a "Rotate your device" overlay; Start requests fullscreen + landscape lock (best effort).
+- Pause: pause button or app/tab hidden; tap the overlay to resume. Desktop keeps pointer-lock pause.
 
 ## Hands
 - Model: `public/models/hands_bugs/male_hand_scan.glb` (photoscan, unrigged). Rig built in code from landmarks in `Hands.ts`.

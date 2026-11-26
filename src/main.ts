@@ -1,6 +1,8 @@
 import { Game } from './game/Game';
 import { assetUrl } from './engine/Assets';
 import { Q, setQuality, type QualityLevel } from './engine/Quality';
+import { IS_TOUCH } from './engine/Input';
+import { TouchControls } from './ui/TouchControls';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const menu = document.getElementById('menu')!;
@@ -31,20 +33,34 @@ game.load((p, label) => {
 });
 
 let started = false;
+// touch devices: on-screen controls, fullscreen landscape, explicit pause (no pointer lock)
+const touch = IS_TOUCH ? new TouchControls(game.input) : null;
+document.body.classList.toggle('touch', IS_TOUCH);
+const setPausedUI = (p: boolean) => {
+  pause.classList.toggle('hidden', !p);
+  touch?.show(!p);
+  game.setPaused(p);
+};
+
 startBtn.addEventListener('click', () => {
   if (started) return;
   started = true;
   menu.classList.add('gone');
-  game.input.lock();
+  if (touch) {
+    void document.documentElement.requestFullscreen?.().then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape')).catch(() => {});
+    touch.show(true);
+  } else game.input.lock();
   game.start();
 });
 
-game.input.onLockChange = (locked) => {
-  if (!started) return;
-  pause.classList.toggle('hidden', locked);
-  game.setPaused(!locked);
-};
-pause.addEventListener('click', () => game.input.lock());
+if (touch) {
+  touch.onPause = () => setPausedUI(true);
+  document.addEventListener('visibilitychange', () => { if (started && document.hidden) setPausedUI(true); });
+  pause.addEventListener('click', () => setPausedUI(false));
+} else {
+  game.input.onLockChange = (locked) => { if (started) setPausedUI(!locked); };
+  pause.addEventListener('click', () => game.input.lock());
+}
 
 document.getElementById('credits-link')!.addEventListener('click', async (e) => {
   e.preventDefault();

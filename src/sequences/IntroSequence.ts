@@ -7,6 +7,7 @@ import type { UI } from '../ui/UI';
 import type { System } from '../core/System';
 import type { AmbienceSystem } from '../systems/AmbienceSystem';
 import { seg, crossed } from '../core/timeline';
+import { IS_TOUCH } from '../engine/Input';
 
 /** heavy breathing: [time, volume, rate] gasps that slowly calm down */
 const GASPS: [number, number, number][] = [[0.2, 0.75, 1.08], [2.3, 0.7, 1.04], [4.5, 0.6, 1.0], [6.8, 0.5, 0.97], [9.2, 0.4, 0.94], [11.7, 0.28, 0.9]];
@@ -115,6 +116,6 @@ export class IntroSequence implements System {
     this.player.control = 1;
     this.player.lookEnabled = true;
     this.ui.crosshair(true);
-    this.ui.hint('WASD move · Mouse look · E interact · Shift run · C crouch', 7);
+    this.ui.hint(IS_TOUCH ? 'Left stick move · Drag to look · E interact' : 'WASD move · Mouse look · E interact · Shift run · C crouch', 7);
   }
 }

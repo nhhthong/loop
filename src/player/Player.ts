@@ -71,13 +71,14 @@ export class Player {
       if (inp.down('KeyS') || inp.down('ArrowDown')) fz += 1;
       if (inp.down('KeyA') || inp.down('ArrowLeft')) fx -= 1;
       if (inp.down('KeyD') || inp.down('ArrowRight')) fx += 1;
+      fx += inp.moveX; fz += inp.moveY;
     }
     const crouching = c > 0.5 && (inp.down('KeyC') || inp.down('ControlLeft'));
     this.crouch += ((crouching ? 1 : 0) - this.crouch) * Math.min(1, dt * 8);
     const run = inp.down('ShiftLeft') && fz < 0 && !crouching;
     const speed = (run ? 2.3 : 1.25) * (1 - this.crouch * 0.5);
     const wish = new THREE.Vector3(fx, 0, fz);
-    if (wish.lengthSq() > 0) wish.normalize().multiplyScalar(speed).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
+    if (wish.lengthSq() > 0) wish.clampLength(0, 1).multiplyScalar(speed).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
     const accel = wish.lengthSq() > 0 ? 7 : 9;
     this.vel.x += (wish.x - this.vel.x) * Math.min(1, dt * accel);
     this.vel.z += (wish.z - this.vel.z) * Math.min(1, dt * accel);
