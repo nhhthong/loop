@@ -33,7 +33,7 @@ export const PROPS: PropSpec[] = [
   { name: 'rug', url: D + 'persian_rug.glb', pos: [0.3, 0.004, -5.75], rot: 90, w: 2.0, shadow: false, age: 0.1 },
   { name: 'armchair', url: F + 'leather_armchair.glb', pos: [0.55, 0, -6.0], rot: 200, h: 1.05, only: /ARMCHAIR/, collide: true, age: 0.1 },
   { name: 'teddy', url: D + 'teddy_bear.glb', pos: [0.55, 0.43, -5.95], rot: 200, h: 0.3, age: 0.1 },
-  { name: 'floorLamp', url: F + 'leather_armchair.glb', pos: [1.22, 0, -6.35], rot: 200, h: 1.62, only: /FLOORLAMP/, collide: true, age: 0.05 },
+  { name: 'floorLamp', url: F + 'leather_armchair.glb', pos: [1.22, 0, -6.35], rot: 200, h: 1.62, only: /FLOORLAMP/, collide: true, age: 0.05, shadow: false }, // its bulb sits inside the shade
   { name: 'monsteraA', url: D + 'monstera_potted.glb', pos: [-0.66, 0, -6.3], rot: 30, h: 1.2, collide: true, age: 0 },
   // ---- flat north wall: grandfather clock (heirloom), window, then the credenza group
   { name: 'clock', url: F + 'grandfather_clock.glb', pos: [1.95, 0, -5.33], rot: -90, h: 2.1, collide: true, age: 0.1 },
