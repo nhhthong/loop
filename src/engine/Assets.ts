@@ -3,6 +3,9 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { Q } from './Quality';
 
+/** Root-relative asset path ('/models/x.glb') → URL under the deploy base (GitHub Pages serves the game from a sub-path). */
+export const assetUrl = (path: string) => (path.startsWith('/') ? import.meta.env.BASE_URL + path.slice(1) : path);
+
 /** Central asset cache with progress reporting. Missing files resolve to null (game keeps running). */
 export class Assets {
   private readonly manager = new THREE.LoadingManager();
@@ -15,6 +18,7 @@ export class Assets {
 
   constructor() {
     this.manager.onProgress = (url, loaded, total) => this.onProgress(loaded, total, url);
+    this.manager.setURLModifier(assetUrl);
     this.gltf = new GLTFLoader(this.manager);
     const draco = new DRACOLoader();
     draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
