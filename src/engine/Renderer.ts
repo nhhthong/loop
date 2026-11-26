@@ -7,7 +7,7 @@ import {
 import { N8AOPostPass } from 'n8ao';
 import { Q } from './Quality';
 
-/** Desaturated, warm-grey grade with lifted-then-crushed blacks (bleach-bypass-ish). */
+/** Muted grade: low saturation, near-neutral warm grey with a faint olive cast (owner's reference stills). */
 class GradeEffect extends Effect {
   constructor() {
     super('GradeEffect', /* glsl */`
@@ -21,8 +21,8 @@ class GradeEffect extends Effect {
         outputColor = vec4(c, inputColor.a);
       }`, {
       uniforms: new Map<string, THREE.Uniform>([
-        ['saturation', new THREE.Uniform(0.3)],
-        ['tint', new THREE.Uniform(new THREE.Color(1.0, 0.95, 0.86))],
+        ['saturation', new THREE.Uniform(0.42)],
+        ['tint', new THREE.Uniform(new THREE.Color(1.0, 0.97, 0.88))],
         ['lift', new THREE.Uniform(0.0)],
         ['gamma', new THREE.Uniform(1.06)],
       ]),

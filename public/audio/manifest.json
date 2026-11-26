@@ -139,5 +139,15 @@
   "author": "ThabzMalik",
   "license": "http://creativecommons.org/publicdomain/zero/1.0/",
   "url": "https://freesound.org/s/767054/"
+ },
+ {
+  "file": "fan_creak.mp3",
+  "item": "fan_creak",
+  "id": 250796,
+  "name": "squeaky auto-rotating fan.flac",
+  "author": "arseniiv",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/250796/",
+  "duration": 31.1639
  }
 ]

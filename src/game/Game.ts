@@ -4,10 +4,10 @@ import { Physics } from '../engine/Physics';
 import { Assets } from '../engine/Assets';
 import { Input } from '../engine/Input';
 import { AudioSys } from '../engine/Audio';
-import { Level, CORRIDOR, WIN_A, WIN_B, DOOR, DIV_Z, END_DOOR, BATH_DOOR } from '../world/Level';
+import { Level, CORRIDOR, WIN_A, WIN_B, DOOR, DIV_Z, STORE_DOOR, BATH_DOOR, EXIT_DOOR } from '../world/Level';
 import { furnish, type Furnished } from '../world/Furnish';
 import { buildWindow } from '../world/Window';
-import { Door } from '../world/Door';
+import { Door, buildGrandDoor } from '../world/Door';
 import { Drips, Dust } from '../world/Atmosphere';
 import { Cockroaches } from '../world/Cockroaches';
 import { sharedUniforms } from '../world/Materials';
@@ -17,7 +17,7 @@ import { UI } from '../ui/UI';
 import { Q } from '../engine/Quality';
 
 const SOUNDS = ['breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'floor_creak', 'heartbeat',
-  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window',
+  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak',
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5'];
 
 const ease = (x: number) => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
@@ -76,17 +76,23 @@ export class Game {
     this.scene.add(this.level.group);
     tick('level');
 
-    const wa = buildWindow(WIN_A.x0, WIN_A.x1, WIN_A.y0, WIN_A.y1, -5, true);
-    const wb = buildWindow(WIN_B.x0, WIN_B.x1, WIN_B.y0, WIN_B.y1, -5, false);
-    this.scene.add(wa.group, wb.group);
+    // windows in the west wall: built facing +z at the origin, then turned to face +x
+    [WIN_A, WIN_B].forEach((o, i) => {
+      const w = buildWindow(-(o.a1 - o.a0) / 2, (o.a1 - o.a0) / 2, o.y0, o.y1, 0, i === 0);
+      w.group.position.set(o.at, 0, (o.a0 + o.a1) / 2);
+      w.group.rotation.y = Math.PI / 2;
+      this.scene.add(w.group);
+    });
 
     const wood = this.level.mats.trim;
     this.door = new Door(this.physics, wood, { hinge: new THREE.Vector3(DOOR.x0 + 0.005, 0, DIV_Z - 0.05), width: DOOR.x1 - DOOR.x0, height: DOOR.h, baseYaw: 0, openSign: 1 });
-    // end of the L: shut tight, never opens
-    const endDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(5.06, 0, END_DOOR.z0 + 0.005), width: END_DOOR.z1 - END_DOOR.z0, height: END_DOOR.h, baseYaw: -Math.PI / 2, openSign: 1 });
+    // door 9 at the end of the east hall: down to the store, same kind of door as the one from the basement — shut
+    const storeDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(STORE_DOOR.at + 0.04, 0, STORE_DOOR.a0 + 0.005), width: STORE_DOOR.a1 - STORE_DOOR.a0, height: STORE_DOOR.y1, baseYaw: -Math.PI / 2, openSign: 1 });
     // bathroom: left ajar, opening into the dark
-    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.x0 + 0.005, 0, -2.8), width: BATH_DOOR.x1 - BATH_DOOR.x0, height: BATH_DOOR.h, baseYaw: 0, openSign: -1, angle: 0.6 });
-    this.scene.add(this.door.pivot, endDoor.pivot, bathDoor.pivot);
+    const bathDoor = new Door(this.physics, wood, { hinge: new THREE.Vector3(BATH_DOOR.a0 + 0.005, 0, -3.3), width: BATH_DOOR.a1 - BATH_DOOR.a0, height: BATH_DOOR.y1, baseYaw: 0, openSign: -1, angle: 0.6 });
+    // the front entrance: grand double doors at the end of the narrow passage (locked)
+    const exit = buildGrandDoor(this.physics, this.level.mats.woodFloor, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, EXIT_DOOR.at - 0.06);
+    this.scene.add(this.door.pivot, storeDoor.pivot, bathDoor.pivot, exit);
 
     const [furn] = await Promise.all([
       furnish(this.assets, this.physics, this.level.group),
@@ -107,7 +113,7 @@ export class Game {
     }
 
     // ambient fill so nothing is pure black
-    this.scene.add(new THREE.HemisphereLight(0x3a3d44, 0x15110d, 0.1));
+    this.scene.add(new THREE.HemisphereLight(0x383a34, 0x12100c, 0.1));
 
     // hands + roaches
     const [arms, roachA, roachB] = await Promise.all([
@@ -128,13 +134,15 @@ export class Game {
     if (roachA) this.roaches.spawn(roachA, 4, cbox, ['x', 'y'], 0.05, 0, introStarts);
     if (roachA) this.roaches.spawn(roachA, 3, cbox, ['x', 'y'], 0.042);
     if (roachB) this.roaches.spawn(roachB, 3, cbox, ['x', 'y'], 0.036);
-    if (roachA) this.roaches.spawn(roachA, 2, new THREE.Box3(new THREE.Vector3(-0.95, 0, -4.9), new THREE.Vector3(0.95, 3, -0.3)), ['x'], 0.045);
+    if (roachA) this.roaches.spawn(roachA, 2, new THREE.Box3(new THREE.Vector3(-0.95, 0, -3.4), new THREE.Vector3(0.95, 3, -0.3)), ['x'], 0.045);
     tick('creatures');
 
     this.drips = new Drips(this.scene, this.audio, this.scene);
-    const lampPos = this.furn.lamps.slice(0, 4).map((l) => l.light.position.clone());
-    this.dust = new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-1, 0.1, -5), new THREE.Vector3(5, 2.9, -0.2)), Q.dust, lampPos);
-    new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-0.55, 0.1, 0.2), new THREE.Vector3(0.55, 2.35, 6)), Math.round(Q.dust / 4), [lampPos[3]]);
+    const houseLamps = this.furn.lamps.filter((l) => l.tag === 'lamp').map((l) => l.light.position.clone());
+    const corrLamp = this.furn.lamps.find((l) => l.tag === 'corridor')!.light.position.clone();
+    this.dust = new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-1, 0.1, -6.6), new THREE.Vector3(7.2, 2.9, -0.2)), Q.dust, houseLamps);
+    new Dust(this.scene, new THREE.Box3(new THREE.Vector3(-0.55, 0.1, 0.2), new THREE.Vector3(0.55, 2.35, 6)), Math.round(Q.dust / 4), [corrLamp]);
+    if (this.furn.fan) this.audio.play3D('fan_creak', this.furn.fan.root, 0.55, { loop: true, ref: 1.6 });
 
     this.bakeProbes();
     // positional loops
@@ -142,8 +150,8 @@ export class Game {
     if (clock) this.audio.play3D('clock_tick', clock, 0.45, { loop: true, ref: 0.8 });
     const cage = this.furn.props.get('cageLamp');
     if (cage) this.audio.play3D('light_buzz', cage, 0.12, { loop: true, ref: 0.5 });
-    this.audio.play3D('wind_window', new THREE.Vector3(0, 1.8, -5.3), 0.35, { loop: true, ref: 1.2, scene: this.scene });
-    this.audio.play3D('wind_window', new THREE.Vector3(3.4, 1.8, -5.3), 0.25, { loop: true, ref: 1.2, scene: this.scene, rate: 0.9 });
+    this.audio.play3D('wind_window', new THREE.Vector3(WIN_A.at - 0.3, 1.8, (WIN_A.a0 + WIN_A.a1) / 2), 0.35, { loop: true, ref: 1.2, scene: this.scene });
+    this.audio.play3D('wind_window', new THREE.Vector3(WIN_B.at - 0.3, 1.8, (WIN_B.a0 + WIN_B.a1) / 2), 0.25, { loop: true, ref: 1.2, scene: this.scene, rate: 0.9 });
 
     // warm-up: compile shaders & first frames before the curtain lifts
     this.renderer.renderer.compile(this.scene, this.player.camera);
@@ -167,7 +175,7 @@ export class Game {
       rt.dispose();
       return env;
     };
-    const room = bake(new THREE.Vector3(0, 1.4, -2.5));
+    const room = bake(new THREE.Vector3(2.5, 1.5, -4.5));
     const corr = bake(new THREE.Vector3(0, 1.3, 3.0));
     this.scene.environment = room;
     this.scene.environmentIntensity = 0.45; // probes add reflections, not flat fill light
@@ -339,25 +347,36 @@ export class Game {
   // ------------------------------------------------------------------ lights
   private updateLights(dt: number) {
     const t = this.time;
-    const pz = this.player.position.z;
+    const pp = this.player.position;
     this.furn.lamps.forEach((l, i) => {
       let k = 1;
-      if (l.flicker > 0 && !(i === 3 && this.introT >= 0)) { // corridor bulb holds steady while waking up
+      const corridor = l.tag === 'corridor';
+      if (l.flicker > 0 && !(corridor && this.introT >= 0)) { // corridor bulb holds steady while waking up
         const n = Math.sin(t * 13.1 + i * 7) * Math.sin(t * 7.3 + i) * Math.sin(t * 2.1 + i * 3);
         k = 1 - l.flicker * Math.max(0, n) * 0.6;
-        if (i === 3) { // corridor bulb drop-outs
+        if (corridor) { // corridor bulb drop-outs
           if (this.bulbOut <= 0 && Math.random() < dt * 0.25) this.bulbOut = 0.05 + Math.random() * 0.25;
           if (this.bulbOut > 0) { this.bulbOut -= dt; k *= 0.05 + Math.random() * 0.15; }
         }
       }
-      if (i === 4) k = this.door.isOpen ? 0 : 1; // door leak
+      if (l.tag === 'leak') k = this.door.isOpen ? 0 : 1;
       l.light.intensity = l.base * k;
       if (l.glow) l.glow.visible = k > 0.25;
       // shadows only refresh near the player
-      const inCorr = l.light.position.z > 0.2;
-      l.light.shadow.autoUpdate = inCorr ? pz > -1.5 : pz < 2.5;
+      l.light.shadow.autoUpdate = l.light.position.distanceTo(pp) < 7;
     });
+    this.updateFan(dt);
     if (this.shadowProxy) this.updateShadowProxy();
+  }
+
+  /** Slow, uneven ceiling-fan spin with a slight wobble (the creak loop is positional on the fan). */
+  private updateFan(dt: number) {
+    const f = this.furn.fan;
+    if (!f?.blades) return;
+    const speed = 1.1 + Math.sin(this.time * 0.37) * 0.25 + Math.sin(this.time * 1.9) * 0.08; // rad/s
+    f.blades.rotation.z += speed * dt;
+    f.root.rotation.x = Math.sin(this.time * speed * 1.0) * 0.012;
+    f.root.rotation.z = Math.cos(this.time * speed * 1.0) * 0.012;
   }
 
   /**
@@ -370,7 +389,7 @@ export class Game {
     const score = (l: THREE.Light) => l.intensity / (1 + l.position.distanceToSquared(p));
     let best = this.proxyFor, bestScore = best >= 0 ? score(this.furn.lamps[best].light) * 1.3 : 0; // hysteresis
     this.furn.lamps.forEach((l, i) => {
-      if (i === 4 || l.base <= 0) return; // skip the under-door leak
+      if (l.tag === 'leak' || l.base <= 0) return;
       const sc = score(l.light);
       if (sc > bestScore) { best = i; bestScore = sc; }
     });

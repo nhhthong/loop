@@ -71,7 +71,7 @@ export function buildWindow(x0: number, x1: number, y0: number, y1: number, wall
   };
   glass.defines = { USE_UV: '' };
   const pane = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.08, h - 0.08), glass);
-  pane.position.set(cx, cy, wallZ - 0.17);
+  pane.position.set(cx, cy, wallZ - 0.075);
   pane.renderOrder = 2;
   g.add(pane);
 

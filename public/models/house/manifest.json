@@ -1,0 +1,15 @@
+[
+  {
+    "file": "ceiling_fan.glb",
+    "item": "ceiling_fan",
+    "uid": "d9a994c5f7ef4d618ae709fd250564d0",
+    "name": "Old Ceiling Fan",
+    "author": "Tim H. (eueruntergang)",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/d9a994c5f7ef4d618ae709fd250564d0",
+    "faceCount": 9000,
+    "sizeBytes": 3156464,
+    "notes": "Nodes: Vent_Blades (mesh Vent_Blades_Ceiling_Fan_mat_0) and Vent_Main (mesh Vent_Main_Ceiling_Fan_mat_0); single material Ceiling_Fan_mat with 4 images. Blades are a separate node for code rotation. Wood/brass look not yet visually verified; game-asset origin (Substance Painter)."
+  }
+]

@@ -95,13 +95,15 @@ npm run build
   `handtest.html?fov=&tx=&ty=&tz=&roll=&curl=` (hand pose), `scanprobe.html` (hand-scan landmarks).
 - Scene-level look (lighting, prop placement) is verified by the owner on real hardware — ask for screenshots.
 
-## Layout (meters, Y up) — see diagram in `src/world/Level.ts`
-- Corridor: x∈[-0.55, 0.55], z∈[0.12, 6], height 2.4. Player wakes at z≈5.45 facing −z.
-- Door wall at z=0, door x∈[-0.45, 0.45], h 2.1, hinged left, swings into the room (−z).
-- L-hallway of a house, height 3: leg A x∈[-1, 1], z∈[-5, 0]; leg B x∈[1, 5], z∈[-5, -3]. Two dark windows on back wall z=−5.
-- End of the L: locked door in the x=5 wall (never opens, nothing behind it). One side door (bathroom) in the z=−3 wall,
-  left ajar, pitch-black room behind (`BATH` in `Level.ts`).
-- Prop wall yaw convention (model front = +Z): left wall 90 · right wall −90 · z=−3 wall 180 · back wall 0 · x=5 wall −90.
+## Layout (meters, Y up) — rooms/openings are data in `src/world/Level.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
+- Based on the owner's floor plan; walkway 2 m wide, ceilings 3 m; the void around the fan (atrium RA + stairwell RS + gallery RG) is 6 m.
+- Corridor (wet concrete): x∈[-0.55, 0.55], z∈[0.12, 6], h 2.4. Player wakes at z≈5.45 facing −z; door at z=0 into R1.
+- R1 entrance leg (planter + plants + sconce east, dresser/mirror west) → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
+- North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
+- RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
+- RS stairs rise +z to a landing/gallery RG at y=3 (railing seen from below, dark, night light). RN nook beside the stairs (coat rack, cabinet).
+- RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
+- Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `Furnish.ts`.
 
 ## Code map
 - `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (`/audio/<name>.mp3`).
@@ -118,13 +120,14 @@ npm run build
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
 - Visual direction (owner's reference image = photoreal horror hallway; take the genre look, do **not** copy any specific game's layout/assets):
-  near-monochrome warm-grey grade (`GradeEffect` in `Renderer.ts`), few harsh light sources with hard shadows, deep blacks,
+  muted, near-neutral warm-grey grade with a faint olive cast (`GradeEffect`, saturation ~0.4) — owner rejected both
+  monochrome and strongly amber; lamps warm-white. Cosy pools of light with dark gaps; hard shadows, deep blacks,
   grain/vignette/chromatic aberration, bloom halos on bulbs. Owner feedback: not too dark — wet surfaces must visibly shine and
   reflect the lights (wet = dark glossy puddles + specular streaks, `makeWet`; polished house floor).
 - Architecture: aged ivory plaster walls with **light grime only** (`makeGrime`, no trash on the floor), dark wood floor,
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains).
-- Sparse furnishing, many picture frames along the walls. Lights: 2 lit sconces (one flickering), 1 dead sconce, bare bulb at the end
-  of the L, dim table lamp. Heirlooms kept: grandfather clock, oil portrait, rotary phone.
+- Furnished nooks/recesses (house must not be a bare straight L). Lights are tagged in `Furnish.ts` (`corridor`, `leak`, `lamp`).
+  Heirlooms kept: grandfather clock, oil portrait, rotary phone.
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
 
 ## Hands

@@ -112,3 +112,46 @@ export class Door {
     this.body.setNextKinematicRotation(q);
   }
 }
+
+/**
+ * Pair of heavy stained-hardwood doors (the house's front entrance, locked): raised panels with bolection
+ * moulding, a glazed top panel per leaf, brass lever handles and a central astragal. Static, collider only.
+ */
+export function buildGrandDoor(physics: Physics, wood: THREE.MeshStandardMaterial, x0: number, x1: number, h: number, z: number): THREE.Group {
+  const g = new THREE.Group();
+  const stain = wood.clone();
+  stain.color.set(0x6a4428);
+  stain.roughness = 0.35;
+  const brass = new THREE.MeshStandardMaterial({ color: 0x9a7438, metalness: 1, roughness: 0.3 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0x1a1d22, roughness: 0.08, metalness: 0, clearcoat: 1, envMapIntensity: 1.5 });
+  const T = 0.06, lw = (x1 - x0) / 2 - 0.004;
+  const box = (parent: THREE.Object3D, w: number, hh: number, d: number, x: number, y: number, zz: number, m: THREE.Material) => {
+    const mesh = new THREE.Mesh(worldBox(w, hh, d, 0.6), m);
+    mesh.position.set(x, y, zz); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh);
+  };
+  for (const side of [-1, 1]) {
+    const leaf = new THREE.Group();
+    leaf.position.set((x0 + x1) / 2 + side * (lw / 2 + 0.002), 0, z);
+    g.add(leaf);
+    box(leaf, lw, h - 0.01, T * 0.6, 0, h / 2, 0, stain);
+    const st = 0.12, rl = 0.14;
+    box(leaf, st, h, T, -lw / 2 + st / 2, h / 2, 0, stain);
+    box(leaf, st, h, T, lw / 2 - st / 2, h / 2, 0, stain);
+    for (const [y, hh] of [[rl / 2, rl], [h * 0.36, 0.18], [h * 0.62, 0.12], [h - rl / 2, rl]] as [number, number][]) box(leaf, lw - st * 2, hh, T, 0, y, 0, stain);
+    // raised panels + bolection moulding (both faces)
+    for (const [a, b] of [[rl, h * 0.36 - 0.09], [h * 0.36 + 0.09, h * 0.62 - 0.06]] as [number, number][]) for (const sz of [-1, 1]) {
+      box(leaf, lw - st * 2 - 0.02, b - a - 0.02, 0.012, 0, (a + b) / 2, sz * T * 0.36, stain);
+      box(leaf, lw - st * 2 - 0.12, b - a - 0.12, 0.014, 0, (a + b) / 2, sz * T * 0.42, stain);
+    }
+    // glazed top panel
+    box(leaf, lw - st * 2, h - rl - (h * 0.62 + 0.06), 0.012, 0, (h - rl + h * 0.62 + 0.06) / 2, 0, glass);
+    // brass lever near the meeting stiles
+    for (const sz of [-1, 1]) {
+      box(leaf, 0.05, 0.22, 0.008, -side * (lw / 2 - 0.06), 1.0, sz * (T / 2 + 0.004), brass);
+      box(leaf, 0.14, 0.018, 0.016, -side * (lw / 2 - 0.06) + side * 0.06, 1.03, sz * (T / 2 + 0.03), brass);
+    }
+  }
+  box(g, 0.03, h, T + 0.02, (x0 + x1) / 2, h / 2, z, stain); // astragal
+  physics.addBox(new THREE.Vector3((x0 + x1) / 2, h / 2, z), new THREE.Vector3((x1 - x0) / 2, h / 2, T / 2));
+  return g;
+}

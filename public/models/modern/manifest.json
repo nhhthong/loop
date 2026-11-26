@@ -11,5 +11,29 @@
     "faceCount": 2,
     "sizeBytes": 784856,
     "notes": "Abstract textured plane (2 faces) with no frame; weak match to brief (no black-frame poster). Verify texture quality before use."
+  },
+  {
+    "file": "plant_snake.glb",
+    "item": "large indoor plant (snake plant in ceramic pot)",
+    "uid": "68b8acaeb29e402ea4dc7c981cb5b497",
+    "name": "Snake plant In Pot",
+    "author": "FranklySketch",
+    "license_slug": "by",
+    "license_label": "CC Attribution (CC BY 4.0)",
+    "url": "https://sketchfab.com/3d-models/68b8acaeb29e402ea4dc7c981cb5b497",
+    "faceCount": 25000,
+    "sizeBytes": 2397420,
+    "notes": "Potted snake plant (sansevieria) in woven ceramic pot. Photoreal-looking render. Requested species matches. 25k faces."
+  },
+  {
+    "file": "console_table.glb",
+    "item": "credenza / sideboard",
+    "uid": "3028ba44d1f245b886c12eadc934f722",
+    "name": "Mid Century Teak Sideboard Credenza",
+    "author": "calebkung",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/3028ba44d1f245b886c12eadc934f722",
+    "faceCount": 21794
   }
 ]

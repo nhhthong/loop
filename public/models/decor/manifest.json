@@ -11,5 +11,31 @@
     "faceCount": 9734,
     "sizeBytes": 1061880,
     "notes": "Photogrammetry scan of a small plush bear; clean-ish, not heavily dirtied. Good realism; add dirt/wear in shader if needed."
+  },
+  {
+    "file": "monstera_potted.glb",
+    "item": "large potted plant",
+    "uid": "1ab9bf841df04c07b1819be596327629",
+    "name": "Monstera Deliciosa Potted Mid-Century plant",
+    "author": "Giora",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/1ab9bf841df04c07b1819be596327629",
+    "faceCount": 9310,
+    "sizeBytes": 8187092,
+    "notes": "Potted Monstera with mid-century metal stand; tidy, healthy, somewhat stylized render. Largest like count among plants."
+  },
+  {
+    "file": "persian_rug.glb",
+    "item": "old rug / persian carpet",
+    "uid": "fe13eecfc9b8405dab1fe76c5dd28a4c",
+    "name": "Persian Rug",
+    "author": "Nicholas Record",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/fe13eecfc9b8405dab1fe76c5dd28a4c",
+    "faceCount": 24,
+    "sizeBytes": 3496992,
+    "notes": "Single-quad Persian rug with photo texture (24 faces). Pristine, not worn; use as floor plane. Alternative with damage: \"Carpet Ruined Old Free\" (AMMediaGames, 270k faces, uid 050a7a44bc344e65a1d63d4902a64e21)."
   }
 ]
