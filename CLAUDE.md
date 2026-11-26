@@ -78,7 +78,7 @@ First-person horror vignette. TypeScript · three.js r170 · Rapier (`@dimforge/
 
 ## Communication
 - Owner writes in Vietnamese; reply in Vietnamese. Answer first, few words, no filler.
-- In-game text (subtitles, prompts, hints) is Vietnamese.
+- In-game text (menu, prompts, hints) is **English**. No dialogue/subtitles in the game.
 
 ## Commands
 ```bash
@@ -97,11 +97,15 @@ npm run build
 
 ## Layout (meters, Y up) — rooms/openings are data in `src/world/Level.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
 - Based on the owner's floor plan; walkway 2 m wide, ceilings 3 m; the void around the fan (atrium RA + stairwell RS + gallery RG) is 6 m.
-- Corridor (wet concrete): x∈[-0.55, 0.55], z∈[0.12, 6], h 2.4. Player wakes at z≈5.45 facing −z; door at z=0 into R1.
-- R1 entrance leg (planter + plants + sconce east, dresser/mirror west) → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
+- Corridor (wet, dark basement concrete `concrete_wall_005`): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
+- R1 entrance leg, 6.5 m (owner asked +3 m): first thing seen is a small wooden cabinet with a digital clock frozen at **23:59** + plant (east wall),
+  then planter + plants + sconce east, dresser/mirror west → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
 - North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
 - RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
-- RS stairs rise +z to a landing/gallery RG at y=3 (railing seen from below, dark, night light). RN nook beside the stairs (coat rack, cabinet).
+- L-shaped stair (owner chose option A): flight 1 (8 treads, riser 18 cm, tread 27 cm) rises +z in RS from the atrium, open east side
+  with dark balustrade + newels → mid landing (y 1.63) turns 90° → flight 2 rises +x between walls (RF2) → dark upper landing RU (y 3.25)
+  with a doorway onto black. From the atrium, looking up shows mostly walls, the fan and one dark corner of railing.
+  RN nook beside flight 1 (coat rack, cabinet).
 - RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
 - Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `Furnish.ts`.
 
@@ -116,7 +120,7 @@ npm run build
 ## Owner decisions (do not change without asking)
 - **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and opening the first door with E.
   Ask the owner what Phase 2 contains before adding any mechanic.
-- No telephone interaction/ringing (the phone is a static prop). No scripted scares.
+- No telephone interaction/ringing (the phone is a static prop). No scripted scares. No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds.
 - Visual direction (owner's reference image = photoreal horror hallway; take the genre look, do **not** copy any specific game's layout/assets):
@@ -124,7 +128,7 @@ npm run build
   monochrome and strongly amber; lamps warm-white. Cosy pools of light with dark gaps; hard shadows, deep blacks,
   grain/vignette/chromatic aberration, bloom halos on bulbs. Owner feedback: not too dark — wet surfaces must visibly shine and
   reflect the lights (wet = dark glossy puddles + specular streaks, `makeWet`; polished house floor).
-- Architecture: aged ivory plaster walls with **light grime only** (`makeGrime`, no trash on the floor), dark wood floor,
+- Architecture: aged ivory plaster walls in **semi-gloss paint** (roughness ~0.32, lamps leave sheen streaks) with **light grime only** — grime patches matte (`makeGrime`, no trash on the floor), dark wood floor,
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains);
   outside the windows is pure black (no sky/moon/rain), glass keeps only a faint reflection.
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are tagged in `Furnish.ts` (`corridor`, `leak`, `lamp`).

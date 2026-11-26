@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { softDot } from './Materials';
 import type { AudioSys } from '../engine/Audio';
 import { CORRIDOR } from './Level';
 
@@ -13,7 +12,7 @@ export class Drips {
     const dropGeo = new THREE.SphereGeometry(0.006, 8, 6);
     dropGeo.scale(1, 2.2, 1);
     const dropMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.02, transmission: 0.0, metalness: 0, transparent: true, opacity: 0.55, envMapIntensity: 3 });
-    const sources = [[-0.35, 1.1], [0.3, 2.2], [-0.15, 3.6], [0.4, 4.7], [-0.42, 5.4], [0.1, 0.6]];
+    const sources = [[-0.35, 1.1], [0.3, 2.2], [-0.15, 3.6], [0.4, 4.7], [-0.42, 5.4], [0.1, 0.6]].map(([x, z]) => [x, z + CORRIDOR.z0 - 0.12]);
     sources.forEach(([x, z], i) => {
       const m = new THREE.Mesh(dropGeo, dropMat);
       const src = new THREE.Vector3(x, CORRIDOR.h - 0.01, z);
@@ -67,53 +66,4 @@ export class Drips {
     this.scene.add(m);
     this.ripples.push({ mesh: m, age: 0 });
   }
-}
-
-/** Floating dust motes that catch the lamp light (brightness by proximity to lights). */
-export class Dust {
-  readonly points: THREE.Points;
-  private mat: THREE.ShaderMaterial;
-
-  constructor(parent: THREE.Object3D, box: THREE.Box3, count: number, lights: THREE.Vector3[]) {
-    const pos = new Float32Array(count * 3);
-    const seed = new Float32Array(count);
-    const s = box.getSize(new THREE.Vector3());
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = box.min.x + Math.random() * s.x;
-      pos[i * 3 + 1] = box.min.y + Math.random() * s.y;
-      pos[i * 3 + 2] = box.min.z + Math.random() * s.z;
-      seed[i] = Math.random();
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
-    const L = lights.slice(0, 4);
-    while (L.length < 4) L.push(new THREE.Vector3(1e4, 1e4, 1e4));
-    this.mat = new THREE.ShaderMaterial({
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { uTime: { value: 0 }, uTex: { value: softDot() }, uL: { value: L }, uMin: { value: box.min }, uSize: { value: s } },
-      vertexShader: /* glsl */`
-        attribute float seed; uniform float uTime; uniform vec3 uL[4]; uniform vec3 uMin; uniform vec3 uSize;
-        varying float vB;
-        void main(){
-          vec3 p = position;
-          p += vec3(sin(uTime*.13+seed*40.)*.25, sin(uTime*.07+seed*17.)*.15 - uTime*.006, cos(uTime*.11+seed*23.)*.25);
-          p = uMin + mod(p - uMin, uSize);
-          float b = 0.;
-          for(int i=0;i<4;i++){ float d = distance(p,uL[i]); b += 1./(1.+d*d*6.); }
-          vB = b * (.5+.5*sin(uTime*1.3+seed*90.));
-          vec4 mv = modelViewMatrix*vec4(p,1.);
-          gl_PointSize = min((2.0 + seed*3.0) * 30.0 / -mv.z, 5.0);
-          vB *= smoothstep(0.35, 0.9, -mv.z); // no huge motes right in front of the lens
-          gl_Position = projectionMatrix*mv;
-        }`,
-      fragmentShader: `uniform sampler2D uTex; varying float vB;
-        void main(){ float a = texture2D(uTex, gl_PointCoord).r; gl_FragColor = vec4(vec3(1.,.82,.6)*a*vB*.6, 1.); }`,
-    });
-    this.points = new THREE.Points(g, this.mat);
-    this.points.frustumCulled = false;
-    parent.add(this.points);
-  }
-
-  update(t: number) { this.mat.uniforms.uTime.value = t; }
 }

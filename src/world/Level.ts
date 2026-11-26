@@ -14,21 +14,22 @@ import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal } from '
  *  z=-5.5 W┌──────────── R2 ───────────┬──── RA atrium (6 m) ───┬──── RE east hall ────┐
  *         W│                            │   fan                   │                [door 9 → store]
  *  z=-3.5 │R1├──── RB bath ────┐ ┌ RS stairs ┐┌ RN nook ┐      └──────────────────────┘
- *         │  │   (dark, ajar)   │ │ (rise +z) ││coat rack│  RG gallery above RN/RS top (floor y=3)
+ *         │  │   (dark, ajar)   │ │flight 1 +z││coat rack│
+ *         │  │                  │ │  landing ─┼─ RF2 flight 2 (+x) ─ RU upper landing (y 3.25, dark doorway)
  *         │  └─────────────────┘ └───────────┘└─────────┘
- *  z=0    └──[door]──┘  x=-1..1
+ *  z=3    └──[door]──┘  x=-1..1   (entrance leg R1 is 6.5 m long)
  *              |  |  concrete corridor (1.1 m wide, 2.4 m high)
- *  z=6         +--+  ← player wakes here
+ *  z=9         +--+  ← player wakes here
  */
-export const CORRIDOR = { x0: -0.55, x1: 0.55, z0: 0.12, z1: 6.0, h: 2.4 };
+export const CORRIDOR = { x0: -0.55, x1: 0.55, z0: 3.12, z1: 9.0, h: 2.4 };
 export const ROOM_H = 3.0;
-export const DIV_Z = 0; // dividing wall center (door wall between corridor and house)
+export const DIV_Z = 3; // dividing wall center (door wall between corridor and house)
 export const DOOR = { x0: -0.45, x1: 0.45, h: 2.1 };
 const WALL_T = 0.12; // auto walls sit outside their room, interior face on the room edge
 
 export interface Room { name: string; x0: number; x1: number; z0: number; z1: number; y0: number; h: number; dark?: boolean; skip?: ('n' | 's' | 'e' | 'w')[] }
 export const ROOMS: Room[] = [
-  { name: 'R1', x0: -1, x1: 1, z0: -3.5, z1: 0, y0: 0, h: 3, skip: ['s'] },
+  { name: 'R1', x0: -1, x1: 1, z0: -3.5, z1: DIV_Z, y0: 0, h: 3, skip: ['s'] },
   { name: 'R2', x0: -1, x1: 3.4, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
   { name: 'R6', x0: -1, x1: 1.6, z0: -6.6, z1: -5.5, y0: 0, h: 3 },
   { name: 'R3', x0: 1.9, x1: 2.9, z0: -6.05, z1: -5.5, y0: 0, h: 3 },
@@ -38,10 +39,12 @@ export const ROOMS: Room[] = [
   { name: 'RE', x0: 7.2, x1: 10, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
   { name: 'RB', x0: 1.24, x1: 3.16, z0: -3.26, z1: -1.2, y0: 0, h: 2.6, dark: true },
   { name: 'RS', x0: 3.4, x1: 4.6, z0: -3.5, z1: 0.4, y0: 0, h: 6 },
-  { name: 'RN', x0: 4.84, x1: 6.4, z0: -3.5, z1: -1.0, y0: 0, h: 3 },
-  { name: 'RG', x0: 4.6, x1: 6.4, z0: -3.5, z1: 0.4, y0: 3, h: 6 },
+  { name: 'RN', x0: 4.6, x1: 6.4, z0: -3.5, z1: -1.24, y0: 0, h: 3 }, // open to flight 1's east side
+  { name: 'RF2', x0: 4.6, x1: 6.76, z0: -1.0, z1: 0.4, y0: 1.625, h: 6 }, // second flight (between walls), floor = mid landing
+  { name: 'RU', x0: 6.76, x1: 7.6, z0: -1.0, z1: 0.4, y0: 3.25, h: 6 },   // dark upper landing
 ];
-export const STAIRS = { x0: 3.4, x1: 4.6, zBottom: -3.5, zTop: -0.2, rise: 3, steps: 16 };
+/** L-shaped stair: flight 1 rises +z in RS to a mid landing, turns 90°, flight 2 rises +x in RF2 to the upper floor. */
+export const STAIRS = { x0: 3.4, x1: 4.6, z1Start: -3.25, landingZ: -1.09, x2Start: 4.6, upperX: 6.76, z2: [-1.0, 0.4] as [number, number], riser: 3.25 / 18, tread: 0.27, perFlight: 8 };
 export const FAN = new THREE.Vector3(5.1, 6, -4.5);
 
 /** Openings: `along` = axis the wall runs along, `at` = wall line (matches walls within 0.3 m). */
@@ -51,8 +54,10 @@ export const EXIT_DOOR: Opening = { along: 'x', at: -9.6, a0: 5.65, a1: 6.75, y0
 export const STORE_DOOR: Opening = { along: 'z', at: 10, a0: -4.95, a1: -4.05, y0: 0, y1: 2.1 };
 export const WIN_A: Opening = { along: 'z', at: -1, a0: -5.0, a1: -4.0, y0: 0.95, y1: 2.55 };
 export const WIN_B: Opening = { along: 'z', at: -1, a0: -6.35, a1: -5.65, y0: 0.95, y1: 2.55 };
-const OPENINGS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, WIN_A, WIN_B];
-const DOORS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR];
+/** dark doorway off the upper landing (opens onto black) */
+export const UPPER_DOOR: Opening = { along: 'z', at: 7.6, a0: -0.75, a1: 0.15, y0: 3.25, y1: 5.35 };
+const OPENINGS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, WIN_A, WIN_B, UPPER_DOOR];
+const DOORS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, UPPER_DOOR];
 
 interface Hole { a0: number; a1: number; y0: number; y1: number }
 type Mat = THREE.Material;
@@ -75,9 +80,9 @@ export class Level {
   async build() {
     const A = this.assets;
     const [concreteWall, concreteFloor, concreteCeil, woodFloor, plaster] = await Promise.all([
-      pbrMaterial(A, 'concrete_wall_006', { tint: 0xb8b4aa }),
-      pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x9a958c }),
-      pbrMaterial(A, 'concrete_wall_003', { tint: 0x8a877f }),
+      pbrMaterial(A, 'concrete_wall_005', { tint: 0x9a968e }), // dark basement concrete with rust bleed
+      pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x6e6a63 }),
+      pbrMaterial(A, 'concrete_wall_003', { tint: 0x5e5b55 }),
       pbrMaterial(A, 'wood_floor', { tint: 0x7d6a58, envIntensity: 1.0 }),
       pbrMaterial(A, 'plastered_wall', { tint: 0xe6e1d8 }),
     ]);
@@ -92,6 +97,10 @@ export class Level {
     const wallPaint = makeGrime(plaster.clone(), 1);
     wallPaint.color.set(0xd6cfbf);
     wallPaint.normalScale.set(0.7, 0.7);
+    // semi-gloss paint over the plaster texture: lamps leave sheen streaks along the walls (grime areas stay matte)
+    wallPaint.roughnessMap = null;
+    wallPaint.roughness = 0.32;
+    wallPaint.envMapIntensity = 1.2;
     // off-white painted trim (baseboards, crown, casings, sills, doors)
     const trim = new THREE.MeshStandardMaterial({ color: 0xd9d3c6, roughness: 0.45, normalMap: plaster.normalMap, normalScale: new THREE.Vector2(0.15, 0.15) });
     const blackMetal = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.5, roughness: 0.5 });
@@ -195,7 +204,7 @@ export class Level {
     // dividing wall between corridor and house: +z face = corridor concrete, −z face = paint
     const pl = M.plaster, cc = M.concreteWall, wp = M.wallPaint;
     this.wall('x', DIV_Z, -1.12, 1.12, ROOM_H, 0.24, [pl, pl, pl, pl, cc, wp], [{ a0: DOOR.x0, a1: DOOR.x1, y0: 0, y1: DOOR.h }], 1.6, 'r');
-    this.trims([-1, -0.12], [1, -0.12], [0, -1], [[DOOR.x0 + 1 - 0.09, DOOR.x1 + 1 + 0.09]], 0, ROOM_H, true, true);
+    this.trims([-1, DIV_Z - 0.12], [1, DIV_Z - 0.12], [0, -1], [[DOOR.x0 + 1 - 0.09, DOOR.x1 + 1 + 0.09]], 0, ROOM_H, true, true);
     this.buildDoorFrame('x', DIV_Z, DOOR.x0, DOOR.x1, DOOR.h, 0.24);
     this.buildDoorFrame('x', BATH_DOOR.at, BATH_DOOR.a0, BATH_DOOR.a1, BATH_DOOR.y1, 0.24);
     this.buildDoorFrame('x', EXIT_DOOR.at - WALL_T / 2, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, WALL_T);
@@ -204,6 +213,8 @@ export class Level {
     const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.box(EXIT_DOOR.a1 - EXIT_DOOR.a0 + 0.3, EXIT_DOOR.y1 + 0.2, 0.05, black, new THREE.Vector3((EXIT_DOOR.a0 + EXIT_DOOR.a1) / 2, EXIT_DOOR.y1 / 2, EXIT_DOOR.at - WALL_T - 0.05), 1, 'r');
     this.box(0.05, STORE_DOOR.y1 + 0.2, STORE_DOOR.a1 - STORE_DOOR.a0 + 0.3, black, new THREE.Vector3(STORE_DOOR.at + WALL_T + 0.05, STORE_DOOR.y1 / 2, (STORE_DOOR.a0 + STORE_DOOR.a1) / 2), 1, 'r');
+    // void behind the upper doorway
+    this.box(0.05, 2.3, 1.1, black, new THREE.Vector3(UPPER_DOOR.at + WALL_T + 0.3, (UPPER_DOOR.y0 + UPPER_DOOR.y1) / 2, (UPPER_DOOR.a0 + UPPER_DOOR.a1) / 2), 1, 'r');
     for (const w of [WIN_A, WIN_B]) this.buildWindowFrame(w);
     this.buildStairs();
   }
@@ -329,61 +340,57 @@ export class Level {
     this.group.add(g);
   }
 
-  /** Steep old-house staircase rising +z to a landing at y=3, gallery railing over the atrium, wall handrail. */
+  /** L-shaped stair with a mid landing; flight 1 open on its east side (balustrade), flight 2 between walls and lost in the dark. */
   private buildStairs() {
-    const M = this.mats, S = STAIRS;
-    const run = S.zTop - S.zBottom, n = S.steps, rise = S.rise / n, tread = run / n, w = S.x1 - S.x0, cx = (S.x0 + S.x1) / 2;
-    // dark-stained risers (painted ones read as a flat wall from the atrium); treads catch the light on their nosings
+    const M = this.mats, S = STAIRS, r = S.riser, t = S.tread, n = S.perFlight;
     const riser = M.woodFloor.clone();
     riser.color.multiplyScalar(0.6);
     riser.roughness = 0.5;
-    for (let i = 0; i < n; i++) {
-      const top = (i + 1) * rise, z0 = S.zBottom + i * tread;
-      const body = new THREE.Mesh(worldBox(w, top, tread, 0.8), riser);
-      body.position.set(cx, top / 2, z0 + tread / 2); body.castShadow = body.receiveShadow = true;
-      const t = new THREE.Mesh(worldBox(w + 0.02, 0.035, tread + 0.035, 0.8), M.woodFloor); // tread with nosing
-      t.position.set(cx, top + 0.015, z0 + tread / 2 - 0.015); t.castShadow = t.receiveShadow = true;
-      this.group.add(body, t); this.roomMeshes.push(body, t);
-    }
-    // landing (y=3) from the stair top to the back wall, merges with the gallery floor
-    const lz0 = S.zTop, lz1 = 0.4;
-    const landing = new THREE.Mesh(worldBox(w, S.rise, lz1 - lz0, 0.8), M.trim);
-    landing.position.set(cx, S.rise / 2, (lz0 + lz1) / 2); landing.receiveShadow = true;
-    this.group.add(landing); this.roomMeshes.push(landing);
-    this.roomMeshes.push(this.slab([[S.x0, lz0], [S.x1, lz0], [S.x1, lz1], [S.x0, lz1]], S.rise + 0.001, M.woodFloor, 1.6, true));
-    // physics: slope + landing + gallery floor
-    const ang = Math.atan2(S.rise, run), slope = Math.hypot(S.rise, run);
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -ang);
-    const nrm = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
-    this.physics.addBox(new THREE.Vector3(cx, S.rise / 2, (S.zBottom + S.zTop) / 2).addScaledVector(nrm, -0.05), new THREE.Vector3(w / 2, 0.05, slope / 2), q);
-    this.physics.addBox(new THREE.Vector3(cx, S.rise - 0.05, (lz0 + lz1) / 2), new THREE.Vector3(w / 2, 0.05, (lz1 - lz0) / 2));
-    // gallery floor slab edge (fascia) seen from the atrium
-    const g = ROOMS.find((r) => r.name === 'RG')!;
-    const fascia = new THREE.Mesh(worldBox(g.x1 - g.x0, 0.28, 0.06, 0.6), M.trim);
-    fascia.position.set((g.x0 + g.x1) / 2, g.y0 - 0.14, g.z0 + 0.03); fascia.castShadow = true;
-    this.group.add(fascia); this.roomMeshes.push(fascia);
-    // balustrade along the gallery edge: square balusters + moulded handrail (dark stained)
     const rail = new THREE.MeshStandardMaterial({ color: 0x2e2018, roughness: 0.4, map: M.woodFloor.map });
-    const rz = g.z0 + 0.05, ry = g.y0;
-    const hand = new THREE.Mesh(new THREE.BoxGeometry(g.x1 - g.x0, 0.06, 0.08), rail);
-    hand.position.set((g.x0 + g.x1) / 2, ry + 0.95, rz); hand.castShadow = true;
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(g.x1 - g.x0, 0.05, 0.07), rail);
-    shoe.position.set((g.x0 + g.x1) / 2, ry + 0.025, rz);
-    this.group.add(hand, shoe);
-    for (let x = g.x0 + 0.08; x < g.x1; x += 0.13) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.9, 0.035), M.trim);
-      b.position.set(x, ry + 0.48, rz); b.castShadow = true; this.group.add(b);
+    const add = (mesh: THREE.Mesh) => { mesh.castShadow = mesh.receiveShadow = true; this.group.add(mesh); this.roomMeshes.push(mesh); return mesh; };
+    const step = (w: number, d: number, y0: number, top: number, x: number, z: number) => {
+      add(new THREE.Mesh(worldBox(w, top - y0, d, 0.8), riser)).position.set(x, (y0 + top) / 2, z);
+      add(new THREE.Mesh(worldBox(w + 0.02, 0.035, d + 0.035, 0.8), M.woodFloor)).position.set(x, top + 0.0175, z);
+    };
+    // flight 1 (+z): 8 treads, then the mid landing is the 9th rise
+    const w1 = S.x1 - S.x0 - 0.05, cx1 = S.x0 + w1 / 2;
+    for (let i = 0; i < n; i++) step(w1, t, 0, (i + 1) * r, cx1, S.z1Start + i * t + t / 2);
+    const lTop = (n + 1) * r, lz0 = S.landingZ, lz1 = S.z2[1];
+    step(S.x1 - S.x0, lz1 - lz0, 0, lTop, (S.x0 + S.x1) / 2, (lz0 + lz1) / 2);
+    // flight 2 (+x) from the landing to the upper floor (its 9th rise)
+    const d2 = S.z2[1] - S.z2[0], cz2 = (S.z2[0] + S.z2[1]) / 2;
+    for (let j = 0; j < n; j++) step(t, d2, lTop, lTop + (j + 1) * r, S.x2Start + j * t + t / 2, cz2);
+
+    // physics: two ramps + landing
+    const run1 = n * t, ang1 = Math.atan2(n * r, run1);
+    const q1 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -ang1);
+    this.physics.addBox(new THREE.Vector3(cx1, n * r / 2, S.z1Start + run1 / 2).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(q1), -0.05), new THREE.Vector3(w1 / 2, 0.05, Math.hypot(n * r, run1) / 2), q1);
+    this.physics.addBox(new THREE.Vector3((S.x0 + S.x1) / 2, lTop - 0.05, (lz0 + lz1) / 2), new THREE.Vector3((S.x1 - S.x0) / 2, 0.05, (lz1 - lz0) / 2));
+    const run2 = n * t, ang2 = Math.atan2(n * r, run2);
+    const q2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), ang2);
+    this.physics.addBox(new THREE.Vector3(S.x2Start + run2 / 2, lTop + n * r / 2, cz2).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(q2), -0.05), new THREE.Vector3(Math.hypot(n * r, run2) / 2, 0.05, d2 / 2), q2);
+
+    // balustrade on flight 1's open east side: newel at the foot, newel at the turn, two balusters per tread, raked rail
+    const ex = S.x1 - 0.04;
+    for (let i = 0; i < n; i++) for (const f of [0.25, 0.75]) {
+      const top = (i + 1) * r, z = S.z1Start + (i + f) * t;
+      add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.92, 0.03), rail)).position.set(ex, top + 0.46, z);
     }
-    for (const x of [g.x0 + 0.04, g.x1 - 0.04]) {
-      const post = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.1, 0.09), rail);
-      post.position.set(x, ry + 0.55, rz); post.castShadow = true; this.group.add(post);
+    for (const [y, z] of [[0, S.z1Start + 0.05], [lTop, lz0 + 0.05]] as [number, number][]) {
+      add(new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.1), rail)).position.set(ex, y + 0.6, z);
+      add(new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.05, 0.13), rail)).position.set(ex, y + 1.22, z);
     }
-    this.physics.addBox(new THREE.Vector3((g.x0 + g.x1) / 2, ry + 0.5, rz), new THREE.Vector3((g.x1 - g.x0) / 2, 0.5, 0.05));
-    // wall-mounted handrail along the west side of the stair
-    const hr = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, slope, 12), rail);
-    hr.position.set(S.x0 + 0.06, S.rise / 2 + 0.9, (S.zBottom + S.zTop) / 2);
-    hr.rotation.x = Math.PI / 2 - ang; hr.castShadow = true;
-    this.group.add(hr);
+    const rake = add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, Math.hypot(n * r, run1)), rail));
+    rake.position.set(ex, n * r / 2 + 0.98, S.z1Start + run1 / 2);
+    rake.rotation.x = -ang1;
+    this.physics.addBox(new THREE.Vector3(ex, n * r / 2 + 0.5, S.z1Start + run1 / 2), new THREE.Vector3(0.03, 0.5, Math.hypot(n * r, run1) / 2), q1);
+    // wall handrails: flight 1 (west wall) and flight 2 (south wall)
+    const hr1 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, Math.hypot(n * r, run1), 12), rail));
+    hr1.position.set(S.x0 + 0.06, n * r / 2 + 0.9, S.z1Start + run1 / 2);
+    hr1.rotation.x = Math.PI / 2 - ang1;
+    const hr2 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, Math.hypot(n * r, run2), 12), rail));
+    hr2.position.set(S.x2Start + run2 / 2, lTop + n * r / 2 + 0.9, S.z2[1] - 0.06);
+    hr2.rotation.z = -(Math.PI / 2 - ang2);
   }
 
   /** Dirt decals in the wet corridor only (the house itself is kept tidy). */
@@ -397,6 +404,6 @@ export class Level {
     };
     const up = new THREE.Euler(-Math.PI / 2, 0, 0);
     // corridor floor muck
-    for (let i = 0; i < 8; i++) add('dirt', new THREE.Vector3(-0.4 + rnd() * 0.8, 0.003, 0.5 + rnd() * 5.2), up, 0.5 + rnd() * 0.6);
+    for (let i = 0; i < 8; i++) add('dirt', new THREE.Vector3(-0.4 + rnd() * 0.8, 0.003, CORRIDOR.z0 + 0.4 + rnd() * 5.2), up, 0.5 + rnd() * 0.6);
   }
 }

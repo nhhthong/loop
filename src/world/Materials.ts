@@ -96,7 +96,9 @@ export function makeGrime(mat: THREE.MeshStandardMaterial, strength = 1) {
         float blot = smoothstep(0.58, 0.8, fbm(gq * 0.9 + 17.0)) * 0.6;
         float streak = smoothstep(0.7, 0.95, fbm(vec2(gq.x * 7.0, gq.y * 0.35))) * smoothstep(0.2, 2.6, vWPos.y) * 0.35;
         float g = clamp((low * 0.55 + high * 0.35 + blot * 0.35 + streak) * ${strength.toFixed(2)}, 0.0, 0.6);
-        diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.72, 0.62), g);`);
+        diffuseColor.rgb *= mix(vec3(1.0), vec3(0.78, 0.72, 0.62), g);`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = mix(roughnessFactor, 0.85, g * 1.4);`);
   };
   mat.customProgramCacheKey = () => 'grime';
   return mat;
@@ -156,13 +158,3 @@ export function decal(tex: THREE.Texture, w: number, h: number, opacity = 1): TH
   return m;
 }
 
-/** Soft round sprite texture for dust / drops. */
-export function softDot(): THREE.CanvasTexture {
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const g = c.getContext('2d')!;
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-  return new THREE.CanvasTexture(c);
-}
