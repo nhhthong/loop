@@ -12,6 +12,7 @@ const loadText = document.getElementById('loadtext')!;
 const pause = document.getElementById('pause')!;
 const credits = document.getElementById('credits')!;
 
+document.getElementById('quality')!.classList.toggle('hidden', Q.level === 'mobile'); // one fixed profile on phones
 document.querySelectorAll<HTMLButtonElement>('#quality button').forEach((b) => {
   b.classList.toggle('on', b.dataset.q === Q.level);
   b.addEventListener('click', () => { if (b.dataset.q !== Q.level) setQuality(b.dataset.q as QualityLevel); });

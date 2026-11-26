@@ -97,6 +97,12 @@ export class Renderer {
     });
   }
 
+  /** Change the render resolution (adaptive scaling). */
+  setPixelRatio(pr: number) {
+    this.renderer.setPixelRatio(pr);
+    this.composer.setSize(window.innerWidth, window.innerHeight);
+  }
+
   /** 0 = sharp, 1 = very blurry (used for the wake-up). */
   setBlur(amount: number) {
     this.dofPass.enabled = amount > 0.001;

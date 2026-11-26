@@ -5,6 +5,8 @@ import { Assets } from '../engine/Assets';
 import { Input } from '../engine/Input';
 import { AudioSys } from '../engine/Audio';
 import { Q } from '../engine/Quality';
+import { FrameGovernor } from '../engine/FrameGovernor';
+import { Stats } from '../ui/Stats';
 import type { System } from '../core/System';
 import { DIV_Z, PLAYER_START, STAIRWELL, STAIR_BOTTOM_Y, PORTAL, portalMatrix } from '../data/layout';
 import { SOUNDS, EMITTERS } from '../data/audio';
@@ -60,6 +62,8 @@ export class Game {
   /** basement door (kept for dev scripts) */
   get door() { return this.doors.basement; }
   private systems: System[] = [];
+  private governor!: FrameGovernor;
+  private stats: Stats | null = null;
   private clock = new THREE.Clock();
   private time = 0;
   private running = false;
@@ -82,6 +86,8 @@ export class Game {
     this.player.camera.add(this.audio.listener);
     this.renderer = new Renderer(this.canvas, this.scene, this.player.camera);
     this.assets.anisotropy = Math.min(Q.anisotropy, this.renderer.renderer.capabilities.getMaxAnisotropy());
+    this.governor = new FrameGovernor(this.renderer);
+    if (new URLSearchParams(location.search).has('stats')) this.stats = new Stats(this.renderer.renderer, this.scene, this.governor);
 
     total = 4;
     this.level = await new Level(this.physics, this.assets).build();
@@ -169,6 +175,8 @@ export class Game {
     // light leaking under the basement door goes out while it is open
     for (const l of this.furn.lamps) if (l.tag === 'leak') l.driver = () => (D.basement.isOpen ? 0 : 1);
 
+    const lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
+    lighting.extraFocus = () => this.portal.viewPoint(); // pooled lights must also light what the portal shows
     this.systems = [
       this.intro,
       bathScene,
@@ -182,7 +190,9 @@ export class Game {
       drips,
       // roaches only react once the player can move (they keep crawling around the waking player)
       { update: (dt) => roaches.update(dt, P.control > 0.5 ? P.position : FAR_AWAY) },
-      new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active),
+      lighting,
+      // the stairwell can only be seen from the east hall or through open door 9: skip drawing it elsewhere
+      { update: () => { this.level.stairwell.visible = P.position.x > 7 || D.store.isOpen; } },
       new FanSystem(this.furn.fan),
       new PendantSystem(this.furn.lamps),
       new WaterSystem(this.level.flowing),
@@ -217,14 +227,17 @@ export class Game {
 
   setPaused(p: boolean) { this.paused = p; if (!p) this.clock.getDelta(); }
 
-  private loop = () => {
+  private loop = (now = performance.now()) => {
     requestAnimationFrame(this.loop);
+    if (!this.governor.tick(now)) return; // frame cap (mobile)
     const dt = Math.min(this.clock.getDelta(), 1 / 20);
     if (!this.running || this.paused) { this.input.endFrame(); return; }
     this.time += dt;
     sharedUniforms.uTime.value = this.time;
     for (const s of this.systems) s.update(dt);
+    this.stats?.begin();
     this.renderer.render(dt);
+    this.stats?.end();
     this.input.endFrame();
   };
 }

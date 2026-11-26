@@ -92,7 +92,7 @@ npm run build
 ## Verification policy
 - Default check = `npm run typecheck`. Do **not** run e2e / headless full-game runs unless truly needed or asked.
   The cloud container has no GPU: only `?q=low` (no shadows/AO/DOF/bloom, 1K textures) is viable for headless screenshots.
-- Graphics presets live in `src/engine/Quality.ts` (`Q` singleton, read at boot; changing level reloads the page).
+- Graphics presets live in `src/engine/Quality.ts` (`Q` singleton, read at boot; changing level reloads the page): `low|medium|high` (desktop) + `mobile`.
 - For isolated visual checks use the light dev pages instead: `inspect.html?f=group/model,...` (model orientation/scale),
   `handtest.html?fov=&tx=&ty=&tz=&roll=&curl=` (hand pose), `scanprobe.html` (hand-scan landmarks).
 - Scene-level look (lighting, prop placement) is verified by the owner on real hardware — ask for screenshots.
@@ -121,7 +121,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   `lights` (`LightSpec[]`: anchor prop, glow, tag, flicker; order seeds flicker), `audio` (`SOUNDS` → `SoundId` type for every call,
   footstep sets, looping `EMITTERS`), `creatures` (roach groups).
 - `src/core` — `System` (`update(dt)`), `timeline` (`ease`, `seg`, `crossed`) for scripted sequences.
-- `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (typed `SoundId`), Quality.
+- `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (typed `SoundId`), Quality (profiles + flags), FrameGovernor (fps cap, adaptive scale).
 - `src/world` — builders: `Level` (geometry, trims, window frames + glass, stains), `Materials`, `Window`, `Door` (`DoorLike`, `Door`, `GrandDoor`),
   `HouseDoors` (named door leaves: basement/store/bath/front), `Props` (auto-fit loader), `Furnish` (props + lamps from data → `Lamp[]`
   with mutable `base` and optional `driver`), `fixtures` (fan, digital clock, planter, pipes, bulbs), `Probes`, `Cockroaches`, `Atmosphere` (drips).
@@ -129,7 +129,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`,
   `PortalSystem` (render-target doorway + `Player.transport`), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`.
 - `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks).
-- `src/ui` — `UI` (lids, prompt, hint, crosshair), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
+- `src/ui` — `UI` (lids, prompt, hint, crosshair), `Stats` (`?stats`), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
 - `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
 - Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`.
 
@@ -162,9 +162,16 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   Heirlooms kept: grandfather clock, oil portrait, rotary phone; vintage radio on the console (silent in loop 1).
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
 
-## Mobile (Phase 2, owner decisions)
+## Mobile (owner decisions)
 - Touch devices (`IS_TOUCH` in `Input.ts`): minimal controls only — left virtual stick (move), drag to look, E button, pause button (top right).
-  No run/crouch on mobile. Hand-coded (no library). Default quality `low` on touch (menu can change it).
+  No run/crouch on mobile. Hand-coded (no library).
+- **One fixed graphics profile `mobile`** (`Quality.ts`; no quality selector on the mobile menu; `?q=mobile` to test on desktop): stable 30 FPS cap,
+  no shadows/AO/DOF/bloom/SMAA, light pool of 5 (`Q.lightPool`), lite wet shader (`Q.wetLite`), adaptive resolution (`FrameGovernor`,
+  `Q.scaleRange`), half-res portal (`Q.portalScale`). Systems read only profile flags — never `IS_TOUCH` in rendering/lighting code.
+  Desktop presets keep the flags at their "off" values (behaviour unchanged). `?stats` shows fps / calls / tris / lights / scale on any device.
+- **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player or via `LightingSystem.extraFocus`);
+  (2) never rely only on shadows for a scare (mobile has none); (3) check mobile budget before merging (headless `?q=mobile`: ≤ ~1,100 calls,
+  ≤ 0.6 M tris; owner's phone at 30 FPS with `?stats`); (4) any new heavy effect gets a profile flag.
 - Landscape required: portrait shows a "Rotate your device" overlay; Start requests fullscreen + landscape lock (best effort).
 - Pause: pause button or app/tab hidden; tap the overlay to resume. Desktop keeps pointer-lock pause.
 

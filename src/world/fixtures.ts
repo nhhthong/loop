@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Assets } from '../engine/Assets';
 import type { Physics } from '../engine/Physics';
 import { CORRIDOR, FAN } from '../data/layout';
+import { Q } from '../engine/Quality';
 
 /** Procedural / single-model fixtures used by Furnish. Each builder returns or adds its own object; no game logic here. */
 
@@ -72,7 +73,7 @@ export function digitalClock(at: THREE.Vector3, yaw: number) {
   root.add(face);
   const glow = new THREE.PointLight(0xff2a1a, 0.06, 0.7, 2);
   glow.position.set(0, 0.04, 0.12);
-  root.add(glow);
+  if (!Q.lightPool) root.add(glow); // pooled profiles: the emissive face is enough
   return root;
 }
 
