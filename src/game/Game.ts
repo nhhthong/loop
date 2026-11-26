@@ -6,7 +6,7 @@ import { Input } from '../engine/Input';
 import { AudioSys } from '../engine/Audio';
 import { Q } from '../engine/Quality';
 import type { System } from '../core/System';
-import { DIV_Z, PLAYER_START } from '../data/layout';
+import { DIV_Z, PLAYER_START, STAIRWELL, STAIR_BOTTOM_Y, PORTAL, portalMatrix } from '../data/layout';
 import { SOUNDS, EMITTERS } from '../data/audio';
 import { ROACHES, ROACH_MODELS } from '../data/creatures';
 import { Level } from '../world/Level';
@@ -27,6 +27,12 @@ import { LightingSystem } from '../systems/LightingSystem';
 import { FanSystem } from '../systems/FanSystem';
 import { AmbienceSystem } from '../systems/AmbienceSystem';
 import { IntroSequence } from '../sequences/IntroSequence';
+import { BathDoorSequence } from '../sequences/BathDoorSequence';
+import { PortalSystem } from '../systems/PortalSystem';
+import { PendantSystem } from '../systems/PendantSystem';
+import { WaterSystem } from '../systems/WaterSystem';
+import { LoopDirector } from '../systems/LoopDirector';
+import { loopEvents } from '../gameplay/loops';
 
 const FAR_AWAY = new THREE.Vector3(0, -100, 0);
 
@@ -49,6 +55,8 @@ export class Game {
   furn!: Furnished;
   intro!: IntroSequence;
   ambience!: AmbienceSystem;
+  director!: LoopDirector;
+  portal!: PortalSystem;
   /** basement door (kept for dev scripts) */
   get door() { return this.doors.basement; }
   private systems: System[] = [];
@@ -131,22 +139,42 @@ export class Game {
     this.ambience = new AmbienceSystem(audio, P);
     this.intro = new IntroSequence(P, this.hands, this.renderer, this.ui, audio, this.ambience);
 
-    // the basement door swings shut behind the player once they are inside, and stays locked
-    const triggers = new TriggerSystem(P).add(
-      new TriggerZone((p) => p.z < DIV_Z - 1.4, () => shutAndLock(D.basement, audio), { once: true, when: () => D.basement.isOpen && !D.basement.locked }),
+    const triggers = new TriggerSystem(P);
+    const interaction = new InteractionSystem(P, this.input, this.ui);
+    const bathScene = new BathDoorSequence(P, D.bath, audio, this.ui, () => {
+      D.bath.locked = true;
+      interaction.add(new DoorInteraction(D.bath, audio));
+    });
+    this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, triggers, bathScene }));
+
+    triggers.add(
+      // the basement door swings shut behind the player once they are inside and locks (every pass); a pass via
+      // the stairwell starts the next loop
+      new TriggerZone((p) => p.z < DIV_Z - 1.4 && p.x < STAIRWELL.x0, () => { shutAndLock(D.basement, audio); this.director.enteredHouse(); }, { when: () => D.basement.isOpen && !D.basement.locked }),
+      // door 9 shuts and locks behind the player once they are on the stair
+      new TriggerZone((p) => p.x > STAIRWELL.flightX - 0.2, () => shutAndLock(D.store, audio), { once: true, when: () => D.store.isOpen }),
     );
-    const interaction = new InteractionSystem(P, this.input, this.ui).add(
+    interaction.add(
       new DoorInteraction(D.basement, audio),
       new DoorInteraction(D.store, audio),
       new DoorInteraction(D.front, audio),
+      // the stair-bottom door is the basement door seen through the portal: both leaves swing together
+      new DoorInteraction(D.stairBottom, audio, () => { D.basement.locked = false; D.basement.open(); }),
     );
+    // through the stair-bottom door: R1 from the basement doorway
+    this.portal = new PortalSystem(this.renderer, P, this.scene, portalMatrix(), PORTAL.yaw,
+      { centre: new THREE.Vector3(STAIRWELL.doorX + STAIRWELL.doorT / 2, STAIR_BOTTOM_Y + 1.05, (STAIRWELL.z0 + STAIRWELL.z1) / 2), width: 0.9, height: 2.1, normal: new THREE.Vector3(1, 0, 0) },
+      () => D.stairBottom.isOpen && P.position.x > STAIRWELL.x0,
+      () => this.director.portalCrossed());
     // light leaking under the basement door goes out while it is open
     for (const l of this.furn.lamps) if (l.tag === 'leak') l.driver = () => (D.basement.isOpen ? 0 : 1);
 
     this.systems = [
       this.intro,
+      bathScene,
       P,
       { update: (dt) => this.physics.step(dt) },
+      this.portal,
       triggers,
       interaction,
       ...D.all,
@@ -156,6 +184,8 @@ export class Game {
       { update: (dt) => roaches.update(dt, P.control > 0.5 ? P.position : FAR_AWAY) },
       new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active),
       new FanSystem(this.furn.fan),
+      new PendantSystem(this.furn.lamps),
+      new WaterSystem(this.level.flowing),
       this.ambience,
     ];
   }
@@ -170,7 +200,7 @@ export class Game {
   }
 
   /** Dev helpers (used by automated screenshots). */
-  debugView(x: number, z: number, yaw: number, pitch: number, eye = 1.62) {
+  debugView(x: number, z: number, yaw: number, pitch: number, eye = 1.62, y = 0) {
     this.intro.stop();
     this.ui.setLids(1);
     this.renderer.setBlur(0);
@@ -179,7 +209,7 @@ export class Game {
     this.player.eye = eye;
     this.player.camera.fov = 70; this.player.camera.updateProjectionMatrix();
     this.hands.setVisible(false);
-    this.player.teleport(new THREE.Vector3(x, 0, z));
+    this.player.teleport(new THREE.Vector3(x, y, z));
     this.player.yaw = yaw; this.player.pitch = pitch;
     this.player.control = 1;
   }

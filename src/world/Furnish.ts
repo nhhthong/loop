@@ -17,6 +17,8 @@ export interface Lamp {
   glow?: THREE.Mesh;
   /** optional extra multiplier (0..1) evaluated every frame, e.g. tie a light to a door's state */
   driver?: () => number;
+  /** pendulum: light + glow hang `len` below `anchor` on `cord` (animated by PendantSystem) */
+  swing?: { anchor: THREE.Vector3; len: number; amp: number; cord?: THREE.Mesh };
 }
 
 export interface Furnished {
@@ -55,11 +57,12 @@ function buildLamp(s: LightSpec, props: Map<string, THREE.Object3D>, parent: THR
   light.position.copy(pos);
   if (s.shadow && Q.shadows) configureShadow(light);
   parent.add(light);
-  if (s.cord) cord(parent, pos, s.cord);
+  const cordMesh = s.cord ? cord(parent, pos, s.cord) : undefined;
   let glow: THREE.Mesh | undefined;
   if (s.glow && 'bulb' in s.glow) glow = bulb(parent, pos, s.glow.bulb, s.glow.r);
   else if (s.glow) glow = shadeGlow(parent, pos.clone().add(new THREE.Vector3(0, s.glow.dy ?? 0, 0)), s.glow.rTop, s.glow.rBot, s.glow.h, s.glow.shade);
-  return { id: s.id, light, base: s.intensity, flicker: s.flicker ?? 0, tag: s.tag ?? 'lamp', glow };
+  const swing = s.swing && s.cord ? { anchor: pos.clone().add(new THREE.Vector3(0, s.cord, 0)), len: s.cord, amp: s.swing, cord: cordMesh } : undefined;
+  return { id: s.id, light, base: s.intensity, flicker: s.flicker ?? 0, tag: s.tag ?? 'lamp', glow, swing };
 }
 
 /** Shared point-light shadow settings (lamps and the low-quality shadow proxy). */

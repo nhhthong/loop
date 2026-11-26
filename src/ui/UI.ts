@@ -16,6 +16,9 @@ export class UI {
     (this.top.parentElement as HTMLElement).style.display = o >= 1 ? 'none' : 'block';
   }
 
+  /** Cinematic moment: hides touch controls. */
+  cinematic(on: boolean) { document.body.classList.toggle('cinematic', on); }
+
   prompt(text: string) {
     if (text) this.promptEl.textContent = text;
     this.promptEl.classList.toggle('on', !!text);

@@ -42,6 +42,7 @@ export class Door implements DoorLike {
   isOpen = false;
   locked = false;
   private rattleT = 0;
+  private slow: { from: number; t: number; dur: number } | null = null;
   readonly leafW: number;
   readonly leafH: number;
   readonly leafT = 0.045;
@@ -116,15 +117,30 @@ export class Door implements DoorLike {
     this.target = 0;
   }
 
+  /** Swing shut over `dur` seconds (eased), from whatever angle it is at (e.g. ajar). */
+  closeSlowly(dur: number) {
+    this.slow = { from: this.angle, t: 0, dur };
+    this.isOpen = false;
+  }
+
   /** Locked: jiggle the handle and shake the leaf in its frame for a moment. */
   rattle() { this.rattleT = 0.6; }
 
   update(dt: number) {
     // critically-damped spring with a slight heavy-door ease
-    const k = 6, c = 2 * Math.sqrt(k) * 0.9;
-    const acc = (this.target - this.angle) * k - this.vel * c;
-    this.vel += acc * dt;
-    this.angle += this.vel * dt * 0.55;
+    if (this.slow) {
+      const s = this.slow;
+      s.t = Math.min(s.dur, s.t + dt);
+      const x = s.t / s.dur;
+      this.angle = this.target = s.from * (1 - x * x * (3 - 2 * x));
+      this.vel = 0;
+      if (x >= 1) this.slow = null;
+    } else {
+      const k = 6, c = 2 * Math.sqrt(k) * 0.9;
+      const acc = (this.target - this.angle) * k - this.vel * c;
+      this.vel += acc * dt;
+      this.angle += this.vel * dt * 0.55;
+    }
     let shake = 0;
     if (this.rattleT > 0) {
       this.rattleT = Math.max(0, this.rattleT - dt);

@@ -162,5 +162,25 @@
   "license": "http://creativecommons.org/publicdomain/zero/1.0/",
   "url": "https://freesound.org/s/216870/",
   "duration": 2.1
+ },
+ {
+  "file": "radio_static.mp3",
+  "item": "radio_static",
+  "id": 724703,
+  "name": "Just Regular Radio Static - Industrial SFX",
+  "author": "9voltplasma",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/724703/",
+  "duration": 13.357
+ },
+ {
+  "file": "water_trickle.mp3",
+  "item": "water_trickle",
+  "id": 349076,
+  "name": "Trickling Water 5",
+  "author": "Yoyodaman234",
+  "license": "http://creativecommons.org/publicdomain/zero/1.0/",
+  "url": "https://freesound.org/s/349076/",
+  "duration": 29.893
  }
 ]

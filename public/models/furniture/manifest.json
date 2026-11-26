@@ -102,5 +102,18 @@
     "faceCount": 1299,
     "sizeBytes": 825208,
     "notes": "Fabric-shade table lamp. Creator notes it was made quickly for a prototype; simpler than ideal."
+  },
+  {
+    "file": "vintage_radio.glb",
+    "item": "vintage radio",
+    "uid": "1c293fc092734e0190b0ffc6072b5014",
+    "name": "1950 Bush DAC10 Vintage Radio",
+    "author": "ministephen",
+    "license_slug": "by",
+    "license_label": "CC Attribution",
+    "url": "https://sketchfab.com/3d-models/1c293fc092734e0190b0ffc6072b5014",
+    "faceCount": 19854,
+    "sizeBytes": 1095916,
+    "notes": "Bakelite tabletop tube radio on the console (silent in loop 1, static from loop 2). Textures converted to WebP."
   }
 ]
