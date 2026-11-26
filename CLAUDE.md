@@ -109,7 +109,9 @@ npm run build
   with dark balustrade + newels → mid landing (y 1.63) turns 90° → flight 2 rises +x between walls (RF2) → dark upper landing RU (y 3.25)
   with a doorway onto black. From the atrium, looking up shows mostly walls, the fan and one dark corner of railing.
   RN nook beside flight 1 (coat rack, cabinet).
-- RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
+- RE east hall → **door 9** (same door type as the basement door): opens in loop 1 onto the **stairwell** (`STAIRWELL`): straight wet dark-grey
+  concrete stair down +x (12 risers 17 cm, treads 28 cm, 1.1 m wide), water running down the treads + seeping down the walls, puddle, small bulb
+  swaying on its cord. The bottom door is a **portal** (`PORTAL`, `portalMatrix`): R1 is seen through it from the basement doorway; crossing moves the player there.
 - Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `data/props.ts`.
 
 ## Code map
@@ -123,25 +125,28 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - `src/world` — builders: `Level` (geometry, trims, window frames + glass, stains), `Materials`, `Window`, `Door` (`DoorLike`, `Door`, `GrandDoor`),
   `HouseDoors` (named door leaves: basement/store/bath/front), `Props` (auto-fit loader), `Furnish` (props + lamps from data → `Lamp[]`
   with mutable `base` and optional `driver`), `fixtures` (fan, digital clock, planter, pipes, bulbs), `Probes`, `Cockroaches`, `Atmosphere` (drips).
-- `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`), `TriggerZone` (enter region → action).
-- `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`.
-- `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`).
+- `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`, `onOpen` link), `TriggerZone`, `loops` (per-loop events).
+- `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`,
+  `PortalSystem` (render-target doorway + `Player.transport`), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`.
+- `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks).
 - `src/ui` — `UI` (lids, prompt, hint, crosshair), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
 - `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
-- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?)`, `game.debugIntro(t)`, `game.door` (basement door).
+- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`.
 
-### Extending (planned loop: door 9 → basement → basement door → start of R1, seamless; small changes per loop)
-Not implemented yet — ask the owner before building. Intended plug-in points:
-- New interactions = an `Interactable` added to `InteractionSystem`; position events = a `TriggerZone` (e.g. bath door slams when passing).
-- Per-loop variation should be a `LoopDirector` system holding the loop index and per-loop event lists that act only through the named
-  handles (`HouseDoors`, `furn.props`, `Lamp.base/driver`, `EMITTERS`/`AudioSys`) — no special cases inside systems.
-- Timed scripts follow `IntroSequence` (a `System` with a clock and `seg`/`crossed`).
+### The loop (Phase 2)
+- Pass: door 9 → stairwell (door 9 shuts + locks behind on the stair) → stair-bottom door (opens together with the real basement door)
+  → portal → basement doorway → basement door shuts + locks (trigger re-arms every pass) → `LoopDirector.enteredHouse()` → next loop.
+- Per-loop content lives only in `src/gameplay/loops.ts` (`loopEvents`), acting through named handles (`HouseDoors`, `furn.props`,
+  `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`. Door 9 stays locked after the first pass.
+- New interactions = an `Interactable` in `InteractionSystem`; position events = a `TriggerZone`; timed scripts = a `System` with `seg`/`crossed`.
+- Specs: `specs/002-phase2-loop-two/`.
 
 ## Owner decisions (do not change without asking)
 - **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and doors:
   the basement door opens with E, swings shut and locks behind the player; every closed door then only rattles (locked) on E.
-  Ask the owner what Phase 2 contains before adding any mechanic.
-- No telephone interaction/ringing (the phone is a static prop). No scripted scares. No floating dust motes (owner: they block the view).
+- **Phase 2 = the loop + loop 2 events — DONE** (see "The loop"). Ask the owner before adding loop 3 or any other mechanic.
+- No telephone interaction/ringing (the phone is a static prop). No scripted scares except the owner-requested loop events (loop 2:
+  radio static, bathroom door closing on its own). No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds (no floor creaks).
 - Image must be crisp (AAA, not hazy): no fog, subtle grain/CA, bloom only on bright sources, DOF only during the wake-up.
@@ -154,7 +159,7 @@ Not implemented yet — ask the owner before building. Intended plug-in points:
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains);
   outside the windows is pure black (no sky/moon/rain), glass keeps only a faint reflection.
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are data in `data/lights.ts`, tagged `corridor`, `leak`, `lamp`.
-  Heirlooms kept: grandfather clock, oil portrait, rotary phone.
+  Heirlooms kept: grandfather clock, oil portrait, rotary phone; vintage radio on the console (silent in loop 1).
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
 
 ## Mobile (Phase 2, owner decisions)

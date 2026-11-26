@@ -41,6 +41,8 @@ export class Renderer {
   readonly exposure: BrightnessContrastEffect;
   readonly ao: N8AOPostPass;
   private readonly bloom: BloomEffect;
+  /** extra renders that must happen before the frame (e.g. a portal view) */
+  readonly beforeRender: (() => void)[] = [];
 
   constructor(canvas: HTMLCanvasElement, scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     const r = new THREE.WebGLRenderer({
@@ -104,6 +106,7 @@ export class Renderer {
   }
 
   render(dt: number) {
+    for (const f of this.beforeRender) f();
     this.composer.render(dt);
   }
 }

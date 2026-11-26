@@ -36,7 +36,8 @@ export const PROPS: PropSpec[] = [
   { name: 'console', url: M + 'console_table.glb', pos: [4.5, 0, -5.27], rot: -90, h: 0.7, collide: true, age: 0.05 },
   { name: 'lampL', url: F + 'table_lamp_fabric.glb', pos: [3.97, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
   { name: 'lampR', url: F + 'table_lamp_fabric.glb', pos: [5.03, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
-  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.5, 0.7, -5.22], rot: 20, w: 0.25, age: 0.1 },
+  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.66, 0.7, -5.22], rot: 20, w: 0.25, age: 0.1 },
+  { name: 'radio', url: F + 'vintage_radio.glb', pos: [4.2, 0.7, -5.3], rot: 0, w: 0.26, age: 0.1 }, // silent in loop 1, static from loop 2
   { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -5.485], rot: 0, h: 0.7, floor: false, age: 0.05 },
   // ---- RN nook beside the stairs: coat rack + small wooden cabinet
   { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.15, 0, -1.6], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05 },

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import type { Physics } from '../engine/Physics';
 import type { Assets } from '../engine/Assets';
-import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal } from './Materials';
+import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal, waterNormalTexture } from './Materials';
 import { buildWindow } from './Window';
 import {
-  CORRIDOR, ROOM_H, DIV_Z, DOOR, WALL_T, ROOMS, STAIRS, OPENINGS, DOOR_OPENINGS, BATH_DOOR, EXIT_DOOR, STORE_DOOR, UPPER_DOOR, WIN_A, WIN_B, WIN_C, type Room, type Opening,
+  CORRIDOR, ROOM_H, DIV_Z, DOOR, WALL_T, STAIRWELL, STAIR_BOTTOM_Y, STAIR_FLIGHT_END, ROOMS, STAIRS, OPENINGS, DOOR_OPENINGS, BATH_DOOR, EXIT_DOOR, STORE_DOOR, UPPER_DOOR, WIN_A, WIN_B, WIN_C, type Room, type Opening,
 } from '../data/layout';
 
 interface Hole { a0: number; a1: number; y0: number; y1: number }
@@ -22,6 +22,8 @@ export class Level {
   /** meshes that belong to corridor vs room (for env-map assignment) */
   readonly corridorMeshes: THREE.Mesh[] = [];
   readonly roomMeshes: THREE.Mesh[] = [];
+  /** scrolling water normal maps (stairwell stream + wall seepage), advanced by WaterSystem in m/s along the flow */
+  readonly flowing: { tex: THREE.Texture; speed: number }[] = [];
 
   constructor(private readonly physics: Physics, private readonly assets: Assets) {}
 
@@ -56,6 +58,7 @@ export class Level {
 
     this.buildCorridor();
     this.buildRoom();
+    this.buildStairwell();
     this.buildStains();
     return this;
   }
@@ -157,10 +160,9 @@ export class Level {
     this.buildDoorFrame('x', BATH_DOOR.at, BATH_DOOR.a0, BATH_DOOR.a1, BATH_DOOR.y1, 0.24);
     this.buildDoorFrame('x', EXIT_DOOR.at - WALL_T / 2, EXIT_DOOR.a0, EXIT_DOOR.a1, EXIT_DOOR.y1, WALL_T);
     this.buildDoorFrame('z', STORE_DOOR.at + WALL_T / 2, STORE_DOOR.a0, STORE_DOOR.a1, STORE_DOOR.y1, WALL_T);
-    // nothing exists beyond the exit and the store door
+    // nothing exists beyond the exit (door 9 leads into the stairwell)
     const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
     this.box(EXIT_DOOR.a1 - EXIT_DOOR.a0 + 0.3, EXIT_DOOR.y1 + 0.2, 0.05, black, new THREE.Vector3((EXIT_DOOR.a0 + EXIT_DOOR.a1) / 2, EXIT_DOOR.y1 / 2, EXIT_DOOR.at - WALL_T - 0.05), 1, 'r');
-    this.box(0.05, STORE_DOOR.y1 + 0.2, STORE_DOOR.a1 - STORE_DOOR.a0 + 0.3, black, new THREE.Vector3(STORE_DOOR.at + WALL_T + 0.05, STORE_DOOR.y1 / 2, (STORE_DOOR.a0 + STORE_DOOR.a1) / 2), 1, 'r');
     // void behind the upper doorway
     this.box(0.05, 2.3, 1.1, black, new THREE.Vector3(UPPER_DOOR.at + WALL_T + 0.3, (UPPER_DOOR.y0 + UPPER_DOOR.y1) / 2, (UPPER_DOOR.a0 + UPPER_DOOR.a1) / 2), 1, 'r');
     for (const w of [WIN_A, WIN_B, WIN_C]) this.buildWindowFrame(w);
@@ -238,13 +240,13 @@ export class Level {
   }
 
   /** Casings on both faces, jamb linings and threshold for an opening in a wall of thickness `t`. */
-  private buildDoorFrame(along: 'x' | 'z', fixed: number, a0: number, a1: number, h: number, t: number) {
+  private buildDoorFrame(along: 'x' | 'z', fixed: number, a0: number, a1: number, h: number, t: number, y0 = 0) {
     const M = this.mats;
     const w = 0.09, d = 0.03, mid = (a0 + a1) / 2, span = a1 - a0;
     const add = (alongLen: number, hh: number, depth: number, a: number, y: number, off: number) => {
       const [sx, sz] = along === 'x' ? [alongLen, depth] : [depth, alongLen];
       const m = new THREE.Mesh(worldBox(sx, hh, sz, 0.6), M.trim);
-      m.position.set(along === 'x' ? a : fixed + off, y, along === 'x' ? fixed + off : a);
+      m.position.set(along === 'x' ? a : fixed + off, y0 + y, along === 'x' ? fixed + off : a);
       m.castShadow = m.receiveShadow = true;
       this.group.add(m); this.roomMeshes.push(m);
     };
@@ -287,6 +289,77 @@ export class Level {
     for (const fy of [0.25, 0.75]) add(w - 0.1, 0.018, 0.03, 0, y0 + (y1 - y0) * fy, sz);
     g.add(buildWindow(x0, x1, y0, y1, z).group); // black exterior + glass
     this.group.add(g);
+  }
+
+  /**
+   * Behind door 9: straight wet-concrete stair down (+x) to the portal door. Dark grey concrete walls and treads,
+   * a thin stream running down the treads along the north wall, seepage streaks on both walls, a puddle at the foot.
+   */
+  private buildStairwell() {
+    const { concreteWall: cw, concreteFloor: cf, concreteCeil: cc } = this.mats;
+    const S = STAIRWELL, r = S.riser, t = S.tread, n = S.risers - 1; // n treads between the landings
+    const zc = (S.z0 + S.z1) / 2, w = S.z1 - S.z0, yb = STAIR_BOTTOM_Y, wallX0 = S.doorX - S.doorT / 2;
+    const stepMats = [cw, cw, cf, cw, cw, cw]; // wet top face
+    // landings + treads (solid blocks down to below the bottom landing)
+    this.box(S.flightX - STORE_DOOR.at + 0.02, 0.2, w, cf, new THREE.Vector3((STORE_DOOR.at - 0.02 + S.flightX) / 2, -0.1, zc), 1.6, 'c');
+    for (let i = 0; i < n; i++) {
+      const top = -(i + 1) * r, bot = yb - 0.1;
+      this.box(t, top - bot, w, stepMats, new THREE.Vector3(S.flightX + i * t + t / 2, (top + bot) / 2, zc), 1.6, 'c', false);
+    }
+    this.box(S.doorX + 0.6 - STAIR_FLIGHT_END, 0.2, w, cf, new THREE.Vector3((STAIR_FLIGHT_END + S.doorX + 0.6) / 2, yb - 0.1, zc), 1.6, 'c');
+    // walking surface over the flight: one ramp collider through the tread centres (±r/2 from each tread top)
+    const run = STAIR_FLIGHT_END - S.flightX, drop = -yb, rampDrop = n * r;
+    const rq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.atan2(r, t));
+    this.physics.addBox(new THREE.Vector3(S.flightX + run / 2, -r / 2 - rampDrop / 2, zc).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(rq), -0.05), new THREE.Vector3(Math.hypot(run, rampDrop) / 2, 0.05, w / 2), rq);
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.atan2(drop, run));
+    // side walls (full height) and ceilings: flat over the landings, sloped over the flight
+    for (const z of [S.z0 - 0.1, S.z1 + 0.1]) this.box(wallX0 - S.x0 + 0.1, S.h - yb + 0.4, 0.2, cw, new THREE.Vector3((S.x0 + wallX0) / 2, (yb + S.h) / 2, z), 1.8, 'c');
+    this.box(S.flightX - S.x0, 0.2, w + 0.2, cc, new THREE.Vector3((S.x0 + S.flightX) / 2, S.h + 0.1, zc), 1.6, 'c');
+    this.box(wallX0 - STAIR_FLIGHT_END + 0.05, 0.2, w + 0.2, cc, new THREE.Vector3((STAIR_FLIGHT_END + wallX0) / 2, yb + S.h + 0.1, zc), 1.6, 'c');
+    const slope = this.box(Math.hypot(run, drop) + 0.12, 0.2, w + 0.2, cc, new THREE.Vector3(S.flightX + run / 2, S.h - drop / 2 + 0.1, zc), 1.6, 'c', false);
+    slope.quaternion.copy(q);
+    // bottom door wall (copy of the corridor's door end) with a painted frame
+    const D = { a0: zc - 0.45, a1: zc + 0.45 };
+    this.wall('z', S.doorX, S.z0 - 0.2, S.z1 + 0.2, S.h + 0.2, S.doorT, [cw, cw, cw, cw, cw, cw], [{ a0: D.a0, a1: D.a1, y0: yb, y1: yb + 2.1 }], 1.8, 'c', yb);
+    this.buildDoorFrame('z', S.doorX, D.a0, D.a1, 2.1, S.doorT, yb);
+
+    // ---- water
+    const nrm = waterNormalTexture();
+    const water = (speed: number, opacity: number, rough: number) => {
+      const tex = nrm.clone(); tex.needsUpdate = true;
+      this.flowing.push({ tex, speed });
+      return new THREE.MeshStandardMaterial({ color: 0x050607, roughness: rough, metalness: 0, normalMap: tex, normalScale: new THREE.Vector2(0.7, 0.7),
+        transparent: true, opacity, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, envMapIntensity: 1.6 });
+    };
+    const stream = water(0.9, 0.7, 0.03), seep = water(0.25, 0.45, 0.06), pool = water(0.04, 0.75, 0.02);
+    const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
+    /** strip of width `wd` × length `len`; texture v (flow) runs along `flow`, normal = `nrmDir` */
+    const strip = (wd: number, len: number, across: THREE.Vector3, flow: THREE.Vector3, nrmDir: THREE.Vector3, c: THREE.Vector3, mat: THREE.Material) => {
+      const geo = new THREE.PlaneGeometry(wd, len);
+      geo.attributes.uv.array.forEach((_, k, a) => { if (k % 2) (a as Float32Array)[k] *= len / wd / 4; });
+      const m = new THREE.Mesh(geo, mat);
+      m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(across, flow, nrmDir));
+      m.position.copy(c); m.receiveShadow = true;
+      this.group.add(m); this.corridorMeshes.push(m);
+    };
+    const sz = S.z0 + 0.09, sw = 0.13; // stream hugs the north wall
+    strip(sw, S.flightX - S.x0 - 0.3, Z, X, Y, new THREE.Vector3((S.x0 + 0.3 + S.flightX) / 2, 0.003, sz), stream);
+    for (let i = 0; i < n; i++) {
+      const x0 = S.flightX + i * t, top = -(i + 1) * r;
+      strip(sw, r, Z.clone().negate(), Y.clone().negate(), X.clone().negate(), new THREE.Vector3(x0 - 0.003, top + r / 2, sz), stream); // riser
+      strip(sw, t, Z, X, Y, new THREE.Vector3(x0 + t / 2, top + 0.003, sz), stream); // tread
+    }
+    strip(sw, r, Z.clone().negate(), Y.clone().negate(), X.clone().negate(), new THREE.Vector3(STAIR_FLIGHT_END - 0.003, yb + r / 2, sz), stream);
+    const puddle = new THREE.Mesh(new THREE.CircleGeometry(0.5, 40), pool);
+    puddle.rotation.x = -Math.PI / 2; puddle.scale.set(1.3, 0.75, 1); puddle.position.set(STAIR_FLIGHT_END + 0.45, yb + 0.003, sz + 0.25);
+    this.group.add(puddle); this.corridorMeshes.push(puddle);
+    // seepage streaks running down both walls
+    const floorAt = (x: number) => (x < S.flightX ? 0 : x > STAIR_FLIGHT_END ? yb : -Math.ceil((x - S.flightX) / t) * r);
+    const ceilAt = (x: number) => (x < S.flightX ? S.h : x > STAIR_FLIGHT_END ? yb + S.h : S.h - (x - S.flightX) * drop / run);
+    for (const [x, side, wd] of [[10.7, 0, 0.09], [12.25, 1, 0.12], [13.4, 0, 0.07], [14.8, 1, 0.1], [11.6, 1, 0.06]] as [number, number, number][]) {
+      const y0 = floorAt(x), y1 = ceilAt(x) - 0.05, z = side ? S.z1 - 0.002 : S.z0 + 0.002;
+      strip(wd, y1 - y0, side ? X : X.clone().negate(), Y.clone().negate(), side ? Z.clone().negate() : Z, new THREE.Vector3(x, (y0 + y1) / 2, z), seep);
+    }
   }
 
   /** L-shaped stair with a mid landing; flight 1 open on its east side (balustrade), flight 2 between walls and lost in the dark. */

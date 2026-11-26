@@ -10,7 +10,8 @@ export class DoorInteraction implements Interactable {
   private openT = -1;
   private readonly p = new THREE.Vector3();
 
-  constructor(private readonly door: DoorLike, private readonly audio: AudioSys) {}
+  /** `onOpen`: called the moment the leaf starts to swing (e.g. open a linked door on the other side of a portal) */
+  constructor(private readonly door: DoorLike, private readonly audio: AudioSys, private readonly onOpen?: () => void) {}
 
   focusPoint() {
     return this.door.isOpen || this.openT >= 0 ? null : this.door.handleWorld(this.p);
@@ -28,6 +29,7 @@ export class DoorInteraction implements Interactable {
     this.openT += dt;
     if (t0 < 0.25 && this.openT >= 0.25) {
       this.door.open();
+      this.onOpen?.();
       this.audio.play3D('door_creak', this.door.handle, 0.9, { ref: 0.8, rate: 0.85 });
     }
     if (this.openT > 0.5) this.openT = -1;

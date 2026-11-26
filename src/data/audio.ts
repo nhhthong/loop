@@ -1,9 +1,9 @@
-import { WIN_A, WIN_B, type Surface } from './layout';
+import { WIN_A, WIN_B, STAIRWELL, type Surface } from './layout';
 
 /** Every sound file the game uses (`/audio/<id>.mp3`). Single source of truth: preloaded at boot, `SoundId` types every call. */
 export const SOUNDS = [
   'breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'door_locked_1', 'door_locked_2', 'heartbeat',
-  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak',
+  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak', 'radio_static', 'water_trickle',
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5',
 ] as const;
 export type SoundId = (typeof SOUNDS)[number];
@@ -27,4 +27,6 @@ export const EMITTERS: EmitterSpec[] = [
   { sound: 'light_buzz', at: 'cageLamp', volume: 0.12, ref: 0.5 },
   { sound: 'wind_window', at: [WIN_A.at - 0.3, 1.8, (WIN_A.a0 + WIN_A.a1) / 2], volume: 0.35, ref: 1.2 },
   { sound: 'wind_window', at: [WIN_B.at - 0.3, 1.8, (WIN_B.a0 + WIN_B.a1) / 2], volume: 0.25, ref: 1.2, rate: 0.9 },
+  // water running down the stairwell behind door 9
+  { sound: 'water_trickle', at: [12.7, -0.6, STAIRWELL.z0 + 0.1], volume: 0.5, ref: 0.9 },
 ];

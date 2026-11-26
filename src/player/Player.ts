@@ -29,6 +29,7 @@ export class Player {
   lookEnabled = false;
   sensitivity = 0.0019;
   private lookVel = new THREE.Vector2();
+  private lastHs = 0;
 
   constructor(physics: Physics, private readonly input: Input, private readonly audio: AudioSys, scene: THREE.Scene, start: THREE.Vector3) {
     this.camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.01, 60);
@@ -97,6 +98,7 @@ export class Player {
       const stride = run ? 0.85 : 0.62;
       if (this.stepDist > stride) { this.stepDist = 0; this.footstep(hs); }
     } else this.bobT += dt * 0.7; // idle breathing
+    this.lastHs = hs;
     this.syncHead(hs);
   }
 
@@ -118,5 +120,13 @@ export class Player {
     this.bob.rotation.z = Math.cos(this.bobT * 0.5) * 0.006 * amp;
   }
 
-  teleport(p: THREE.Vector3) { this.body.setTranslation({ x: p.x, y: p.y + 0.9, z: p.z }, true); this.syncHead(0); }
+  teleport(p: THREE.Vector3) { this.body.setTranslation({ x: p.x, y: p.y + 0.9, z: p.z }, true); this.syncHead(this.lastHs); }
+
+  /** Rigid move through a portal: position by `m`; yaw and momentum turned by `yaw` (head bob keeps its phase). */
+  transport(m: THREE.Matrix4, yaw: number) {
+    const p = this.position.applyMatrix4(m);
+    this.vel.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    this.yaw += yaw;
+    this.teleport(p);
+  }
 }

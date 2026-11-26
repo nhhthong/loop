@@ -158,3 +158,22 @@ export function decal(tex: THREE.Texture, w: number, h: number, opacity = 1): TH
   return m;
 }
 
+
+/** Tileable normal map of elongated ripples for running water (streaks across u, flow along v). */
+export function waterNormalTexture(): THREE.CanvasTexture {
+  const N = 128, c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d')!, img = g.createImageData(N, N);
+  const waves: [number, number, number, number][] = [[3, 1, 0.5, 0.3], [5, 2, 0.35, 1.7], [9, 3, 0.25, 2.9], [2, 5, 0.2, 4.1], [13, 4, 0.12, 0.9]];
+  const h = (u: number, v: number) => waves.reduce((s, [ku, kv, a, p]) => s + a * Math.sin(2 * Math.PI * (ku * u + kv * v) + p), 0);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const u = x / N, v = y / N, e = 1 / N;
+    const dx = (h(u + e, v) - h(u - e, v)) * 2.2, dy = (h(u, v + e) - h(u, v - e)) * 2.2;
+    const len = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
+    img.data[i] = (-dx / len * 0.5 + 0.5) * 255; img.data[i + 1] = (-dy / len * 0.5 + 0.5) * 255;
+    img.data[i + 2] = (1 / len * 0.5 + 0.5) * 255; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}

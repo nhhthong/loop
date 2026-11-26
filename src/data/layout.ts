@@ -61,5 +61,27 @@ export const DOOR_OPENINGS = [BATH_DOOR, EXIT_DOOR, STORE_DOOR, UPPER_DOOR];
 export const PLAYER_START = new THREE.Vector3(0.05, 0, CORRIDOR.z0 + 5.33);
 
 export type Surface = 'concrete' | 'wood';
-/** Floor material under a point (footsteps): the corridor is concrete, the house is wood. */
-export const surfaceAt = (p: THREE.Vector3): Surface => (p.z > DIV_Z + 0.05 ? 'concrete' : 'wood');
+/** Floor material under a point (footsteps): the corridor and the stairwell are concrete, the house is wood. */
+export const surfaceAt = (p: THREE.Vector3): Surface => (p.z > DIV_Z + 0.05 || p.x > STORE_DOOR.at ? 'concrete' : 'wood');
+
+/**
+ * Behind door 9 (Phase 2): a straight wet-concrete stair going down (+x) to a door at the bottom. That door is a portal:
+ * through it the player sees R1 from the basement doorway, and crossing it moves them there (`PORTAL`).
+ * Top landing → 12 risers → bottom landing; the bottom end copies the corridor's door end (1.1 m wide, 2.4 m high).
+ */
+export const STAIRWELL = {
+  x0: STORE_DOOR.at + WALL_T, z0: -5.05, z1: -3.95, h: 2.4,
+  flightX: 11.2, riser: 0.17, tread: 0.28, risers: 12,
+  doorX: 15.5, doorT: 0.24, // bottom door wall (centre, thickness)
+};
+export const STAIR_BOTTOM_Y = -STAIRWELL.risers * STAIRWELL.riser;
+export const STAIR_FLIGHT_END = STAIRWELL.flightX + (STAIRWELL.risers - 1) * STAIRWELL.tread;
+/** Rigid map stair bottom door → basement doorway: rotate +90° about Y (stair +x becomes house −z), then translate. */
+export const PORTAL = {
+  from: new THREE.Vector3(STAIRWELL.doorX, STAIR_BOTTOM_Y, (STAIRWELL.z0 + STAIRWELL.z1) / 2),
+  to: new THREE.Vector3(0, 0, DIV_Z),
+  yaw: Math.PI / 2,
+};
+export const portalMatrix = () => new THREE.Matrix4().makeTranslation(PORTAL.to)
+  .multiply(new THREE.Matrix4().makeRotationY(PORTAL.yaw))
+  .multiply(new THREE.Matrix4().makeTranslation(PORTAL.from.clone().negate()));

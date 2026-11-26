@@ -61,3 +61,4 @@ body.touch .desk { display: none; }
 #t-pause { right: max(20px, env(safe-area-inset-right)); top: 18px; width: 40px; height: 40px; display: flex; gap: 5px;
   align-items: center; justify-content: center; }
 #t-pause span { width: 4px; height: 14px; background: rgba(235,228,210,.75); }
+body.cinematic #touch { display: none; }
