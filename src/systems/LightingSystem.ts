@@ -38,7 +38,7 @@ export class LightingSystem implements System {
 
   update(dt: number) {
     const t = (this.time += dt);
-    const pp = this.player.position;
+    const pp = this.player.eyePos(); // the camera (also right in the menu, where the body stays put)
     this.lamps.forEach((l, i) => {
       let k = 1;
       const corridor = l.tag === 'corridor';

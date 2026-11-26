@@ -25,7 +25,10 @@ game.load((p, label) => {
   bar.style.width = `${Math.round(p * 100)}%`;
   loadText.textContent = p >= 1 ? 'Ready' : `Loading… ${label}`;
 }).then(() => {
+  game.showMenu();
+  menu.classList.add('ready'); // the alcove fades in behind the menu
   startBtn.disabled = false;
+  startBtn.focus({ preventScroll: true });
   document.title = 'LOOP';
   (window as unknown as { __ready: boolean }).__ready = true;
 }).catch((e) => {
@@ -51,7 +54,7 @@ startBtn.addEventListener('click', () => {
     void document.documentElement.requestFullscreen?.().then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape')).catch(() => {});
     touch.show(true);
   } else game.input.lock();
-  game.start();
+  game.leaveMenu();
 });
 
 if (touch) {

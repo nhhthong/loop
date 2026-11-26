@@ -29,6 +29,7 @@ import { LightingSystem } from '../systems/LightingSystem';
 import { FanSystem } from '../systems/FanSystem';
 import { AmbienceSystem } from '../systems/AmbienceSystem';
 import { IntroSequence } from '../sequences/IntroSequence';
+import { MenuScene } from '../sequences/MenuScene';
 import { BathDoorSequence } from '../sequences/BathDoorSequence';
 import { PortalSystem } from '../systems/PortalSystem';
 import { PendantSystem } from '../systems/PendantSystem';
@@ -66,7 +67,10 @@ export class Game {
   private stats: Stats | null = null;
   private clock = new THREE.Clock();
   private time = 0;
-  private running = false;
+  /** loading → menu (live backdrop) → game */
+  private mode: 'loading' | 'menu' | 'game' = 'loading';
+  private menu!: MenuScene;
+  private menuSystems: System[] = [];
   private paused = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -177,6 +181,10 @@ export class Game {
 
     const lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
     lighting.extraFocus = () => this.portal.viewPoint(); // pooled lights must also light what the portal shows
+    const fan = new FanSystem(this.furn.fan), pendants = new PendantSystem(this.furn.lamps), water = new WaterSystem(this.level.flowing);
+    this.menu = new MenuScene(P, this.renderer, this.ui, this.furn.lamps.find((l) => l.id === 'floorLamp'), () => this.start());
+    // the menu backdrop only needs the scene to look alive: camera drift, lights, fan, swaying bulb, water
+    this.menuSystems = [this.menu, lighting, fan, pendants, water];
     this.systems = [
       this.intro,
       bathScene,
@@ -193,24 +201,39 @@ export class Game {
       lighting,
       // the stairwell can only be seen from the east hall or through open door 9: skip drawing it elsewhere
       { update: () => { this.level.stairwell.visible = P.position.x > 7 || D.store.isOpen; } },
-      new FanSystem(this.furn.fan),
-      new PendantSystem(this.furn.lamps),
-      new WaterSystem(this.level.flowing),
+      fan,
+      pendants,
+      water,
       this.ambience,
     ];
   }
 
-  start() {
-    this.running = true;
-    this.audio.resume();
-    this.ambience.start();
-    this.intro.start();
+  /** After loading: show the live 3D menu backdrop. */
+  showMenu() {
+    this.mode = 'menu';
+    this.menu.enter();
     this.clock.start();
     this.loop();
   }
 
+  /** Start pressed: the backdrop's lights cut out, then the wake-up intro begins. */
+  leaveMenu() {
+    this.audio.resume(); // inside the click (autoplay policy)
+    this.menu.exit();
+  }
+
+  private start() {
+    if (this.mode === 'game') return;
+    this.mode = 'game';
+    this.player.teleport(PLAYER_START);
+    this.audio.resume();
+    this.ambience.start();
+    this.intro.start();
+  }
+
   /** Dev helpers (used by automated screenshots). */
   debugView(x: number, z: number, yaw: number, pitch: number, eye = 1.62, y = 0) {
+    this.menu.finishNow();
     this.intro.stop();
     this.ui.setLids(1);
     this.renderer.setBlur(0);
@@ -223,7 +246,7 @@ export class Game {
     this.player.yaw = yaw; this.player.pitch = pitch;
     this.player.control = 1;
   }
-  debugIntro(t: number) { this.intro.seek(t); }
+  debugIntro(t: number) { this.menu.finishNow(); this.intro.seek(t); }
 
   setPaused(p: boolean) { this.paused = p; if (!p) this.clock.getDelta(); }
 
@@ -231,10 +254,10 @@ export class Game {
     requestAnimationFrame(this.loop);
     if (!this.governor.tick(now)) return; // frame cap (mobile)
     const dt = Math.min(this.clock.getDelta(), 1 / 20);
-    if (!this.running || this.paused) { this.input.endFrame(); return; }
+    if (this.mode === 'loading' || this.paused) { this.input.endFrame(); return; }
     this.time += dt;
     sharedUniforms.uTime.value = this.time;
-    for (const s of this.systems) s.update(dt);
+    for (const s of this.mode === 'menu' ? this.menuSystems : this.systems) s.update(dt);
     this.stats?.begin();
     this.renderer.render(dt);
     this.stats?.end();
