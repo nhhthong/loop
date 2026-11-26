@@ -38,7 +38,7 @@ export const ROOMS: Room[] = [
   { name: 'RE', x0: 7.2, x1: 10, z0: -5.5, z1: -3.5, y0: 0, h: 3 },
   { name: 'RB', x0: 1.24, x1: 3.16, z0: -3.26, z1: -1.2, y0: 0, h: 2.6, dark: true },
   { name: 'RS', x0: 3.4, x1: 4.6, z0: -3.5, z1: 0.4, y0: 0, h: 6 },
-  { name: 'RN', x0: 4.84, x1: 6.4, z0: -3.5, z1: -1.0, y0: 0, h: 3 },
+  { name: 'RN', x0: 4.6, x1: 6.4, z0: -3.5, z1: -1.0, y0: 0, h: 3 }, // open to the stair's east side
   { name: 'RG', x0: 4.6, x1: 6.4, z0: -3.5, z1: 0.4, y0: 3, h: 6 },
 ];
 export const STAIRS = { x0: 3.4, x1: 4.6, zBottom: -3.5, zTop: -0.2, rise: 3, steps: 16 };
@@ -75,9 +75,9 @@ export class Level {
   async build() {
     const A = this.assets;
     const [concreteWall, concreteFloor, concreteCeil, woodFloor, plaster] = await Promise.all([
-      pbrMaterial(A, 'concrete_wall_006', { tint: 0xb8b4aa }),
-      pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x9a958c }),
-      pbrMaterial(A, 'concrete_wall_003', { tint: 0x8a877f }),
+      pbrMaterial(A, 'concrete_wall_005', { tint: 0x9a968e }), // dark basement concrete with rust bleed
+      pbrMaterial(A, 'damaged_concrete_floor', { tint: 0x6e6a63 }),
+      pbrMaterial(A, 'concrete_wall_003', { tint: 0x5e5b55 }),
       pbrMaterial(A, 'wood_floor', { tint: 0x7d6a58, envIntensity: 1.0 }),
       pbrMaterial(A, 'plastered_wall', { tint: 0xe6e1d8 }),
     ]);
@@ -357,13 +357,14 @@ export class Level {
     const nrm = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
     this.physics.addBox(new THREE.Vector3(cx, S.rise / 2, (S.zBottom + S.zTop) / 2).addScaledVector(nrm, -0.05), new THREE.Vector3(w / 2, 0.05, slope / 2), q);
     this.physics.addBox(new THREE.Vector3(cx, S.rise - 0.05, (lz0 + lz1) / 2), new THREE.Vector3(w / 2, 0.05, (lz1 - lz0) / 2));
+    // dark-stained joinery: from below the gallery reads only as a dark railing silhouette
+    const rail = new THREE.MeshStandardMaterial({ color: 0x2e2018, roughness: 0.4, map: M.woodFloor.map });
     // gallery floor slab edge (fascia) seen from the atrium
     const g = ROOMS.find((r) => r.name === 'RG')!;
-    const fascia = new THREE.Mesh(worldBox(g.x1 - g.x0, 0.28, 0.06, 0.6), M.trim);
+    const fascia = new THREE.Mesh(worldBox(g.x1 - g.x0, 0.28, 0.06, 0.6), rail);
     fascia.position.set((g.x0 + g.x1) / 2, g.y0 - 0.14, g.z0 + 0.03); fascia.castShadow = true;
     this.group.add(fascia); this.roomMeshes.push(fascia);
     // balustrade along the gallery edge: square balusters + moulded handrail (dark stained)
-    const rail = new THREE.MeshStandardMaterial({ color: 0x2e2018, roughness: 0.4, map: M.woodFloor.map });
     const rz = g.z0 + 0.05, ry = g.y0;
     const hand = new THREE.Mesh(new THREE.BoxGeometry(g.x1 - g.x0, 0.06, 0.08), rail);
     hand.position.set((g.x0 + g.x1) / 2, ry + 0.95, rz); hand.castShadow = true;
@@ -371,7 +372,7 @@ export class Level {
     shoe.position.set((g.x0 + g.x1) / 2, ry + 0.025, rz);
     this.group.add(hand, shoe);
     for (let x = g.x0 + 0.08; x < g.x1; x += 0.13) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.9, 0.035), M.trim);
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.9, 0.035), rail);
       b.position.set(x, ry + 0.48, rz); b.castShadow = true; this.group.add(b);
     }
     for (const x of [g.x0 + 0.04, g.x1 - 0.04]) {
@@ -379,6 +380,23 @@ export class Level {
       post.position.set(x, ry + 0.55, rz); post.castShadow = true; this.group.add(post);
     }
     this.physics.addBox(new THREE.Vector3((g.x0 + g.x1) / 2, ry + 0.5, rz), new THREE.Vector3((g.x1 - g.x0) / 2, 0.5, 0.05));
+    // open east side: newel post, a baluster per tread and a raked handrail
+    const ex = S.x1 - 0.05;
+    for (let i = 0; i < n; i++) {
+      const top = (i + 1) * rise, zc = S.zBottom + i * tread + tread / 2;
+      const bal = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.9, 0.03), rail);
+      bal.position.set(ex, top + 0.45, zc); bal.castShadow = true; this.group.add(bal);
+    }
+    const newel = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.15, 0.1), rail);
+    newel.position.set(ex, 0.575, S.zBottom + 0.06); newel.castShadow = true; this.group.add(newel);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.05, 0.13), rail);
+    cap.position.set(ex, 1.175, S.zBottom + 0.06); this.group.add(cap);
+    const rakeLen = Math.hypot(S.rise, run);
+    const rake = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, rakeLen), rail);
+    rake.position.set(ex, S.rise / 2 + 0.95, (S.zBottom + S.zTop) / 2);
+    rake.rotation.x = -ang; rake.castShadow = true; this.group.add(rake);
+    this.physics.addBox(new THREE.Vector3(ex, S.rise / 2 + 0.5, (S.zBottom + S.zTop) / 2), new THREE.Vector3(0.03, 0.5, rakeLen / 2), q);
+
     // wall-mounted handrail along the west side of the stair
     const hr = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, slope, 12), rail);
     hr.position.set(S.x0 + 0.06, S.rise / 2 + 0.9, (S.zBottom + S.zTop) / 2);

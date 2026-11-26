@@ -126,7 +126,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
 
   // faint night light on the upper landing: silhouettes the treads and balusters, the void above stays dark
   const nl = new THREE.Vector3(5.6, 3.35, 0.25);
-  mkLight(WARM_SHADE, 5, 7, nl, true, 0.05).glow = bulb(scene, nl, 0xffd8a8, 0.02);
+  mkLight(WARM_SHADE, 0.8, 4, nl, false, 0.05).glow = bulb(scene, nl, 0xffd8a8, 0.015);
 
   // corridor caged bulb (unstable) and the light leaking under the closed door
   const bulbPos = new THREE.Vector3(0, CORRIDOR.h - 0.28, CORRIDOR.z0 + 4.63);
@@ -145,7 +145,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   if (fan) {
     // the fan's own light kit, dimmed: lights the atrium and stairs from above, blades sweep shadows across the ceiling
     const fp = fan.root.position.clone().add(new THREE.Vector3(0, -0.32, 0));
-    mkLight(WARM_BULB, 7, 9, fp, true, 0.06).glow = bulb(scene, fp, 0xfff0d8, 0.035);
+    mkLight(WARM_BULB, 2, 6, fp, true, 0.06).glow = bulb(scene, fp, 0xfff0d8, 0.025);
   }
   return { props, lamps, fan };
 }

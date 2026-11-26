@@ -19,14 +19,14 @@ const game = new Game(canvas);
 
 game.load((p, label) => {
   bar.style.width = `${Math.round(p * 100)}%`;
-  loadText.textContent = p >= 1 ? 'Sẵn sàng' : `Đang tải… ${label}`;
+  loadText.textContent = p >= 1 ? 'Ready' : `Loading… ${label}`;
 }).then(() => {
   startBtn.disabled = false;
   document.title = 'LOOP';
   (window as unknown as { __ready: boolean }).__ready = true;
 }).catch((e) => {
   console.error(e);
-  loadText.textContent = 'Lỗi tải: ' + (e as Error).message;
+  loadText.textContent = 'Failed to load: ' + (e as Error).message;
 });
 
 let started = false;

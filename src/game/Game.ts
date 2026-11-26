@@ -297,7 +297,6 @@ export class Game {
       const w = 0.5 * (1 + Math.sin(t * 5.2 - i * 0.9)) * 0.7;
       return Math.max(limp + wave * w, fist * (i === 4 ? 0.8 : 1.0));
     });
-    if (once(11.6)) this.ui.subtitle('…Mình đang ở đâu?', 3.2);
 
     // stand up
     const st = seg(t, 13, 15.2);
@@ -308,7 +307,7 @@ export class Game {
       P.control = 1;
       P.lookEnabled = true;
       this.ui.crosshair(true);
-      this.ui.hint('WASD di chuyển · Chuột nhìn · E tương tác · Shift chạy · C cúi', 7);
+      this.ui.hint('WASD move · Mouse look · E interact · Shift run · C crouch', 7);
     }
   }
 
@@ -330,7 +329,7 @@ export class Game {
     const eye = P.eyePos();
     const to = this.door.handleWorld().sub(eye);
     const looking = to.length() < 1.5 && to.normalize().dot(P.forward()) > 0.82;
-    this.ui.prompt(looking ? '[E]  Mở cửa' : '');
+    this.ui.prompt(looking ? '[E]  Open door' : '');
     if (looking && this.input.hit('KeyE')) {
       this.ui.prompt('');
       this.doorT = 0;

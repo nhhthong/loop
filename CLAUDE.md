@@ -78,7 +78,7 @@ First-person horror vignette. TypeScript · three.js r170 · Rapier (`@dimforge/
 
 ## Communication
 - Owner writes in Vietnamese; reply in Vietnamese. Answer first, few words, no filler.
-- In-game text (subtitles, prompts, hints) is Vietnamese.
+- In-game text (menu, prompts, hints) is **English**. No dialogue/subtitles in the game.
 
 ## Commands
 ```bash
@@ -97,12 +97,13 @@ npm run build
 
 ## Layout (meters, Y up) — rooms/openings are data in `src/world/Level.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
 - Based on the owner's floor plan; walkway 2 m wide, ceilings 3 m; the void around the fan (atrium RA + stairwell RS + gallery RG) is 6 m.
-- Corridor (wet concrete): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
+- Corridor (wet, dark basement concrete `concrete_wall_005`): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
 - R1 entrance leg, 6.5 m (owner asked +3 m): first thing seen is a small wooden cabinet with a digital clock frozen at **23:59** + plant (east wall),
   then planter + plants + sconce east, dresser/mirror west → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
 - North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
 - RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
-- RS stairs rise +z to a landing/gallery RG at y=3 (railing seen from below, dark, night light). RN nook beside the stairs (coat rack, cabinet).
+- RS stairs rise +z to a landing/gallery RG at y=3. Stair's east side is open (no wall) with dark-stained balusters + raked handrail;
+  upstairs stays dark — looking up shows only the dark gallery railing. RN nook beside the stairs (coat rack, cabinet).
 - RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
 - Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `Furnish.ts`.
 
