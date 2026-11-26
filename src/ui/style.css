@@ -17,23 +17,39 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; colo
 #hint { position: absolute; left: 24px; bottom: 22px; font-size: 13px; letter-spacing: .06em; color: rgba(220,214,200,.6);
   opacity: 0; transition: opacity 1.2s; }
 #hint.on { opacity: 1; }
-#menu { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 22px; background: radial-gradient(ellipse at center, #1a1510 0%, #050403 70%); transition: opacity 1.5s; }
+/* ---- menu: left panel over the live 3D alcove */
+#menu { position: fixed; inset: 0; z-index: 10; transition: opacity .45s;
+  background: linear-gradient(90deg, rgba(3,2,2,.92) 0%, rgba(3,2,2,.7) 30%, rgba(3,2,2,.15) 58%, rgba(3,2,2,0) 75%),
+              radial-gradient(ellipse at 70% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 100%); }
 #menu.gone { opacity: 0; pointer-events: none; }
-#menu h1 { font-size: 72px; letter-spacing: .5em; font-weight: normal; color: #cbbf9f; margin-left: .5em;
-  text-shadow: 0 0 30px rgba(255,190,90,.15); }
-#bar { width: 280px; height: 2px; background: #2a241c; }
+#menu-veil { position: absolute; inset: 0; background: #000; transition: opacity 2.8s ease; pointer-events: none; }
+#menu.ready #menu-veil { opacity: 0; }
+#menu-panel { position: absolute; left: max(7vw, 28px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 34px; }
+#menu h1 { font-size: clamp(52px, 8vw, 96px); letter-spacing: .55em; font-weight: normal; color: #dcd1b4; margin-right: -.55em;
+  text-shadow: 0 0 40px rgba(255,200,120,.12), 0 2px 0 rgba(0,0,0,.6); }
+#loading { width: 240px; transition: opacity .8s; }
+#menu.ready #loading { opacity: 0; pointer-events: none; }
+#bar { width: 100%; height: 1px; background: rgba(201,168,106,.18); }
 #bar span { display: block; height: 100%; width: 0; background: #c9a86a; transition: width .2s; }
-#loadtext { font-size: 12px; margin-top: 8px; text-align: center; color: #8a806c; letter-spacing: .1em; }
-#start { font-family: inherit; font-size: 18px; letter-spacing: .3em; padding: 12px 38px; background: transparent; color: #d8cba8;
-  border: 1px solid #5b4e38; cursor: pointer; transition: all .3s; }
-#start:hover:not(:disabled) { background: #2a2116; border-color: #c9a86a; }
-#start:disabled { opacity: .3; cursor: default; }
-#quality { font-size: 13px; color: #8a806c; letter-spacing: .08em; display: flex; gap: 8px; align-items: center; }
-#quality button { font-family: inherit; font-size: 12px; padding: 4px 12px; background: transparent; color: #8a806c; border: 1px solid #3a3226; cursor: pointer; }
-#quality button.on { color: #e0d2ae; border-color: #c9a86a; }
-.tip { font-size: 12px; color: #6f6656; letter-spacing: .05em; }
-#credits-link { font-size: 12px; color: #6f6656; }
+#loadtext { font-size: 11px; margin-top: 10px; color: #7d7462; letter-spacing: .18em; text-transform: uppercase; }
+#menu-items { display: flex; flex-direction: column; gap: 6px; margin-top: -64px; opacity: 0; transition: opacity 1.6s .6s; }
+#menu.ready #menu-items { opacity: 1; }
+#menu .item { position: relative; display: flex; align-items: center; gap: 14px; padding: 9px 0 9px 0; background: none; border: 0;
+  font-family: inherit; font-size: clamp(15px, 1.5vw, 19px); letter-spacing: .34em; text-transform: uppercase; text-decoration: none;
+  color: rgba(222,212,188,.58); cursor: pointer; transition: color .25s, padding-left .3s; text-align: left; }
+#menu .item::before { content: ''; position: absolute; left: 0; top: 50%; width: 0; height: 1px; background: #c9a86a; transition: width .3s; }
+#menu .item:hover:not(:disabled), #menu .item:focus-visible { color: #f1e6c9; padding-left: 38px; outline: none; }
+#menu .item:hover:not(:disabled)::before, #menu .item:focus-visible::before { width: 26px; }
+#menu .item:disabled { opacity: .25; cursor: default; }
+#menu .row { cursor: default; }
+#menu .row:hover { padding-left: 0; color: rgba(222,212,188,.58); }
+#menu .row:hover::before { width: 0; }
+#quality button { font-family: inherit; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; padding: 5px 10px; background: transparent;
+  color: rgba(222,212,188,.45); border: 1px solid rgba(201,168,106,.18); cursor: pointer; transition: all .25s; }
+#quality button:hover { color: #f1e6c9; border-color: rgba(201,168,106,.6); }
+#quality button.on { color: #f1e6c9; border-color: #c9a86a; }
+#menu .tip { position: absolute; left: max(7vw, 28px); bottom: 26px; font-size: 11px; line-height: 1.7; letter-spacing: .14em; color: rgba(160,150,128,.55); }
+#credits-link { width: max-content; }
 #pause { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55);
   font-size: 18px; letter-spacing: .2em; }
 #credits { position: fixed; inset: 5% 10%; z-index: 11; overflow: auto; background: rgba(10,8,6,.96); border: 1px solid #3a3226;

@@ -128,7 +128,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`, `onOpen` link), `TriggerZone`, `loops` (per-loop events).
 - `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`,
   `PortalSystem` (render-target doorway + `Player.transport`), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`.
-- `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks).
+- `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks).
 - `src/ui` — `UI` (lids, prompt, hint, crosshair), `Stats` (`?stats`), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
 - `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
 - Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`.
@@ -161,6 +161,11 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are data in `data/lights.ts`, tagged `corridor`, `leak`, `lamp`.
   Heirlooms kept: grandfather clock, oil portrait, rotary phone; vintage radio on the console (silent in loop 1).
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
+
+## Menu (owner decisions)
+- Left-aligned vertical menu (LOOP title, Start · Graphics (desktop only) · Credits) over the **live 3D R6 alcove** (armchair + teddy, floor lamp)
+  seen from beside the west window; very slow camera drift. Loading shows black + bar; the scene fades in when ready.
+  Start: the floor lamp flickers, lights cut to black, then the wake-up intro. `Game` modes: loading → menu (`menuSystems`) → game.
 
 ## Mobile (owner decisions)
 - Touch devices (`IS_TOUCH` in `Input.ts`): minimal controls only — left virtual stick (move), drag to look, E button, pause button (top right).
