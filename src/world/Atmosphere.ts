@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { AudioSys } from '../engine/Audio';
-import { CORRIDOR } from './Level';
+import { CORRIDOR } from '../data/layout';
+import { WATER_DRIP, pick } from '../data/audio';
 
 /** Water leaking from the corridor ceiling: falling drops + floor ripples + positional plinks. */
 export class Drips {
@@ -47,8 +48,7 @@ export class Drips {
       if (d.mesh.position.y <= 0.005) {
         d.mesh.visible = false; d.t = 0; d.wait = 1.2 + Math.random() * 4;
         this.spawnRipple(d.mesh.position);
-        const name = Math.random() < 0.5 ? 'water_drip_1' : 'water_drip_2';
-        this.audio.play3D(name, d.mesh.position.clone(), 0.5 + Math.random() * 0.3, { ref: 0.6, rate: 0.85 + Math.random() * 0.35, scene: this.root });
+        this.audio.play3D(pick(WATER_DRIP), d.mesh.position.clone(), 0.5 + Math.random() * 0.3, { ref: 0.6, rate: 0.85 + Math.random() * 0.35, scene: this.root });
       }
     }
     for (let i = this.ripples.length - 1; i >= 0; i--) {

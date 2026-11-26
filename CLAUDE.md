@@ -95,7 +95,7 @@ npm run build
   `handtest.html?fov=&tx=&ty=&tz=&roll=&curl=` (hand pose), `scanprobe.html` (hand-scan landmarks).
 - Scene-level look (lighting, prop placement) is verified by the owner on real hardware — ask for screenshots.
 
-## Layout (meters, Y up) — rooms/openings are data in `src/world/Level.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
+## Layout (meters, Y up) — rooms/openings are data in `src/data/layout.ts` (`ROOMS`, `*_DOOR`, `WIN_*`)
 - Based on the owner's floor plan; walkway 2 m wide, ceilings 3 m; the void around the fan (atrium RA + stairwell RS + gallery RG) is 6 m.
 - Corridor (wet, dark basement concrete `concrete_wall_005`): x∈[-0.55, 0.55], z∈[3.12, 9], h 2.4 (`CORRIDOR`). Player wakes at z≈8.45 facing −z; door at z=3 (`DIV_Z`) into R1.
 - R1 entrance leg, 6.5 m (owner asked +3 m): first thing seen is a small wooden cabinet with a digital clock frozen at **23:59** + plant (east wall),
@@ -108,15 +108,31 @@ npm run build
   with a doorway onto black. From the atrium, looking up shows mostly walls, the fan and one dark corner of railing.
   RN nook beside flight 1 (coat rack, cabinet).
 - RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
-- Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `Furnish.ts`.
+- Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `data/props.ts`.
 
 ## Code map
-- `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (`/audio/<name>.mp3`).
-- `src/world` — `Level` (geometry, trims, stains), `Materials` (world-UV boxes, wet-surface shader injection, decals),
-  `Window`, `Door`, `Props` (`PropSpec` auto-fit loader), `Furnish` (prop list + lamps), `Cockroaches` (box-surface crawler),
-  `Atmosphere` (drips, dust).
-- `src/player` — `Player` (Rapier kinematic capsule), `Hands` (runtime auto-rig of a photogrammetry hand scan).
-- `src/game/Game.ts` — wake-up cinematic, interactions, scripted events, light flicker, ambience.
+Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in `src/systems` / `src/gameplay` / `src/sequences`;
+`src/game/Game.ts` is only the composition root (load → `wire()` → ordered `System[]` loop).
+- `src/data` — pure data, no logic: `layout` (rooms, openings, `DIV_Z`, `PLAYER_START`, `surfaceAt`), `props` (`PropSpec[]`, yaw convention),
+  `lights` (`LightSpec[]`: anchor prop, glow, tag, flicker; order seeds flicker), `audio` (`SOUNDS` → `SoundId` type for every call,
+  footstep sets, looping `EMITTERS`), `creatures` (roach groups).
+- `src/core` — `System` (`update(dt)`), `timeline` (`ease`, `seg`, `crossed`) for scripted sequences.
+- `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (typed `SoundId`), Quality.
+- `src/world` — builders: `Level` (geometry, trims, window frames + glass, stains), `Materials`, `Window`, `Door` (`DoorLike`, `Door`, `GrandDoor`),
+  `HouseDoors` (named door leaves: basement/store/bath/front), `Props` (auto-fit loader), `Furnish` (props + lamps from data → `Lamp[]`
+  with mutable `base` and optional `driver`), `fixtures` (fan, digital clock, planter, pipes, bulbs), `Probes`, `Cockroaches`, `Atmosphere` (drips).
+- `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`), `TriggerZone` (enter region → action).
+- `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`.
+- `src/sequences` — `IntroSequence` (wake-up timeline; `start/seek/stop`).
+- `src/player` — `Player` (Rapier kinematic capsule, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
+- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?)`, `game.debugIntro(t)`, `game.door` (basement door).
+
+### Extending (planned loop: door 9 → basement → basement door → start of R1, seamless; small changes per loop)
+Not implemented yet — ask the owner before building. Intended plug-in points:
+- New interactions = an `Interactable` added to `InteractionSystem`; position events = a `TriggerZone` (e.g. bath door slams when passing).
+- Per-loop variation should be a `LoopDirector` system holding the loop index and per-loop event lists that act only through the named
+  handles (`HouseDoors`, `furn.props`, `Lamp.base/driver`, `EMITTERS`/`AudioSys`) — no special cases inside systems.
+- Timed scripts follow `IntroSequence` (a `System` with a clock and `seg`/`crossed`).
 
 ## Owner decisions (do not change without asking)
 - **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and doors:
@@ -134,7 +150,7 @@ npm run build
 - Architecture: aged ivory plaster walls in **semi-gloss paint** (roughness ~0.32, lamps leave sheen streaks) with **light grime only** — grime patches matte (`makeGrime`, no trash on the floor), dark wood floor,
   tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains);
   outside the windows is pure black (no sky/moon/rain), glass keeps only a faint reflection.
-- Furnished nooks/recesses (house must not be a bare straight L). Lights are tagged in `Furnish.ts` (`corridor`, `leak`, `lamp`).
+- Furnished nooks/recesses (house must not be a bare straight L). Lights are data in `data/lights.ts`, tagged `corridor`, `leak`, `lamp`.
   Heirlooms kept: grandfather clock, oil portrait, rotary phone.
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).
 

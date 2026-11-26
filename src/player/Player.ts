@@ -3,7 +3,8 @@ import type RAPIER from '@dimforge/rapier3d-compat';
 import type { Physics } from '../engine/Physics';
 import type { Input } from '../engine/Input';
 import type { AudioSys } from '../engine/Audio';
-import { DIV_Z } from '../world/Level';
+import { surfaceAt } from '../data/layout';
+import { FOOTSTEPS } from '../data/audio';
 
 /** Kinematic capsule FPS controller with weighty movement, head bob, crouch and surface footsteps. */
 export class Player {
@@ -99,11 +100,9 @@ export class Player {
   }
 
   private footstep(speed: number) {
-    const p = this.position;
-    const concrete = p.z > DIV_Z + 0.05;
-    this.stepIdx = (this.stepIdx + 1 + Math.floor(Math.random() * 2)) % (concrete ? 4 : 5);
-    const name = concrete ? `step_concrete_${this.stepIdx + 1}` : `step_wood_${this.stepIdx + 1}`;
-    this.audio.play2D(name, (concrete ? 0.35 : 0.45) * (0.7 + speed * 0.2), false, 0.92 + Math.random() * 0.16);
+    const set = FOOTSTEPS[surfaceAt(this.position)];
+    this.stepIdx = (this.stepIdx + 1 + Math.floor(Math.random() * 2)) % set.sounds.length;
+    this.audio.play2D(set.sounds[this.stepIdx], set.volume * (0.7 + speed * 0.2), false, 0.92 + Math.random() * 0.16);
   }
 
   private syncHead(hs: number) {
