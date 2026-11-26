@@ -125,7 +125,8 @@ npm run build
   grain/vignette/chromatic aberration, bloom halos on bulbs. Owner feedback: not too dark — wet surfaces must visibly shine and
   reflect the lights (wet = dark glossy puddles + specular streaks, `makeWet`; polished house floor).
 - Architecture: aged ivory plaster walls with **light grime only** (`makeGrime`, no trash on the floor), dark wood floor,
-  tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains).
+  tall stepped baseboards + crown molding, painted four-panel doors, white 6-over-6 sash windows (no blinds/curtains);
+  outside the windows is pure black (no sky/moon/rain), glass keeps only a faint reflection.
 - Furnished nooks/recesses (house must not be a bare straight L). Lights are tagged in `Furnish.ts` (`corridor`, `leak`, `lamp`).
   Heirlooms kept: grandfather clock, oil portrait, rotary phone.
 - `low` quality keeps exactly **one** shadow: a proxy light that follows the strongest lamp near the player (`updateShadowProxy`).

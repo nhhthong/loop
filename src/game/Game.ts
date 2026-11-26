@@ -77,8 +77,8 @@ export class Game {
     tick('level');
 
     // windows in the west wall: built facing +z at the origin, then turned to face +x
-    [WIN_A, WIN_B].forEach((o, i) => {
-      const w = buildWindow(-(o.a1 - o.a0) / 2, (o.a1 - o.a0) / 2, o.y0, o.y1, 0, i === 0);
+    [WIN_A, WIN_B].forEach((o) => {
+      const w = buildWindow(-(o.a1 - o.a0) / 2, (o.a1 - o.a0) / 2, o.y0, o.y1, 0);
       w.group.position.set(o.at, 0, (o.a0 + o.a1) / 2);
       w.group.rotation.y = Math.PI / 2;
       this.scene.add(w.group);
