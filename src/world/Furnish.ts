@@ -44,8 +44,8 @@ export const PROPS: PropSpec[] = [
   { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.5, 0.7, -5.75], rot: 20, w: 0.25, age: 0.1 },
   { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -6.035], rot: 0, h: 0.7, floor: false, age: 0.05 },
   // ---- RN nook beside the stairs: coat rack + small wooden cabinet
-  { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.2, 0, -1.35], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05 },
-  { name: 'dresserN', url: H + 'wooden_side_table.glb', pos: [5.95, 0, -1.25], rot: 180, h: 0.78, collide: true, age: 0.05 },
+  { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.15, 0, -1.6], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05 },
+  { name: 'dresserN', url: H + 'wooden_side_table.glb', pos: [5.95, 0, -1.5], rot: 180, h: 0.78, collide: true, age: 0.05 },
   // ---- R8 passage to the front doors: runner, sconces both sides, frames
   { name: 'runner', url: H + 'persian_runner_rug.glb', pos: [6.2, 0.004, -7.6], rot: 0, w: 2.2, shadow: false, age: 0.05 },
   { name: 'sconce8a', url: F + 'antique_wall_sconce.glb', pos: [5.74, 1.9, -7.0], rot: -90, h: 0.45, floor: false, age: 0.1, shadow: false },
@@ -125,7 +125,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   mkLight(WARM_BULB, 4, 6, s8b, false, 0.25).glow = bulb(scene, s8b, 0xfff0d8, 0.02);
 
   // faint night light on the upper landing: silhouettes the treads and balusters, the void above stays dark
-  const nl = new THREE.Vector3(5.6, 3.35, 0.25);
+  const nl = new THREE.Vector3(7.25, 3.6, -0.3); // on the upper landing, out of sight from the atrium
   mkLight(WARM_SHADE, 0.8, 4, nl, false, 0.05).glow = bulb(scene, nl, 0xffd8a8, 0.015);
 
   // corridor caged bulb (unstable) and the light leaking under the closed door

@@ -102,8 +102,10 @@ npm run build
   then planter + plants + sconce east, dresser/mirror west → R2 corner with west windows → R6 alcove (rug, armchair + teddy, floor lamp).
 - North recesses: R3 (grandfather clock), Rs (credenza, two lamps, rotary phone, painting). Bathroom RB south of R2 (ajar, pitch black).
 - RA atrium (ceiling fan, creaking) → R8 narrow passage north to the **front entrance: locked grand double doors** (plan no. 8).
-- RS stairs rise +z to a landing/gallery RG at y=3. Stair's east side is open (no wall) with dark-stained balusters + raked handrail;
-  upstairs stays dark — looking up shows only the dark gallery railing. RN nook beside the stairs (coat rack, cabinet).
+- L-shaped stair (owner chose option A): flight 1 (8 treads, riser 18 cm, tread 27 cm) rises +z in RS from the atrium, open east side
+  with dark balustrade + newels → mid landing (y 1.63) turns 90° → flight 2 rises +x between walls (RF2) → dark upper landing RU (y 3.25)
+  with a doorway onto black. From the atrium, looking up shows mostly walls, the fan and one dark corner of railing.
+  RN nook beside flight 1 (coat rack, cabinet).
 - RE east hall → **door 9** (down to the store, same door type as the basement door; shut).
 - Walls are generated from room edges; heights differ per room (`roomEdge`). Prop yaw convention is in `Furnish.ts`.
 
