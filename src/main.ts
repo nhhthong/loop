@@ -1,4 +1,5 @@
 import { Game } from './game/Game';
+import { assetUrl } from './engine/Assets';
 import { Q, setQuality, type QualityLevel } from './engine/Quality';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -51,13 +52,13 @@ document.getElementById('credits-link')!.addEventListener('click', async (e) => 
   const lines: string[] = ['3D MODELS (Sketchfab)'];
   for (const g of groups) {
     try {
-      const m = await (await fetch(`/models/${g}/manifest.json`)).json() as { name: string; author: string; license_label?: string; license_slug?: string; url: string; file: string }[];
+      const m = await (await fetch(assetUrl(`/models/${g}/manifest.json`))).json() as { name: string; author: string; license_label?: string; license_slug?: string; url: string; file: string }[];
       for (const x of m) lines.push(`  "${x.name}" by ${x.author} — ${x.license_label ?? x.license_slug} — ${x.url}`);
     } catch { /* ignore */ }
   }
   lines.push('', 'SOUND (Freesound, CC0)');
   try {
-    const a = await (await fetch('/audio/manifest.json')).json() as { name?: string; author?: string; url?: string; item: string }[];
+    const a = await (await fetch(assetUrl('/audio/manifest.json'))).json() as { name?: string; author?: string; url?: string; item: string }[];
     for (const x of a) if (x.name) lines.push(`  ${x.item}: "${x.name}" by ${x.author ?? '?'} ${x.url ?? ''}`);
   } catch { /* ignore */ }
   lines.push('', 'TEXTURES: Poly Haven (CC0) — polyhaven.com', '', '[click to close]');
