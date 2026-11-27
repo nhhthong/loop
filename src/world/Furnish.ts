@@ -33,7 +33,7 @@ export interface Furnished {
 /** Dress the house from data: props (`data/props.ts`), fixtures, then lights (`data/lights.ts`). */
 export async function furnish(assets: Assets, physics: Physics, scene: THREE.Group): Promise<Furnished> {
   const props = new Map<string, THREE.Object3D>();
-  await Promise.all(PROPS.map(async (s) => {
+  await Promise.all(PROPS.filter((s) => !s.late).map(async (s) => {
     const o = await placeProp(assets, physics, scene, s);
     if (o) props.set(s.name!, o);
   }));
@@ -48,13 +48,36 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   return { props, lamps, fan };
 }
 
-function buildLamp(s: LightSpec, props: Map<string, THREE.Object3D>, parent: THREE.Object3D): Lamp {
+/** Stage 2: place the late props, then move lamps anchored to them onto their real positions. Returns the new objects. */
+export async function furnishLate(f: Furnished, assets: Assets, physics: Physics, scene: THREE.Group): Promise<THREE.Object3D[]> {
+  const added: THREE.Object3D[] = [];
+  await Promise.all(PROPS.filter((s) => s.late).map(async (s) => {
+    const o = await placeProp(assets, physics, scene, s);
+    if (o) { f.props.set(s.name!, o); added.push(o); }
+  }));
+  for (const l of f.lamps) {
+    const s = LIGHTS.find((x) => x.id === l.id)!;
+    if (!s.onProp || !f.props.has(s.onProp[0])) continue;
+    const pos = lampPos(s, f.props);
+    l.light.position.copy(pos);
+    if (l.glow) l.glow.position.copy(pos).add(new THREE.Vector3(0, s.glow && 'shade' in s.glow ? s.glow.dy ?? 0 : 0, 0));
+  }
+  return added;
+}
+
+/** Lamp position: on top of its prop when that prop is loaded, else the spec's fallback position. */
+function lampPos(s: LightSpec, props: Map<string, THREE.Object3D>) {
   const pos = new THREE.Vector3(...s.pos);
   const anchor = s.onProp && props.get(s.onProp[0]);
   if (anchor) {
     const bb = new THREE.Box3().setFromObject(anchor);
     pos.set((bb.min.x + bb.max.x) / 2, bb.max.y - s.onProp![1], (bb.min.z + bb.max.z) / 2);
   }
+  return pos;
+}
+
+function buildLamp(s: LightSpec, props: Map<string, THREE.Object3D>, parent: THREE.Object3D): Lamp {
+  const pos = lampPos(s, props);
   const light = new THREE.PointLight(s.color, s.intensity, s.dist, 2);
   light.position.copy(pos);
   if (s.shadow && Q.shadows) configureShadow(light);

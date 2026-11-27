@@ -7,6 +7,9 @@ export const SOUNDS = [
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5',
 ] as const;
 export type SoundId = (typeof SOUNDS)[number];
+/** not needed in the menu, the intro or R1: decoded in the background (stage 2) */
+export const LATE_SOUNDS: readonly SoundId[] = ['radio_static', 'water_trickle', 'door_slam', 'door_knock', 'electric_crackle', 'fan_creak', 'clock_tick'];
+export const EARLY_SOUNDS: readonly SoundId[] = SOUNDS.filter((s) => !LATE_SOUNDS.includes(s));
 
 export const pick = <T>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)];
 

@@ -9,6 +9,7 @@ const F = '/models/furniture/', D = '/models/decor/', A = '/models/architecture/
  * Natively +X-facing models (portrait, clock, credenza): west 0 · north −90 · south 90.
  * Sconce's room side is −Z: west −90 · east 90 · north 180 · south 0.
  */
+/** `late: true` = stage 2 (loaded in the background after Start; see Game.loadLate). */
 export const PROPS: PropSpec[] = [
   // ---- R1, first thing seen after opening the door: small wooden cabinet (east wall) with the digital clock (23:59), plant beside it
   { name: 'clockCabinet', url: H + 'wooden_side_table.glb', pos: [0.77, 0, 1.75], rot: -90, h: 0.78, collide: true, age: 0.05 },
@@ -33,26 +34,26 @@ export const PROPS: PropSpec[] = [
   { name: 'monsteraA', url: D + 'monstera_potted.glb', pos: [-0.66, 0, -6.3], rot: 30, h: 1.2, collide: true, age: 0 },
   // ---- flat north wall: grandfather clock (heirloom), window, then the credenza group
   { name: 'clock', url: F + 'grandfather_clock.glb', pos: [1.95, 0, -5.33], rot: -90, h: 2.1, collide: true, age: 0.1 },
-  { name: 'console', url: M + 'console_table.glb', pos: [4.5, 0, -5.27], rot: -90, h: 0.7, collide: true, age: 0.05 },
-  { name: 'lampL', url: F + 'table_lamp_fabric.glb', pos: [3.97, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
-  { name: 'lampR', url: F + 'table_lamp_fabric.glb', pos: [5.03, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false },
-  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.66, 0.7, -5.22], rot: 20, w: 0.25, age: 0.1 },
-  { name: 'radio', url: F + 'vintage_radio.glb', pos: [4.2, 0.7, -5.3], rot: 0, w: 0.26, age: 0.1 }, // silent in loop 1, static from loop 2
-  { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -5.485], rot: 0, h: 0.7, floor: false, age: 0.05 },
+  { name: 'console', url: M + 'console_table.glb', pos: [4.5, 0, -5.27], rot: -90, h: 0.7, collide: true, age: 0.05, late: true },
+  { name: 'lampL', url: F + 'table_lamp_fabric.glb', pos: [3.97, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false, late: true },
+  { name: 'lampR', url: F + 'table_lamp_fabric.glb', pos: [5.03, 0.7, -5.32], rot: 0, h: 0.6, age: 0, shadow: false, late: true },
+  { name: 'phone', url: F + 'rotary_telephone.glb', pos: [4.66, 0.7, -5.22], rot: 20, w: 0.25, age: 0.1, late: true },
+  { name: 'radio', url: F + 'vintage_radio.glb', pos: [4.2, 0.7, -5.3], rot: 0, w: 0.26, age: 0.1, late: true }, // silent in loop 1, static from loop 2
+  { name: 'painting', url: F + 'landscape_oil_painting.glb', pos: [4.5, 1.72, -5.485], rot: 0, h: 0.7, floor: false, age: 0.05, late: true },
   // ---- RN nook beside the stairs: coat rack + small wooden cabinet
-  { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.15, 0, -1.6], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05 },
-  { name: 'dresserN', url: H + 'wooden_side_table.glb', pos: [5.95, 0, -1.5], rot: 180, h: 0.78, collide: true, age: 0.05 },
+  { name: 'coatRack', url: H + 'wooden_coat_rack.glb', pos: [5.15, 0, -1.6], rot: 0, h: 1.8, only: /^Object_4$/, collide: true, age: 0.05, late: true },
+  { name: 'dresserN', url: H + 'wooden_side_table.glb', pos: [5.95, 0, -1.5], rot: 180, h: 0.78, collide: true, age: 0.05, late: true },
   // ---- R8 passage to the front doors: runner, sconces both sides, frames
-  { name: 'runner', url: H + 'persian_runner_rug.glb', pos: [6.2, 0.004, -7.6], rot: 0, w: 2.2, shadow: false, age: 0.05 },
-  { name: 'sconce8a', url: F + 'antique_wall_sconce.glb', pos: [5.74, 1.9, -7.0], rot: -90, h: 0.45, floor: false, age: 0.1, shadow: false },
-  { name: 'sconce8b', url: F + 'antique_wall_sconce.glb', pos: [6.66, 1.9, -8.4], rot: 90, h: 0.45, floor: false, age: 0.1, shadow: false },
-  { name: 'photo8a', url: H + 'vintage_framed_photos.glb', pos: [5.615, 1.6, -8.4], rot: 90, h: 0.26, floor: false, only: /^pictureFrame2Large/, age: 0.05 },
-  { name: 'photo8b', url: H + 'vintage_framed_photos.glb', pos: [6.785, 1.6, -7.0], rot: -90, h: 0.2, floor: false, only: /^pictureFrame2_/, age: 0.05 },
+  { name: 'runner', url: H + 'persian_runner_rug.glb', pos: [6.2, 0.004, -7.6], rot: 0, w: 2.2, shadow: false, age: 0.05, late: true },
+  { name: 'sconce8a', url: F + 'antique_wall_sconce.glb', pos: [5.74, 1.9, -7.0], rot: -90, h: 0.45, floor: false, age: 0.1, shadow: false, late: true },
+  { name: 'sconce8b', url: F + 'antique_wall_sconce.glb', pos: [6.66, 1.9, -8.4], rot: 90, h: 0.45, floor: false, age: 0.1, shadow: false, late: true },
+  { name: 'photo8a', url: H + 'vintage_framed_photos.glb', pos: [5.615, 1.6, -8.4], rot: 90, h: 0.26, floor: false, only: /^pictureFrame2Large/, age: 0.05, late: true },
+  { name: 'photo8b', url: H + 'vintage_framed_photos.glb', pos: [6.785, 1.6, -7.0], rot: -90, h: 0.2, floor: false, only: /^pictureFrame2_/, age: 0.05, late: true },
   // ---- RE east hall toward door 9: bookcase (south), portrait (heirloom) + small photos (north)
-  { name: 'bookcase', url: F + 'antique_bookcase.glb', pos: [8.3, 0, -3.68], rot: 180, h: 1.9, collide: true, age: 0.1 },
-  { name: 'portrait', url: F + 'oil_portrait_gilt_frame.glb', pos: [8.6, 1.7, -5.485], rot: -90, h: 0.75, floor: false, age: 0.1 },
-  { name: 'photoE1', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.62, -5.485], rot: 0, h: 0.18, floor: false, only: /^pictureFrame1_/, age: 0.05 },
-  { name: 'photoE2', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.38, -5.485], rot: 0, h: 0.16, floor: false, only: /^pictureFrame3_/, age: 0.05 },
+  { name: 'bookcase', url: F + 'antique_bookcase.glb', pos: [8.3, 0, -3.68], rot: 180, h: 1.9, collide: true, age: 0.1, late: true },
+  { name: 'portrait', url: F + 'oil_portrait_gilt_frame.glb', pos: [8.6, 1.7, -5.485], rot: -90, h: 0.75, floor: false, age: 0.1, late: true },
+  { name: 'photoE1', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.62, -5.485], rot: 0, h: 0.18, floor: false, only: /^pictureFrame1_/, age: 0.05, late: true },
+  { name: 'photoE2', url: H + 'vintage_framed_photos.glb', pos: [9.45, 1.38, -5.485], rot: 0, h: 0.16, floor: false, only: /^pictureFrame3_/, age: 0.05, late: true },
   // ---- Corridor (wet concrete, unchanged)
   { name: 'cageLamp', url: A + 'caged_industrial_lamp.glb', pos: [0, CORRIDOR.h - 0.16, CORRIDOR.z0 + 4.63], rot: 0, h: 0.32, floor: false, age: 0.4, shadow: false },
   { name: 'switch', url: A + 'vintage_light_switch.glb', pos: [0.52, 1.3, CORRIDOR.z0 + 0.43], rot: -90, h: 0.085, floor: false, only: /^Object_4$/, age: 0.4 },

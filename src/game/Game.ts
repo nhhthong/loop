@@ -9,10 +9,10 @@ import { FrameGovernor } from '../engine/FrameGovernor';
 import { Stats } from '../ui/Stats';
 import type { System } from '../core/System';
 import { DIV_Z, PLAYER_START, STAIRWELL, STAIR_BOTTOM_Y, PORTAL, portalMatrix } from '../data/layout';
-import { SOUNDS, EMITTERS } from '../data/audio';
+import { EARLY_SOUNDS, LATE_SOUNDS, EMITTERS } from '../data/audio';
 import { ROACHES, ROACH_MODELS } from '../data/creatures';
 import { Level } from '../world/Level';
-import { furnish, type Furnished } from '../world/Furnish';
+import { furnish, furnishLate, type Furnished } from '../world/Furnish';
 import { buildHouseDoors, type HouseDoors } from '../world/HouseDoors';
 import { Door } from '../world/Door';
 import { bakeProbes } from '../world/Probes';
@@ -68,6 +68,7 @@ export class Game {
   /** basement door (kept for dev scripts) */
   get door() { return this.doors.basement; }
   private lighting!: LightingSystem;
+  private zones!: ZoneVisibility;
   private systems: System[] = [];
   private governor!: FrameGovernor;
   private stats: Stats | null = null;
@@ -106,7 +107,7 @@ export class Game {
     this.doors = buildHouseDoors(this.physics, this.level.mats, this.scene);
     tick('level');
 
-    [this.furn] = await Promise.all([furnish(this.assets, this.physics, this.level.group), this.audio.preload(SOUNDS)]);
+    [this.furn] = await Promise.all([furnish(this.assets, this.physics, this.level.group), this.audio.preload(EARLY_SOUNDS)]);
     tick('props');
 
     // ambient fill so nothing is pure black
@@ -139,11 +140,36 @@ export class Game {
     this.renderer.renderer.compile(this.scene, this.player.camera);
     tick('ready');
     onProgress(1, '');
+    this.loaded = this.loadLate(); // stage 2 continues in the background (menu + intro)
   }
 
-  /** Looping positional sounds from `data/audio.ts`. */
+  /** Resolves when stage 2 (the rest of the house) is in; the basement door stays locked until then. */
+  loaded: Promise<void> = Promise.resolve();
+
+  /** Stage 2: far-room props and late sounds, loaded while the player is in the menu / intro. */
+  private async loadLate() {
+    this.assets.onProgress = () => {};
+    const [added] = await Promise.all([furnishLate(this.furn, this.assets, this.physics, this.level.group), this.audio.preload(LATE_SOUNDS)]);
+    this.zones.add(added);
+    this.startEmitters();
+    this.lighting.invalidateShadows();
+    // compile the new materials now (hidden objects are skipped by compile, so show them for the call)
+    const vis = added.map((o) => o.visible);
+    added.forEach((o) => (o.visible = true));
+    this.renderer.renderer.compile(this.scene, this.player.camera);
+    added.forEach((o, i) => (o.visible = vis[i]));
+    if (this.director.loop === 1 && !this.doors.basement.isOpen) this.doors.basement.locked = false;
+    (window as unknown as { __loaded: boolean }).__loaded = true;
+  }
+
+  private readonly emitting = new Set<(typeof EMITTERS)[number]>();
+
+  /** Looping positional sounds whose sound and anchor are loaded (called after each loading stage). */
   private startEmitters() {
     for (const e of EMITTERS) {
+      if (this.emitting.has(e) || !this.audio.has(e.sound)) continue;
+      if (typeof e.at === 'string' && !this.furn.props.has(e.at)) continue;
+      this.emitting.add(e);
       const opts = { loop: true, ref: e.ref, rate: e.rate };
       if (typeof e.at === 'string') {
         const o = this.furn.props.get(e.at);
@@ -169,6 +195,7 @@ export class Game {
     const lighting = this.lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
     this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, doors: D, lamps: this.furn.lamps, triggers, lighting, brokenLights, bathScene, knockScene }));
 
+    D.basement.locked = true; // until stage 2 is loaded (loadLate)
     triggers.add(
       // the basement door swings shut behind the player once they are inside and locks (every pass); a pass via
       // the stairwell starts the next loop
@@ -194,7 +221,7 @@ export class Game {
     lighting.extraFocus.push(() => this.portal.viewPoint()); // pooled lights must also light what the portal shows
     // basement ↔ house culling: hide what cannot be seen through the shut door wall
     const merged = new Set<THREE.Object3D>([...this.level.corridorMeshes, ...this.level.roomMeshes, this.level.stairwell]);
-    const zones = new ZoneVisibility(P, () => D.basement.ajar)
+    const zones = this.zones = new ZoneVisibility(P, () => D.basement.ajar)
       .add(this.level.group.children.filter((c) => !(c as THREE.Light).isLight && !merged.has(c)))
       .add(roaches.objects);
     zones.onShow = () => lighting.invalidateShadows();

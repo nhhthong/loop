@@ -23,12 +23,16 @@ Moved out of CLAUDE.md to keep it short. Read on demand; keep it current when th
 ## Code map
 Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in `src/systems` / `src/gameplay` / `src/sequences`;
 `src/game/Game.ts` is only the composition root (load → `wire()` → ordered `System[]` loop).
+- Staged loading: stage 1 (geometry, early props, `EARLY_SOUNDS`) sets `window.__ready` and enables Start; stage 2 (`loadLate`: props with
+  `late: true` via `furnishLate`, `LATE_SOUNDS`) runs in the background and sets `window.__loaded`; the basement door stays locked until then.
+- Production: `vite.config.ts` emits a versioned service worker (`sw.js`, cache-first for assets/models/textures/audio) and splits vendor chunks
+  (three, postfx, rapier). `tools/prune-models.mjs` strips unused meshes/textures from GLBs (idempotent, `--dry`).
 - `src/data` — pure data, no logic: `layout` (rooms, openings, `DIV_Z`, `PLAYER_START`, `surfaceAt`), `props` (`PropSpec[]`, yaw convention),
   `lights` (`LightSpec[]`: anchor prop, glow, tag, flicker; order seeds flicker), `audio` (`SOUNDS` → `SoundId` type for every call,
   footstep sets, looping `EMITTERS`), `creatures` (roach groups).
 - `src/core` — `System` (`update(dt)`), `timeline` (`ease`, `seg`, `crossed`) for scripted sequences.
 - `src/engine` — Renderer (post stack), Physics, Assets (cache, missing file → null), Input, Audio (typed `SoundId`), Quality (profiles + flags), FrameGovernor (fps cap, adaptive scale).
-- `src/world` — builders: `Level` (geometry, trims, window frames + glass, stains; `mergeStatic` merges opaque meshes by material), `Materials`, `Window`, `Door` (`DoorLike`, `Door`, `GrandDoor`),
+- `src/world` — builders: `Level` (geometry, trims, window frames + glass, stains; `mergeStatic` merges opaque meshes by material), `Materials` (wet/grime fbm masks baked once to textures on desktop; `wetLite` path on mobile), `Window`, `Door` (`DoorLike`, `Door`, `GrandDoor`),
   `HouseDoors` (named door leaves: basement/store/bath/front), `Props` (auto-fit loader), `Furnish` (props + lamps from data → `Lamp[]`
   with mutable `base` and optional `driver`), `fixtures` (fan, digital clock, planter, pipes, bulbs), `Probes`, `Cockroaches`, `Atmosphere` (drips).
 - `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`, `onOpen` link), `TriggerZone`, `loops` (per-loop events).
@@ -50,4 +54,4 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   Loop 3: radio silent; all house lamps failing (`BrokenLightsSystem`); door 9 wide open → slams + locks when the player passes the bathroom
   door; then `ToiletKnockSequence` (handle rattles; after walking away ≥ 3.5 m and coming back within 1.6 m: 5 knocks, silence). Door 9 stays locked: end of Phase 3.
 - New interactions = an `Interactable` in `InteractionSystem`; position events = a `TriggerZone`; timed scripts = a `System` with `seg`/`crossed`.
-- Specs: `specs/002-phase2-loop-two/`, `specs/004-phase3-loop-three/`, `specs/005-fast-e2e/`, `specs/006-performance/`.
+- Specs: `specs/002-phase2-loop-two/`, `specs/004-phase3-loop-three/`, `specs/005-fast-e2e/`, `specs/006-performance/`, `specs/007-perf-round2/`.

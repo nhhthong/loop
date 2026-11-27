@@ -26,7 +26,9 @@ export class ZoneVisibility implements System {
       let hasLight = false;
       o.traverse((x) => { if ((x as THREE.Light).isLight) hasLight = true; });
       if (hasLight || box.setFromObject(o).isEmpty()) continue;
-      (box.getCenter(c).z > DIV_Z ? this.corridor : this.house).push(o);
+      const zone = box.getCenter(c).z > DIV_Z ? 'corridor' : 'house';
+      (zone === 'corridor' ? this.corridor : this.house).push(o);
+      o.visible = this.shown[zone]; // objects added later (stage 2) follow the current state
     }
     return this;
   }
