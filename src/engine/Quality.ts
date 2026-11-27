@@ -1,6 +1,6 @@
 /**
  * Graphics presets. Chosen via `?q=low|medium|high|mobile`; touch devices always get the fixed `mobile` profile;
- * desktop uses the last menu choice (localStorage), else medium.
+ * desktop uses the last menu choice (localStorage), else low (fastest first load; Medium/High in the menu).
  * `low` is light enough for software rendering (headless screenshots): one proxy shadow, no AO/DOF/bloom, 1K textures.
  */
 import { IS_TOUCH } from './Input';
@@ -58,7 +58,7 @@ function pick(): QualityLevel {
   if (isLevel(url)) return url;
   if (IS_TOUCH) return 'mobile';
   try { const s = localStorage.getItem(KEY); if (isLevel(s)) return s; } catch { /* storage blocked */ }
-  return 'medium';
+  return 'low';
 }
 
 const level = pick();

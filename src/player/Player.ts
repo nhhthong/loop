@@ -45,6 +45,7 @@ export class Player {
     this.controller.enableAutostep(0.22, 0.12, true);
     this.controller.enableSnapToGround(0.25);
     this.controller.setMaxSlopeClimbAngle(0.8);
+    this.controller.setMinSlopeSlideAngle(0.9); // stairs/ramps (31–34°) must not make the player slide down on their own
     this.syncHead(0);
   }
 

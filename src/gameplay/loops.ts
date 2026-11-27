@@ -44,7 +44,8 @@ export const loopEvents = (c: LoopContext): Record<number, () => void> => {
     3: () => {
       const store = c.doors.store;
       radio?.stop(); // silence where the static was
-      c.brokenLights.start(c.lamps.filter((l) => l.tag === 'lamp' && l.id !== 'stairBulb')); // the wiring is failing
+      // the wiring is failing — except the bulb at door 9, so its slam stays visible down the hall
+      c.brokenLights.start(c.lamps.filter((l) => l.tag === 'lamp' && l.id !== 'stairBulb' && l.id !== 'eastBulb'));
       store.open(); // door 9 stands wide open at the end of the hall
       // keep door 9 lit by the mobile light pool until it slams
       let slammed = false;

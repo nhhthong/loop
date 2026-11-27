@@ -68,7 +68,7 @@ export class LightingSystem implements System {
     const d2 = (v: THREE.Vector3) => qs.reduce((m, q) => Math.min(m, v.distanceToSquared(q)), v.distanceToSquared(p));
     const member = new Set(this.pool.filter((s) => s.lamp >= 0 && s.fade > 0).map((s) => s.lamp));
     const wanted = this.lamps
-      .map((l, i) => ({ i, score: (l.light.intensity / (1 + d2(l.light.position))) * (member.has(i) ? PROXY_HYSTERESIS : 1) }))
+      .map((l, i) => ({ i, score: (l.light.intensity / (1 + d2(l.light.position) * (l.landmark ? 1 / 16 : 1))) * (member.has(i) ? PROXY_HYSTERESIS : 1) }))
       .filter((c) => c.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, this.pool.length)

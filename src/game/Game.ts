@@ -75,6 +75,7 @@ export class Game {
   private menu!: MenuScene;
   private menuSystems: System[] = [];
   private paused = false;
+  private held = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.input = new Input(canvas);
@@ -181,7 +182,7 @@ export class Game {
     this.portal = new PortalSystem(this.renderer, P, this.scene, portalMatrix(), PORTAL.yaw,
       { centre: new THREE.Vector3(STAIRWELL.doorX + STAIRWELL.doorT / 2, STAIR_BOTTOM_Y + 1.05, (STAIRWELL.z0 + STAIRWELL.z1) / 2), width: 0.9, height: 2.1, normal: new THREE.Vector3(1, 0, 0) },
       () => D.stairBottom.isOpen && P.position.x > STAIRWELL.x0,
-      () => this.director.portalCrossed());
+      () => { D.stairBottom.swingShut(0.01); this.director.portalCrossed(); }); // shut it again for the next pass
     // light leaking under the basement door goes out while it is open
     for (const l of this.furn.lamps) if (l.tag === 'leak') l.driver = () => (D.basement.isOpen ? 0 : 1);
 
@@ -255,16 +256,34 @@ export class Game {
   }
   debugIntro(t: number) { this.menu.finishNow(); this.intro.seek(t); }
 
+  /**
+   * Test hooks (e2e): with the game paused, `debugAdvance` runs the simulation in fixed steps without rendering —
+   * the same systems, triggers and sequences as real play, only no frames drawn (rendering is what makes headless
+   * runs slow). `debugRender` draws one frame for a screenshot.
+   */
+  /** Stop the real-time loop for tests (independent of pause / pointer lock). */
+  debugHold(on = true) { this.held = on; }
+  debugAdvance(seconds: number, dt = 1 / 30) { for (let t = 0; t < seconds; t += dt) { this.step(dt); this.input.endFrame(); } }
+  debugRender() { this.renderer.render(0); }
+  debugPress(code: string) { this.input.press(code); }
+  /** Move the player without touching control/camera state (so running sequences are not disturbed). */
+  debugTeleport(x: number, z: number, yaw: number, y = 0) { this.player.teleport(new THREE.Vector3(x, y, z)); this.player.yaw = yaw; }
+
   setPaused(p: boolean) { this.paused = p; if (!p) this.clock.getDelta(); }
+
+  /** One simulation step (all ticking systems of the current mode). */
+  private step(dt: number) {
+    this.time += dt;
+    sharedUniforms.uTime.value = this.time;
+    for (const s of this.mode === 'menu' ? this.menuSystems : this.systems) s.update(dt);
+  }
 
   private loop = (now = performance.now()) => {
     requestAnimationFrame(this.loop);
     if (!this.governor.tick(now)) return; // frame cap (mobile)
     const dt = Math.min(this.clock.getDelta(), 1 / 20);
-    if (this.mode === 'loading' || this.paused) { this.input.endFrame(); return; }
-    this.time += dt;
-    sharedUniforms.uTime.value = this.time;
-    for (const s of this.mode === 'menu' ? this.menuSystems : this.systems) s.update(dt);
+    if (this.mode === 'loading' || this.paused || this.held) { this.input.endFrame(); return; }
+    this.step(dt);
     this.stats?.begin();
     this.renderer.render(dt);
     this.stats?.end();

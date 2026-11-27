@@ -1,11 +1,12 @@
 <!--
 Sync Impact Report
-Version change: (template, unratified) -> 1.0.0
-Modified principles: none renamed (all principles newly defined from CLAUDE.md)
-Added sections: Core Principles I-VII; Technical & Content Constraints; Development Workflow & Quality Gates; Governance
+Version change: 1.0.0 -> 1.1.0 (MINOR: materially expanded verification + workflow guidance)
+Modified principles: III. Goal-Driven Verification (fast simulation e2e is now the gate for gameplay/loop changes)
+Added sections: Development Workflow — standard phase workflow (spec-kit → implement → e2e → PR/CI → owner review)
 Removed sections: none
+Templates: plan/tasks follow the workflow below (tasks end with e2e + PR/CI); specs 002–005 updated
 Follow-up TODOs: none
-Note: ratified retroactively from CLAUDE.md after Phase 1 was implemented.
+History: 1.0.0 (2026-11-26) ratified retroactively from CLAUDE.md after Phase 1.
 -->
 # LOOP Constitution
 
@@ -22,10 +23,14 @@ or error handling for impossible cases. Edits MUST touch only what the request r
 only orphans the change itself created. Unrelated dead code is mentioned, not deleted.
 
 ### III. Goal-Driven Verification
-Every task has a verifiable success criterion. The default check is `npm run typecheck` (`tsc --noEmit`), which MUST pass
-before every commit. Headless/e2e full-game runs are NOT run unless truly needed or requested; the cloud container has no
-GPU, so only `?q=low` is viable for headless screenshots. Isolated visual checks use `inspect.html`, `handtest.html`,
-`scanprobe.html`. Scene-level look (lighting, prop placement) is verified by the owner on real hardware via screenshots.
+Every task has a verifiable success criterion. `npm run typecheck` (`tsc --noEmit`) MUST pass before every commit.
+Changes to gameplay, loops, doors, triggers, sequences, input or the mobile profile MUST pass the simulation e2e suites
+(`npm run e2e -- --q=low`, `--q=mobile`, and `npm run e2e:touch` when input/UI changed). They advance the real game logic
+without rendering (`game.debugAdvance`), so a full multi-loop run takes well under a minute. Loops MUST be tested through
+real passes (door 9 → stairwell → portal), never by calling `LoopDirector` directly; `--from=N` skips earlier checks only.
+Each new loop adds its scenario to `e2e/loops.mjs`. Rendered headless screenshots (`--shots`, `?q=low`/`mobile` only — no
+GPU in the cloud container) are taken only when the look matters. Isolated visual checks use `inspect.html`,
+`handtest.html`, `scanprobe.html`. Scene-level look is verified by the owner on real hardware.
 
 ### IV. Owner Decisions Are Authoritative
 The "Owner decisions" in CLAUDE.md MUST NOT be changed without asking. No mechanic beyond the agreed phase scope may be added;
@@ -62,10 +67,17 @@ optimised before commit (resize/webp to 1024, simplify above 150k faces, metalro
 
 ## Development Workflow & Quality Gates
 
-- Plan multi-step work briefly as step -> verify pairs; loop until the check passes.
-- Gates before commit: `npm run typecheck` passes; changed lines trace to the request; owner decisions untouched.
-- Build check: `npm run build` (typecheck + Vite build).
-- Planned post-Phase-1 loop mechanics (door 9 -> basement -> start, per-loop `LoopDirector`) are NOT built until the owner approves a spec.
+Standard workflow for every phase / feature (all developers):
+1. **Clarify** with the owner (Principle I) — options and consequences, decisions recorded in the spec's "Owner decisions" table.
+2. **Spec-kit**: `specs/NNN-name/` with `spec.md` (user stories, FR/SC), `plan.md` (design, Constitution Check), `tasks.md`.
+3. **Implement** data-first (Principle VI); per-loop content only in `src/gameplay/loops.ts`; new assets with manifests (VII).
+4. **Verify**: typecheck + build; e2e suites (Principle III) incl. a new scenario for new loop content; mobile checklist
+   (CLAUDE.md: pool-relevant lights, no shadow-only scares, mobile budget, profile flags for heavy effects).
+5. **Ship** only when the owner asks: commit → PR (summary + verification) → CI green (polled every 20 s) → merge →
+   confirm the GitHub Pages deployment runs the merged commit.
+6. **Owner review** on real hardware; fixes found later are recorded in the feature's `tasks.md` ("Post-release fixes").
+
+Gates before commit: typecheck passes; required e2e suites pass; changed lines trace to the request; owner decisions untouched.
 
 ## Governance
 
@@ -74,4 +86,4 @@ Amendments require the owner's approval, a version bump (MAJOR: principle remova
 materially expanded guidance; PATCH: wording), and an update of dependent specs/plans. Every plan includes a Constitution
 Check; violations MUST be justified in Complexity Tracking.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-26 | **Last Amended**: 2026-11-26
+**Version**: 1.1.0 | **Ratified**: 2026-11-26 | **Last Amended**: 2026-11-27
