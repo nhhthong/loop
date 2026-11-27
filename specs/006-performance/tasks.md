@@ -9,7 +9,7 @@ description: "Task list for the performance phase"
 
 ## B. Shadows & light
 - [X] T002 shadow cache (LightingSystem: dirty-on-move, budget per frame)
-- [ ] T003 Desktop light pool (flag, measure before enabling)
+- [X] T003 Desktop light pool: `low` uses 8 pooled lights (headless load 4.4 → 2.7 s; image diff ≤ 2.2/255 vs before, owner delegated the choice)
 - [ ] T004 Wet mask baked to a texture (`src/world/Materials.ts`)
 
 ## C. Geometry
@@ -42,3 +42,4 @@ description: "Task list for the performance phase"
 
 ## Post-release fixes
 - [X] F001 Shadow cache missed rotation-only movement (door leaves swing about their hinge, fan blades spin in place) → bath door / fan shadows stayed stale: casters are now compared by full world matrix; e2e `shadow cache: idle scene does not re-render, a swinging door does` (fails on the old code)
+- [X] F002 Reflection probes were baked before any pooled light was on (mobile: darker ambient/reflections than designed). Probes now bake after the lighting exists, with the lamps around each probe lit (`LightingSystem.focusPool`). Mobile R1 luminance 70.5 → 76.1, stairwell 42.9 → 51.6 (desktop reference 78.9 / 47.6)

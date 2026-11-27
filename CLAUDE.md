@@ -153,7 +153,7 @@ npm run bench        # performance budgets (e2e/budgets.json; numbers in specs/0
 - **One fixed graphics profile `mobile`** (`Quality.ts`; no quality selector on the mobile menu; `?q=mobile` to test on desktop): stable 30 FPS cap,
   no shadows/AO/DOF/bloom/SMAA, light pool of 5 (`Q.lightPool`), lite wet shader (`Q.wetLite`), adaptive resolution (`FrameGovernor`,
   `Q.scaleRange`), half-res portal (`Q.portalScale`). Systems read only profile flags — never `IS_TOUCH` in rendering/lighting code.
-  Desktop presets keep the flags at their "off" values (behaviour unchanged). `?stats` shows fps / calls / tris / lights / scale on any device.
+  Desktop presets keep the other flags "off"; desktop `low` also uses a light pool of 8 (load 4.4 → 2.7 s: fewer per-pixel lights = faster shader compile). `?stats` shows fps / calls / tris / lights / scale on any device.
 - **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player, `landmark: true` in `data/lights.ts` for lamps seen from afar, or `LightingSystem.extraFocus.push(...)`);
   (2) never rely only on shadows for a scare (mobile has none); (3) check the budgets before merging (`npm run bench -- --q=mobile` and `--q=low`, numbers in
   `specs/006-performance/budget.md`; owner's phone at 30 FPS with `?stats`); (4) any new heavy effect gets a profile flag.

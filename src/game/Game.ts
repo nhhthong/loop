@@ -67,6 +67,7 @@ export class Game {
   knockScene!: ToiletKnockSequence;
   /** basement door (kept for dev scripts) */
   get door() { return this.doors.basement; }
+  private lighting!: LightingSystem;
   private systems: System[] = [];
   private governor!: FrameGovernor;
   private stats: Stats | null = null;
@@ -127,10 +128,12 @@ export class Game {
 
     const drips = new Drips(this.scene, this.audio, this.scene); // before the probes: loose corridor meshes get the corridor env
     this.hands.rig.visible = false;
-    bakeProbes(this.renderer.renderer, this.scene, this.level.corridorMeshes);
     this.startEmitters();
 
     this.wire(roaches, drips);
+    // probes are baked after the lighting exists, with the lamps around each probe lit (see LightingSystem.focusPool)
+    bakeProbes(this.renderer.renderer, this.scene, this.level.corridorMeshes, (pos) => this.lighting.focusPool(pos));
+    this.lighting.focusPool(null);
 
     // warm-up: compile shaders & first frames before the curtain lifts
     this.renderer.renderer.compile(this.scene, this.player.camera);
@@ -163,7 +166,7 @@ export class Game {
     });
     const knockScene = this.knockScene = new ToiletKnockSequence(P, D.bath, audio);
     const brokenLights = new BrokenLightsSystem(P, audio, this.scene);
-    const lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
+    const lighting = this.lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
     this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, doors: D, lamps: this.furn.lamps, triggers, lighting, brokenLights, bathScene, knockScene }));
 
     triggers.add(

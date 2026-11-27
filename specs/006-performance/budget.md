@@ -45,6 +45,16 @@ lamp/console/mirror/clock + one roach, −0.3 M tris), model textures ≤ 512 px
 JS counted gzipped (served compressed). Not done (needs a tool or an owner decision): KTX2 (no `toktx` here), staged loading,
 service worker, bundle split, instancing, LOD for the painting (simplify damaged it; kept original), desktop light pool / wet mask bake.
 
+## Load time (headless, production build on localhost — no network; time to Start enabled)
+
+| Preset | Before pool | After |
+|---|---|---|
+| low | 4.4–5.0 s | 2.6–2.8 s (light pool 8) |
+| mobile | 2.4–2.6 s | same |
+
+The gap was the first render (shader compile + probe bake): 3.0 s with 15 per-pixel lights vs 1.0 s with a pool. `compileAsync` was tried
+and was slower (removed). Real-world time adds the download (~23 MB low / ~20 MB mobile).
+
 ## Risk notes
 
 - Most of the 30 MB in `public/models` is texture data inside the GLBs, not geometry: Meshopt alone will not reach the load budget;
