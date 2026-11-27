@@ -77,3 +77,7 @@ and portal, without shader-compile hitches.
 ## Out of Scope
 
 Static mesh merging, KTX2 texture compression, separate mobile assets, mobile-specific level changes.
+
+## Changes after release
+
+- 2026-11-27: lamps seen from afar (`eastBulb`, `stairBulb`) are `landmark`s, weighted 4× closer by the light pool (owner: door 9 and the stair were dark on mobile).

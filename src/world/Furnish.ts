@@ -19,6 +19,8 @@ export interface Lamp {
   driver?: () => number;
   /** pendulum: light + glow hang `len` below `anchor` on `cord` (animated by PendantSystem) */
   swing?: { anchor: THREE.Vector3; len: number; amp: number; cord?: THREE.Mesh };
+  /** seen from far away: weighted as 4× closer by the light pool */
+  readonly landmark: boolean;
 }
 
 export interface Furnished {
@@ -62,7 +64,7 @@ function buildLamp(s: LightSpec, props: Map<string, THREE.Object3D>, parent: THR
   if (s.glow && 'bulb' in s.glow) glow = bulb(parent, pos, s.glow.bulb, s.glow.r);
   else if (s.glow) glow = shadeGlow(parent, pos.clone().add(new THREE.Vector3(0, s.glow.dy ?? 0, 0)), s.glow.rTop, s.glow.rBot, s.glow.h, s.glow.shade);
   const swing = s.swing && s.cord ? { anchor: pos.clone().add(new THREE.Vector3(0, s.cord, 0)), len: s.cord, amp: s.swing, cord: cordMesh } : undefined;
-  return { id: s.id, light, base: s.intensity, flicker: s.flicker ?? 0, tag: s.tag ?? 'lamp', glow, swing };
+  return { id: s.id, light, base: s.intensity, flicker: s.flicker ?? 0, tag: s.tag ?? 'lamp', glow, swing, landmark: !!s.landmark };
 }
 
 /** Shared point-light shadow settings (lamps and the low-quality shadow proxy). */

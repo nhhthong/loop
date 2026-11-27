@@ -85,14 +85,31 @@ First-person horror vignette. TypeScript · three.js r170 · Rapier (`@dimforge/
 npm run dev        # http://localhost:5173  (?q=low|medium|high — also selectable in the menu)
 npm run typecheck  # tsc --noEmit — must pass before every commit
 npm run build
+npm run e2e          # loop e2e (needs npm run dev): --q=low|mobile  --from=N (jump to loop N)  --to=N  --shots=DIR
+npm run e2e:touch    # touch controls (Pixel 7) + desktop UI
 ```
 - Deployed by `.github/workflows/pages.yml` on every push to main → https://nhhthong.github.io/loop/ (Vite `base: './'`;
   load assets via root paths `/models/...` — `assetUrl()` / the LoadingManager URL modifier map them under the base). `ci.yml` = typecheck + build.
 
+## Workflow (every phase / feature, every developer) — see `.specify/memory/constitution.md`
+1. Clarify ambiguous requirements with the owner first (options + consequences); record decisions in the spec.
+2. Spec-kit: `specs/NNN-name/{spec,plan,tasks}.md` (owner decisions table, FR/SC, Constitution Check, tasks ending with e2e + PR/CI).
+3. Implement data-first; per-loop content only in `src/gameplay/loops.ts`; assets + manifests.
+4. Verify: `npm run typecheck`, `npm run build`, `npm run e2e -- --q=low` and `-- --q=mobile` (+ `npm run e2e:touch` if input/UI changed);
+   new loop content = new scenario in `e2e/loops.mjs`; mobile checklist below.
+5. Commit / PR / merge only when the owner asks; poll CI every 20 s; confirm GitHub Pages deployed the merged commit.
+6. Owner reviews on real hardware; later fixes go to the feature's `tasks.md` under "Post-release fixes".
+
 ## Verification policy
-- Default check = `npm run typecheck`. Do **not** run e2e / headless full-game runs unless truly needed or asked.
-  The cloud container has no GPU: only `?q=low` (no shadows/AO/DOF/bloom, 1K textures) is viable for headless screenshots.
+- `npm run typecheck` before every commit. Gameplay/loop/door/trigger/sequence/input/mobile changes: run the e2e suites.
+- **e2e = simulation, not rendering** (`e2e/`): the real-time loop is held (`game.debugHold()`) and the real game logic is advanced with
+  `game.debugAdvance(sec)` (physics, triggers, sequences, portal — no frames drawn), so a full 3-loop run takes ~20–30 s incl. loading.
+  Loops are reached through **real passes** (door 9 → stairwell → stair-bottom door → portal), never by calling `LoopDirector` directly
+  (that once hid a broken second pass). `--from=N` only skips the checks of earlier loops. Add each new loop as `N: async (t) => {...}` in `e2e/loops.mjs`.
+- Rendered screenshots only when the look matters (`--shots=DIR`, `game.debugRender()`). The cloud container has no GPU:
+  only `?q=low` / `?q=mobile` are viable headless; each rendered frame costs seconds.
 - Graphics presets live in `src/engine/Quality.ts` (`Q` singleton, read at boot; changing level reloads the page): `low|medium|high` (desktop) + `mobile`.
+  Desktop defaults to **low** (owner: fastest first load, ~44 MB vs ~80 MB); Medium/High from the menu are remembered.
 - For isolated visual checks use the light dev pages instead: `inspect.html?f=group/model,...` (model orientation/scale),
   `handtest.html?fov=&tx=&ty=&tz=&roll=&curl=` (hand pose), `scanprobe.html` (hand-scan landmarks).
 - Scene-level look (lighting, prop placement) is verified by the owner on real hardware — ask for screenshots.
@@ -131,12 +148,14 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   `BrokenLightsSystem` (failing wiring via `Lamp.driver`).
 - `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks), `ToiletKnockSequence` (loop 3: rattling, 5 knocks).
 - `src/ui` — `UI` (lids, prompt, hint, crosshair), `Stats` (`?stats`), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
-- `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
-- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`, `game.knockScene`.
+- `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, no auto-slide below 0.9 rad slopes, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
+- Dev/test hooks: `game.debugHold()`, `debugAdvance(sec)`, `debugRender()`, `debugPress(code)`, `debugTeleport(x, z, yaw, y?)` (keeps sequences intact),
+  `debugView(x, z, yaw, pitch, eye?, y?)` (also resets camera/control), `debugIntro(t)`; `game.door`, `game.doors`, `game.director`, `game.portal`, `game.knockScene`.
 
 ### The loop (Phase 2)
 - Pass: door 9 → stairwell (door 9 shuts + locks behind on the stair) → stair-bottom door (opens together with the real basement door)
-  → portal → basement doorway → basement door shuts + locks (trigger re-arms every pass) → `LoopDirector.enteredHouse()` → next loop.
+  → portal → basement doorway (the stair-bottom door snaps shut again right after the crossing) → basement door shuts + locks (trigger re-arms
+  every pass) → `LoopDirector.enteredHouse()` → next loop.
 - Per-loop content lives only in `src/gameplay/loops.ts` (`loopEvents`), acting through named handles (`HouseDoors`, `furn.props`,
   `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`; door 9 unlocked again.
   Loop 3: radio silent; all house lamps failing (`BrokenLightsSystem`); door 9 wide open → slams + locks when the player passes the bathroom
@@ -177,7 +196,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   no shadows/AO/DOF/bloom/SMAA, light pool of 5 (`Q.lightPool`), lite wet shader (`Q.wetLite`), adaptive resolution (`FrameGovernor`,
   `Q.scaleRange`), half-res portal (`Q.portalScale`). Systems read only profile flags — never `IS_TOUCH` in rendering/lighting code.
   Desktop presets keep the flags at their "off" values (behaviour unchanged). `?stats` shows fps / calls / tris / lights / scale on any device.
-- **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player or via `LightingSystem.extraFocus.push(...)`);
+- **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player, `landmark: true` in `data/lights.ts` for lamps seen from afar, or `LightingSystem.extraFocus.push(...)`);
   (2) never rely only on shadows for a scare (mobile has none); (3) check mobile budget before merging (headless `?q=mobile`: ≤ ~1,100 calls,
   ≤ 0.6 M tris; owner's phone at 30 FPS with `?stats`); (4) any new heavy effect gets a profile flag.
 - Landscape required: portrait shows a "Rotate your device" overlay; Start requests fullscreen + landscape lock (best effort).
