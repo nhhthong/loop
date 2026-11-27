@@ -13,5 +13,5 @@ description: "Tasks: performance round 2"
 - [x] T007 [F] Desktop adaptive resolution (medium/high, min 0.75×)
 - [x] T008 [F] Cheaper AO on medium
 - [x] T009 [F] Portal half-res on desktop
-- [ ] T010 Merge tracks; bench + image diff + e2e low/mobile/touch; docs (`budget.md`, `docs/architecture.md`)
+- [x] T010 Merge tracks; bench + image diff + e2e low/mobile/touch; docs (`budget.md`, `docs/architecture.md`)
 - [ ] T011 Commit, PR, CI (20 s polling), merge, confirm Pages

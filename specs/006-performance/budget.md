@@ -55,6 +55,21 @@ service worker, bundle split, instancing, LOD for the painting (simplify damaged
 The gap was the first render (shader compile + probe bake): 3.0 s with 15 per-pixel lights vs 1.0 s with a pool. `compileAsync` was tried
 and was slower (removed). Real-world time adds the download (~23 MB low / ~20 MB mobile).
 
+## Round 2 (spec 007, 2026-11-27)
+
+| Metric | Before (main 37eb371) | After |
+|---|---|---|
+| First load, low | 21.9 MB | 15.2 MB (+6.1 MB stage 2 in background) |
+| First load, mobile | 18.8 MB | 12.0 MB (+6.1 MB stage 2) |
+| Time to Start, low (prod, localhost, 3 runs) | 4.7–5.5 s | 4.2–4.9 s (stage 2 done +0.6 s) |
+| Time to Start, mobile | 3.0–3.2 s | 2.8–3.3 s |
+| Repeat visit (reload, headless) | 13.9 s, all from network | 8.9 s, all files from the service worker |
+| Draw calls / tris (worst view) | 336 / 0.26 M | unchanged |
+
+Image diff vs main: low ≤ 0.21/255 on all views; mobile ≤ 0.15/255 (corridor capture black on the main side — known headless artifact).
+Desktop mask bake: ~82 MB VRAM (RGBA16F); Medium/High adaptive resolution and AO change are not measurable headless (owner checks with `?stats`).
+KTX2: trial only, see `specs/007-perf-round2/ktx2-trial.md`.
+
 ## Risk notes
 
 - Most of the 30 MB in `public/models` is texture data inside the GLBs, not geometry: Meshopt alone will not reach the load budget;
