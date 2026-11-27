@@ -80,6 +80,7 @@ export class LightingSystem implements System {
       if (l.driver) k *= l.driver();
       l.light.intensity = l.base * k;
       if (l.glow) l.glow.visible = k > 0.25;
+      if (l.emissive) for (const e of l.emissive) e.m.emissiveIntensity = e.base * k;
     });
     if (this.proxy) this.updateShadowProxy(this.proxy);
     if (this.pool.length) this.updatePool(dt);

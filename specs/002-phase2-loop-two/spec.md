@@ -15,7 +15,7 @@
 | Where door 9 leads | A new scene: a straight stair going down (12 risers), dark grey wet concrete walls and treads, water running down the treads and seeping down the walls, a small bulb swaying on its cord. The door at the bottom opens onto R1 seen from the basement doorway (portal, real scene); crossing it puts the player in the basement doorway, the door shuts behind and loop 2 starts. The intro corridor is unchanged and not revisited. |
 | Radio | A static prop in every loop. Silent in loop 1, crackles from loop 2. Placed on the console table next to the rotary phone. |
 | Radio timing | Starts when the basement door shuts behind the player in loop 2 and loops for the rest of the loop (positional: louder when near). |
-| Bathroom door scene | Short loss of control (~4 s): camera turns to the door (~1 s), holds while the door slowly closes and latches (~3 s), control returns. The door is then locked (E rattles). |
+| Bathroom door scene | Short loss of control: camera turns to the door (~1 s); ~~door slowly closes (~3 s)~~ → (2026-11-27, owner) the door swings shut in 0.8 s, speeding up, and bangs into the frame (`door_slam`, leaf jolt); control returns (~2.3 s total). The door is then locked (E rattles). |
 | After loop 2 | Door 9 is locked in loop 2 (end of Phase 2 content). |
 | Mobile | Same behaviour; touch controls are hidden during the bathroom-door scene. |
 

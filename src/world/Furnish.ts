@@ -21,6 +21,8 @@ export interface Lamp {
   swing?: { anchor: THREE.Vector3; len: number; amp: number; cord?: THREE.Mesh };
   /** seen from far away: weighted as 4× closer by the light pool */
   readonly landmark: boolean;
+  /** self-lit materials of the lamp's prop (a shade with an emissive map): dimmed with the light */
+  emissive?: { m: THREE.MeshStandardMaterial; base: number }[];
 }
 
 export interface Furnished {
@@ -45,6 +47,7 @@ export async function furnish(assets: Assets, physics: Physics, scene: THREE.Gro
   if (fan) props.set('ceilingFan', fan.root);
 
   const lamps = LIGHTS.filter((s) => !s.requires || props.has(s.requires)).map((s) => buildLamp(s, props, scene));
+  lamps.forEach((l) => bindEmissive(l, props));
   return { props, lamps, fan };
 }
 
@@ -60,9 +63,24 @@ export async function furnishLate(f: Furnished, assets: Assets, physics: Physics
     if (!s.onProp || !f.props.has(s.onProp[0])) continue;
     const pos = lampPos(s, f.props);
     l.light.position.copy(pos);
+    if (!l.emissive) bindEmissive(l, f.props);
     if (l.glow) l.glow.position.copy(pos).add(new THREE.Vector3(0, s.glow && 'shade' in s.glow ? s.glow.dy ?? 0 : 0, 0));
   }
   return added;
+}
+
+/** Give the lamp its prop's self-lit materials (own copies, so lamps sharing a model dim independently). */
+function bindEmissive(l: Lamp, props: Map<string, THREE.Object3D>) {
+  const prop = props.get(LIGHTS.find((x) => x.id === l.id)!.onProp?.[0] ?? '');
+  if (!prop) return;
+  const list: NonNullable<Lamp['emissive']> = [];
+  prop.traverse((o) => {
+    const mesh = o as THREE.Mesh, m = mesh.material as THREE.MeshStandardMaterial;
+    if (!mesh.isMesh || !m.isMeshStandardMaterial || m.emissiveIntensity <= 0 || (!m.emissiveMap && m.emissive.getHex() === 0)) return;
+    mesh.material = m.clone();
+    list.push({ m: mesh.material as THREE.MeshStandardMaterial, base: m.emissiveIntensity });
+  });
+  if (list.length) l.emissive = list;
 }
 
 /** Lamp position: on top of its prop when that prop is loaded, else the spec's fallback position. */

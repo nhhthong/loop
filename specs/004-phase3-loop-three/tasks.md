@@ -22,3 +22,7 @@ description: "Task list for Phase 3 - Loop 3"
   excluded from the loop-3 failing lights; stair bulb 4 → 6 cd
 - [X] F004 Desktop defaults to the `low` preset (first load ~44 MB instead of ~80 MB)
 - [X] F005 e2e now runs three real passes (no director shortcuts), on `low` and `mobile` — see `specs/005-fast-e2e/`
+- [X] F006 (owner, 2026-11-27) Loop 2: the bathroom door closes in 0.8 s, speeding up into the frame, with a bang (`door_slam`) and a jolt
+- [X] F007 (owner) Loop 3: lamps stutter then die; one dim flickering R1 sconce; door-9/stair bulbs lit as a lure; prop emissive + probe fill dim with lamps
+- [X] F008 (owner) Loop 3: door 9 slams when the player is within 2 m of it
+- [X] F009 (owner) Loop 3: bathroom rattles nonstop until E on it → 5 loud blows in 1.5 s with a strong leaf shake, then silence; e2e updated

@@ -43,7 +43,8 @@ export class Door implements DoorLike {
   locked = false;
   private rattleT = 0;
   private knockT = 0;
-  private slow: { from: number; t: number; dur: number } | null = null;
+  private knockK = 1;
+  private slow: { from: number; t: number; dur: number; accel: boolean } | null = null;
   readonly leafW: number;
   readonly leafH: number;
   readonly leafT = 0.045;
@@ -121,17 +122,17 @@ export class Door implements DoorLike {
     this.target = 0;
   }
 
-  /** Swing shut over `dur` seconds (eased), from whatever angle it is at: slow creep (ajar door) or a slam. */
-  swingShut(dur: number) {
-    this.slow = { from: this.angle, t: 0, dur };
+  /** Swing shut over `dur` seconds from whatever angle it is at: eased (slow creep, quick slam) or `accel` (speeds up into the frame). */
+  swingShut(dur: number, accel = false) {
+    this.slow = { from: this.angle, t: 0, dur, accel };
     this.isOpen = false;
   }
 
   /** Locked: jiggle the handle and shake the leaf in its frame for a moment. */
   rattle() { this.rattleT = 0.6; }
 
-  /** A knock from the other side: the leaf jolts in its frame (handle still). */
-  knock() { this.knockT = 0.18; }
+  /** A knock from the other side: the leaf jolts in its frame (handle still); `strength` scales the jolt. */
+  knock(strength = 1) { this.knockT = 0.18; this.knockK = strength; }
 
   update(dt: number) {
     // critically-damped spring with a slight heavy-door ease
@@ -139,7 +140,7 @@ export class Door implements DoorLike {
       const s = this.slow;
       s.t = Math.min(s.dur, s.t + dt);
       const x = s.t / s.dur;
-      this.angle = this.target = s.from * (1 - x * x * (3 - 2 * x));
+      this.angle = this.target = s.from * (1 - (s.accel ? x * x : x * x * (3 - 2 * x)));
       this.vel = 0;
       if (x >= 1) this.slow = null;
     } else {
@@ -157,7 +158,7 @@ export class Door implements DoorLike {
     }
     if (this.knockT > 0) {
       this.knockT = Math.max(0, this.knockT - dt);
-      shake += Math.sin(this.knockT * 110) * 0.006 * (this.knockT / 0.18);
+      shake += Math.sin(this.knockT * 110) * 0.006 * this.knockK * (this.knockT / 0.18);
     }
     this.pivot.rotation.y = this.baseYaw + this.openSign * (this.angle + shake);
     this.syncBody();

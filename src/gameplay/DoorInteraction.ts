@@ -10,15 +10,18 @@ export class DoorInteraction implements Interactable {
   private openT = -1;
   private readonly p = new THREE.Vector3();
 
-  /** `onOpen`: called the moment the leaf starts to swing (e.g. open a linked door on the other side of a portal) */
-  constructor(private readonly door: DoorLike, private readonly audio: AudioSys, private readonly onOpen?: () => void) {}
+  /**
+   * `onOpen`: called the moment the leaf starts to swing (e.g. open a linked door on the other side of a portal).
+   * `onLocked`: E on the locked door; returning true replaces the normal rattle (a scripted answer).
+   */
+  constructor(private readonly door: DoorLike, private readonly audio: AudioSys, private readonly onOpen?: () => void, private readonly onLocked?: () => boolean) {}
 
   focusPoint() {
     return this.door.isOpen || this.openT >= 0 ? null : this.door.handleWorld(this.p);
   }
 
   use() {
-    if (this.door.locked) { rattleLocked(this.door, this.audio); return; }
+    if (this.door.locked) { if (!this.onLocked?.()) rattleLocked(this.door, this.audio); return; }
     this.openT = 0;
     this.audio.play3D('door_handle', this.door.handle, 0.8, { ref: 0.6 });
   }

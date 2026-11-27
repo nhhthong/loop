@@ -39,7 +39,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow cache + per-frame budget, low-quality shadow proxy, mobile light pool), `FanSystem`, `AmbienceSystem`,
   `PortalSystem` (render-target doorway + `Player.transport`), `ZoneVisibility` (hides what is behind the shut basement door), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`,
   `BrokenLightsSystem` (failing wiring via `Lamp.driver`).
-- `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks), `ToiletKnockSequence` (loop 3: rattling, 5 knocks).
+- `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door slams shut in 0.8 s, locks), `ToiletKnockSequence` (loop 3: rattling until E, then 5 violent knocks).
 - `src/ui` — `UI` (lids, prompt, hint, crosshair), `Stats` (`?stats`), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
 - `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, no auto-slide below 0.9 rad slopes, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
 - Dev/test hooks: `game.debugHold()`, `debugAdvance(sec)`, `debugRender()`, `debugPress(code)`, `debugTeleport(x, z, yaw, y?)` (keeps sequences intact),
@@ -51,7 +51,8 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   every pass) → `LoopDirector.enteredHouse()` → next loop.
 - Per-loop content lives only in `src/gameplay/loops.ts` (`loopEvents`), acting through named handles (`HouseDoors`, `furn.props`,
   `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`; door 9 unlocked again.
-  Loop 3: radio silent; all house lamps failing (`BrokenLightsSystem`); door 9 wide open → slams + locks when the player passes the bathroom
-  door; then `ToiletKnockSequence` (handle rattles; after walking away ≥ 3.5 m and coming back within 1.6 m: 5 knocks, silence). Door 9 stays locked: end of Phase 3.
+  Loop 3: radio silent; house lamps stutter then die (`BrokenLightsSystem`), one dim R1 sconce left, door-9 + stair bulbs lit; door 9 wide open → slams + locks
+  when the player comes within 2 m; then `ToiletKnockSequence` (handle rattles nonstop until E on the bathroom door → 5 violent knocks in 1.5 s, silence).
+  Door 9 stays locked: end of Phase 3.
 - New interactions = an `Interactable` in `InteractionSystem`; position events = a `TriggerZone`; timed scripts = a `System` with `seg`/`crossed`.
 - Specs: `specs/002-phase2-loop-two/`, `specs/004-phase3-loop-three/`, `specs/005-fast-e2e/`, `specs/006-performance/`, `specs/007-perf-round2/`.

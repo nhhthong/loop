@@ -186,11 +186,11 @@ export class Game {
 
     const triggers = new TriggerSystem(P);
     const interaction = new InteractionSystem(P, this.input, this.ui);
+    const knockScene = this.knockScene = new ToiletKnockSequence(D.bath, audio);
     const bathScene = new BathDoorSequence(P, D.bath, audio, this.ui, () => {
       D.bath.locked = true;
-      interaction.add(new DoorInteraction(D.bath, audio));
+      interaction.add(new DoorInteraction(D.bath, audio, undefined, () => knockScene.answer()));
     });
-    const knockScene = this.knockScene = new ToiletKnockSequence(P, D.bath, audio);
     const brokenLights = new BrokenLightsSystem(P, audio, this.scene);
     const lighting = this.lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
     this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, doors: D, lamps: this.furn.lamps, triggers, lighting, brokenLights, bathScene, knockScene }));

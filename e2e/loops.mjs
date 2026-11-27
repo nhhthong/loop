@@ -79,23 +79,34 @@ export const LOOPS = {
     await t.advance(1.5);
     let s = await t.state();
     t.check('loop 3: radio silent, bathroom locked, door 9 wide open', !s.radioPlaying && s.bath.locked && s.store.open);
-    const lamps = await t.eval(() => ({ broken: game.furn.lamps.filter((l) => l.driver && l.tag === 'lamp').length, east: !!game.furn.lamps.find((l) => l.id === 'eastBulb').driver }));
-    t.check('loop 3: house lamps failing, door-9 bulb spared', lamps.broken >= 9 && !lamps.east, JSON.stringify(lamps));
-    const outs = await t.sampleMax(3, "game.furn.lamps.filter((l) => l.driver && l.driver() < 0.1).length", 0.05);
-    t.check('loop 3: lamps black out', outs >= 1, `max lamps out at once: ${outs}`);
+    await t.advance(2.5); // dying lamps stutter ≤ 3 s, then stay out
+    const lamps = await t.eval(() => {
+      const L = game.furn.lamps, k = (id) => L.find((l) => l.id === id);
+      const dying = L.filter((l) => l.tag === 'lamp' && !['sconceP', 'eastBulb', 'stairBulb'].includes(l.id));
+      return { dead: dying.filter((l) => l.driver && l.driver() === 0).length, of: dying.length, dim: k('sconceP').driver?.() ?? -1, east: !!k('eastBulb').driver, stair: !!k('stairBulb').driver };
+    });
+    t.check('loop 3: house lamps dead, R1 sconce dim, door-9 + stair bulbs spared', lamps.dead === lamps.of && lamps.of >= 8 && lamps.dim > 0 && lamps.dim <= 0.4 && !lamps.east && !lamps.stair, JSON.stringify(lamps));
+    const dimMin = await t.sampleMin(4, "game.furn.lamps.find((l) => l.id === 'sconceP').driver()", 0.05);
+    t.check('loop 3: dim sconce flickers', dimMin < 0.1, `min ${dimMin.toFixed(3)}`);
     await route(t, async (p) => {
-      if (p === 'R2') { s = await t.state(); t.check('loop 3: before the bathroom door, door 9 still open', s.store.open); await t.shot('loop3_hall_open'); }
-      if (p === 'pastBath') { s = await t.state(); t.check('loop 3: past the bathroom door, door 9 slammed + locked', !s.store.open && s.store.locked); }
+      if (p === 'R1') await t.shot('loop3_R1');
+      if (p === 'pastBath') { s = await t.state(); t.check('loop 3: past the bathroom door, door 9 still open', s.store.open); await t.shot('loop3_hall_open'); }
+      if (p === 'door9') { s = await t.state(); t.check('loop 3: near door 9, it slammed + locked', !s.store.open && s.store.locked); }
     });
     await t.aim('store'); await t.press('KeyE'); await t.advance(1);
     s = await t.state(); t.check('loop 3: E does not open door 9', !s.store.open && s.store.locked);
     await t.teleport(6, -4.6, R / 2);
-    const rattle = await t.sampleMax(4, 'Math.abs(game.doors.bath.handle.rotation.z)', 0.05);
-    const knocksFar = await t.eval(() => game.knockScene.knocks);
-    t.check('loop 3: bathroom handle rattles while far, no knocks', rattle > 0.1 && knocksFar === 0, `rattle=${rattle.toFixed(2)}`);
-    await t.teleport(1.9, -4.6, R); await t.advance(5);
-    const k = await t.eval(() => ({ knocks: game.knockScene.knocks, phase: game.knockScene.phase }));
-    t.check('loop 3: close → exactly five knocks, then silence', k.knocks === 5 && k.phase === 'done', JSON.stringify(k));
+    const rattle = await t.sampleMax(6, 'Math.abs(game.doors.bath.handle.rotation.z)', 0.05);
+    let k = await t.eval(() => ({ knocks: game.knockScene.knocks, phase: game.knockScene.phase }));
+    t.check('loop 3: bathroom handle keeps rattling, no knocks', rattle > 0.1 && k.knocks === 0 && k.phase === 'rattle', `rattle=${rattle.toFixed(2)} ${JSON.stringify(k)}`);
+    await t.teleport(1.9, -4.6, R); await t.advance(3);
+    k = await t.eval(() => ({ knocks: game.knockScene.knocks, phase: game.knockScene.phase }));
+    t.check('loop 3: close by, still only rattling (waits for E)', k.knocks === 0 && k.phase === 'rattle', JSON.stringify(k));
+    await t.aim('bath'); await t.press('KeyE'); await t.advance(1.5);
+    k = await t.eval(() => ({ knocks: game.knockScene.knocks, phase: game.knockScene.phase }));
+    t.check('loop 3: E on the bathroom door → five blows within 1.5 s', k.knocks === 5 && k.phase === 'done', JSON.stringify(k));
+    const after = await t.sampleMax(3, 'Math.abs(game.doors.bath.handle.rotation.z)', 0.05);
+    t.check('loop 3: then silence (no more rattling)', after < 0.01, `rattle=${after.toFixed(3)}`);
     await t.shot('loop3_bath');
   },
 };
