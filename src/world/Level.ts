@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Physics } from '../engine/Physics';
 import type { Assets } from '../engine/Assets';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { worldBox, pbrMaterial, makeWet, makeGrime, stainTexture, decal, waterNormalTexture } from './Materials';
 import { buildWindow } from './Window';
 import {
@@ -65,12 +66,62 @@ export class Level {
     this.stairwell.add(...this.group.children.slice(n0));
     this.group.add(this.stairwell);
     this.buildStains();
+    this.mergeStatic(this.group);
+    this.mergeStatic(this.stairwell);
     return this;
+  }
+
+  /**
+   * Static merge: opaque meshes sharing a material (and shadow flags / zone) become one mesh — hundreds of wall/trim boxes
+   * collapse into a handful of draw calls. Positions are baked into world space (the wet/grime shaders already work on
+   * world positions, UVs are per-box), multi-material boxes are split per face. Transparent meshes (decals) stay as they are.
+   * Colliders are separate and untouched.
+   */
+  private mergeStatic(parent: THREE.Object3D) {
+    const ATTRS = 'normal,position,uv,uv1';
+    type Bucket = { mat: THREE.Material; cast: boolean; recv: boolean; zone: 'c' | 'r' | null; geos: THREE.BufferGeometry[] };
+    const buckets = new Map<string, Bucket>();
+    const merged: THREE.Mesh[] = [];
+    const corridor = new Set(this.corridorMeshes);
+    const room = new Set(this.roomMeshes);
+    for (const child of [...parent.children]) {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh) continue;
+      const geo = mesh.geometry;
+      if (Object.keys(geo.attributes).sort().join() !== ATTRS) continue;
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      if (mats.some((m) => m.transparent)) continue;
+      mesh.updateMatrix();
+      const parts = Array.isArray(mesh.material) ? geo.groups.map((g) => ({ start: g.start, count: g.count, mat: mats[g.materialIndex ?? 0] }))
+        : [{ start: 0, count: geo.index ? geo.index.count : geo.attributes.position.count, mat: mats[0] }];
+      const zone = corridor.has(mesh) ? 'c' : room.has(mesh) ? 'r' : null;
+      for (const p of parts) {
+        let pg = new THREE.BufferGeometry();
+        for (const name of ATTRS.split(',')) pg.setAttribute(name, geo.attributes[name]);
+        if (geo.index) pg.setIndex(Array.from(geo.index.array.slice(p.start, p.start + p.count)));
+        pg = pg.index ? pg.toNonIndexed() : pg;
+        pg.applyMatrix4(mesh.matrix);
+        const key = `${p.mat.uuid}|${mesh.castShadow}|${mesh.receiveShadow}|${zone}`;
+        const b = buckets.get(key) ?? { mat: p.mat, cast: mesh.castShadow, recv: mesh.receiveShadow, zone, geos: [] };
+        b.geos.push(pg); buckets.set(key, b);
+      }
+      parent.remove(mesh); geo.dispose(); merged.push(mesh);
+    }
+    const gone = new Set(merged);
+    this.corridorMeshes.splice(0, this.corridorMeshes.length, ...this.corridorMeshes.filter((m) => !gone.has(m)));
+    this.roomMeshes.splice(0, this.roomMeshes.length, ...this.roomMeshes.filter((m) => !gone.has(m)));
+    for (const b of buckets.values()) {
+      const m = new THREE.Mesh(mergeGeometries(b.geos, false)!, b.mat);
+      m.castShadow = b.cast; m.receiveShadow = b.recv;
+      parent.add(m);
+      if (b.zone === 'c') this.corridorMeshes.push(m); else if (b.zone === 'r') this.roomMeshes.push(m);
+    }
   }
 
   // ---------------------------------------------------------------- helpers
   private box(w: number, h: number, d: number, mat: Mat | Mat[], pos: THREE.Vector3, tile: number, zone: 'c' | 'r', collide = true) {
-    const m = new THREE.Mesh(worldBox(w, h, d, tile), mat);
+    // six identical face materials = one material: one draw call instead of six
+    const m = new THREE.Mesh(worldBox(w, h, d, tile), Array.isArray(mat) && mat.every((x) => x === mat[0]) ? mat[0] : mat);
     m.position.copy(pos);
     m.castShadow = true;
     m.receiveShadow = true;

@@ -53,12 +53,25 @@ export class Session {
   summary() { const f = this.results.filter((r) => !r.ok).length; console.log(`\n[${this.label}] ${this.results.length - f}/${this.results.length} passed`); return f; }
 }
 
-/** Open the game, start it, skip the intro, pause the real-time loop. */
-export async function openGame(browser, { base, q, label, shots, context }) {
-  const page = await (context ?? browser).newPage(context ? undefined : { viewport: { width: 640, height: 360 } });
+/**
+ * Deterministic page: the real-time loop is held from the moment `window.game` is created (so only `debugAdvance` moves time)
+ * and `Math.random` is seeded (same flicker, roaches, drips on every run → comparable images and numbers).
+ */
+export async function newTestPage(browser, { context, viewport = { width: 640, height: 360 } } = {}) {
+  const page = await (context ?? browser).newPage(context ? undefined : { viewport });
   page.on('pageerror', (e) => console.log(`[pageerror] ${e.message}`));
+  await page.addInitScript(() => {
+    let s = 12345; Math.random = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    let g; Object.defineProperty(window, 'game', { configurable: true, get: () => g, set: (v) => { g = v; v.debugHold(); } });
+  });
+  return page;
+}
+
+/** Open the game, press Start, skip the intro (unless `intro: true`). The real-time loop stays held. */
+export async function openGame(browser, { base, q, label, shots, context, intro = false, viewport }) {
+  const page = await newTestPage(browser, { context, viewport });
   await page.goto(`${base}?q=${q}`);
   await page.waitForFunction(() => window.__ready, null, { timeout: 600000 });
-  await page.evaluate(() => { document.getElementById('start').click(); game.debugIntro(16); game.debugHold(); game.debugAdvance(0.2); });
+  await page.evaluate((intro) => { document.getElementById('start').click(); if (intro) game.debugAdvance(2); else { game.debugIntro(16); game.debugAdvance(0.2); } }, intro);
   return new Session(page, { label, shots });
 }

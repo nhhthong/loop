@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "e2e": "node e2e/run.mjs",
-    "e2e:touch": "node e2e/touch.mjs"
+    "e2e:touch": "node e2e/touch.mjs",
+    "bench": "node e2e/bench.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",

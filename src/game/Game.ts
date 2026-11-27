@@ -14,6 +14,7 @@ import { ROACHES, ROACH_MODELS } from '../data/creatures';
 import { Level } from '../world/Level';
 import { furnish, type Furnished } from '../world/Furnish';
 import { buildHouseDoors, type HouseDoors } from '../world/HouseDoors';
+import { Door } from '../world/Door';
 import { bakeProbes } from '../world/Probes';
 import { Drips } from '../world/Atmosphere';
 import { Cockroaches } from '../world/Cockroaches';
@@ -34,6 +35,7 @@ import { BathDoorSequence } from '../sequences/BathDoorSequence';
 import { ToiletKnockSequence } from '../sequences/ToiletKnockSequence';
 import { BrokenLightsSystem } from '../systems/BrokenLightsSystem';
 import { PortalSystem } from '../systems/PortalSystem';
+import { ZoneVisibility } from '../systems/ZoneVisibility';
 import { PendantSystem } from '../systems/PendantSystem';
 import { WaterSystem } from '../systems/WaterSystem';
 import { LoopDirector } from '../systems/LoopDirector';
@@ -187,6 +189,16 @@ export class Game {
     for (const l of this.furn.lamps) if (l.tag === 'leak') l.driver = () => (D.basement.isOpen ? 0 : 1);
 
     lighting.extraFocus.push(() => this.portal.viewPoint()); // pooled lights must also light what the portal shows
+    // basement ↔ house culling: hide what cannot be seen through the shut door wall
+    const merged = new Set<THREE.Object3D>([...this.level.corridorMeshes, ...this.level.roomMeshes, this.level.stairwell]);
+    const zones = new ZoneVisibility(P, () => D.basement.ajar)
+      .add(this.level.group.children.filter((c) => !(c as THREE.Light).isLight && !merged.has(c)))
+      .add(roaches.objects);
+    zones.onShow = () => lighting.invalidateShadows();
+    // moving shadow casters: shadow maps are cached and refreshed only when one of these moves near a light
+    lighting.addCasters(() => D.all.filter((d): d is Door => d instanceof Door).map((d) => d.pivot));
+    lighting.addCasters(() => (this.furn.fan ? [this.furn.fan.blades ?? this.furn.fan.root] : []));
+    lighting.addCasters(() => roaches.objects);
     const fan = new FanSystem(this.furn.fan), pendants = new PendantSystem(this.furn.lamps), water = new WaterSystem(this.level.flowing);
     this.menu = new MenuScene(P, this.renderer, this.ui, this.furn.lamps.find((l) => l.id === 'floorLamp'), () => this.start());
     // the menu backdrop only needs the scene to look alive: camera drift, lights, fan, swaying bulb, water
@@ -198,6 +210,7 @@ export class Game {
       P,
       { update: (dt) => this.physics.step(dt) },
       this.portal,
+      zones,
       triggers,
       interaction,
       ...D.all,
@@ -282,7 +295,8 @@ export class Game {
     requestAnimationFrame(this.loop);
     if (!this.governor.tick(now)) return; // frame cap (mobile)
     const dt = Math.min(this.clock.getDelta(), 1 / 20);
-    if (this.mode === 'loading' || this.paused || this.held) { this.input.endFrame(); return; }
+    if (this.held) return; // tests drive time and input (debugAdvance); a held frame must not clear injected key presses
+    if (this.mode === 'loading' || this.paused) { this.input.endFrame(); return; }
     this.step(dt);
     this.stats?.begin();
     this.renderer.render(dt);
