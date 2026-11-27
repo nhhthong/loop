@@ -72,6 +72,11 @@ export async function openGame(browser, { base, q, label, shots, context, intro 
   const page = await newTestPage(browser, { context, viewport });
   await page.goto(`${base}?q=${q}`);
   await page.waitForFunction(() => window.__ready, null, { timeout: 600000 });
+  // staged loading: right after stage 1 the basement door must be locked unless stage 2 already finished
+  const stage = await page.evaluate(() => ({ loaded: !!window.__loaded, basementLocked: game.doors.basement.locked }));
+  await page.waitForFunction(() => window.__loaded, null, { timeout: 600000 });
   await page.evaluate((intro) => { document.getElementById('start').click(); if (intro) game.debugAdvance(2); else { game.debugIntro(16); game.debugAdvance(0.2); } }, intro);
-  return new Session(page, { label, shots });
+  const s = new Session(page, { label, shots });
+  s.stageAtReady = stage;
+  return s;
 }

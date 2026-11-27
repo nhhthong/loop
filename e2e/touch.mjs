@@ -18,7 +18,7 @@ const center = (sel) => page.evaluate((s) => { const r = document.querySelector(
 const visible = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; }, sel);
 
 await page.goto(base);
-await page.waitForFunction(() => window.__ready, null, { timeout: 600000 });
+await page.waitForFunction(() => window.__loaded, null, { timeout: 600000 });
 t.check('touch device → mobile profile, no quality selector', await page.evaluate(() => document.body.classList.contains('touch')) && !(await visible('#quality')));
 t.check('touch UI hidden in the menu', !(await visible('#t-stick')));
 const [sx, sy] = await center('#start');

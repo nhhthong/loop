@@ -25,7 +25,9 @@ let assetBytes = 0;
 page.on('response', (r) => { if (/\/(models|textures|audio)\//.test(r.url())) assetBytes += +(r.headers()['content-length'] ?? 0); });
 await page.goto(`${base}?q=${q}`);
 await page.waitForFunction(() => window.__ready, null, { timeout: 600000 });
-const loadedBytes = assetBytes;
+const loadedBytes = assetBytes; // stage 1 (Start enabled); stage 2 continues in the background
+await page.waitForFunction(() => window.__loaded, null, { timeout: 600000 });
+const allBytes = assetBytes;
 let jsBytes = 0;
 if (existsSync('dist/assets')) for (const f of readdirSync('dist/assets')) if (f.endsWith('.js')) jsBytes += gzipSync(readFileSync(`dist/assets/${f}`)).length; // JS is served compressed (GitHub Pages gzips it)
 const mb = (loadedBytes + jsBytes) / 1e6;
@@ -57,7 +59,7 @@ await browser.close();
 console.log(`\n[${q}] view          calls    tris   lights shadow   ms(sw)`);
 for (const r of rows) console.log(`${r.name.padEnd(16)} ${String(r.calls).padStart(6)} ${String(r.tris).padStart(7)} ${String(r.lights).padStart(6)} ${String(r.shadow).padStart(6)} ${r.ms.toFixed(0).padStart(8)}`);
 const worst = { calls: Math.max(...rows.map((r) => r.calls)), tris: Math.max(...rows.map((r) => r.tris)), lights: Math.max(...rows.map((r) => r.lights)), shadowLights: Math.max(...rows.map((r) => r.shadow)), mb };
-console.log(`worst: ${worst.calls} calls · ${(worst.tris / 1e6).toFixed(2)} M tris · ${worst.lights} lights · ${worst.shadowLights} shadow lights · first load ${mb.toFixed(1)} MB (assets ${(loadedBytes / 1e6).toFixed(1)} + js ${(jsBytes / 1e6).toFixed(1)} gz)`);
+console.log(`worst: ${worst.calls} calls · ${(worst.tris / 1e6).toFixed(2)} M tris · ${worst.lights} lights · ${worst.shadowLights} shadow lights · first load ${mb.toFixed(1)} MB (assets ${(loadedBytes / 1e6).toFixed(1)} + js ${(jsBytes / 1e6).toFixed(1)} gz; stage 2 adds ${((allBytes - loadedBytes) / 1e6).toFixed(1)} MB in the background)`);
 
 let over = 0;
 for (const [k, label] of [['calls', 'draw calls'], ['tris', 'triangles'], ['lights', 'lights'], ['shadowLights', 'shadow lights'], ['mb', 'first load MB']]) {

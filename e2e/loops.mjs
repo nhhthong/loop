@@ -38,6 +38,8 @@ export async function pass(t, n) {
 
 export const LOOPS = {
   1: async (t, q) => {
+    const st = t.stageAtReady;
+    t.check('staged loading: basement door locked until stage 2, then unlocked', (st.loaded || st.basementLocked) && !(await t.state()).basement.locked, JSON.stringify(st));
     let s = await t.state(); t.check('loop 1: radio present & silent', s.loop === 1 && !s.radioPlaying);
     for (const [name, x, z, yaw, y, axis] of [['stairwell', 12.5, -4.5, EAST, -0.6, 'x'], ['house stair', 4.0, -2.2, NORTH, 1.2, 'z']]) {
       await t.view(x, z, yaw, 0, y); await t.advance(0.6);

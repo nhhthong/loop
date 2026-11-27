@@ -25,6 +25,8 @@ export interface PropSpec {
   tint?: number;
   /** dust/age: blend albedo towards grey-brown and raise roughness */
   age?: number;
+  /** stage-2 prop: loaded in the background after Start is enabled (not visible from the menu, the basement or R1) */
+  late?: boolean;
 }
 
 /** Load, normalise (scale/orient), age and place a GLB prop. Returns the placed root. */
