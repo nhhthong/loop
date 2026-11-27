@@ -37,14 +37,16 @@ export interface QualitySettings {
   shadowBudget: number;
 }
 
-const DESKTOP = { lightPool: 0, wetLite: false, fpsCap: 0, portalScale: 1, shadowBudget: 3 } as const;
+const DESKTOP = { lightPool: 0, wetLite: false, fpsCap: 0, portalScale: 0.5, shadowBudget: 3 } as const;
 const fixed = (pr: number): [number, number] => [pr, pr];
+/** desktop medium/high: drop to 0.75x only while frames miss the 60 FPS budget (FrameGovernor) */
+const adaptive = (pr: number): [number, number] => [pr * 0.75, pr];
 const MOBILE_PR = Math.min(window.devicePixelRatio, 2);
 
 const PRESETS: Record<QualityLevel, Omit<QualitySettings, 'level'>> = {
   low: { pixelRatio: 0.75, shadows: false, shadowProxy: true, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false, texDir: '/1k', probeSize: 64, anisotropy: 1, ...DESKTOP, lightPool: 8, scaleRange: fixed(0.75) },
-  medium: { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadows: true, shadowProxy: false, shadowMap: 512, ao: true, aoQuality: 'Low', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, anisotropy: 4, ...DESKTOP, scaleRange: fixed(Math.min(window.devicePixelRatio, 1.5)) },
-  high: { pixelRatio: Math.min(window.devicePixelRatio, 2), shadows: true, shadowProxy: false, shadowMap: 1024, ao: true, aoQuality: 'Medium', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 256, anisotropy: 16, ...DESKTOP, scaleRange: fixed(Math.min(window.devicePixelRatio, 2)) },
+  medium: { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadows: true, shadowProxy: false, shadowMap: 512, ao: true, aoQuality: 'Performance', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 128, anisotropy: 4, ...DESKTOP, scaleRange: adaptive(Math.min(window.devicePixelRatio, 1.5)) },
+  high: { pixelRatio: Math.min(window.devicePixelRatio, 2), shadows: true, shadowProxy: false, shadowMap: 1024, ao: true, aoQuality: 'Medium', dof: true, bloom: true, smaa: true, texDir: '', probeSize: 256, anisotropy: 16, ...DESKTOP, scaleRange: adaptive(Math.min(window.devicePixelRatio, 2)) },
   // phones/tablets: one fixed profile tuned for a stable 30 fps — no shadows or heavy post, pooled lights, adaptive resolution
   mobile: {
     pixelRatio: MOBILE_PR * 0.8, shadows: false, shadowProxy: false, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false,

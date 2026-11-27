@@ -6,6 +6,7 @@ import {
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { Q } from './Quality';
+import { setNoiseBakeRenderer } from '../world/Materials';
 
 /** Muted grade: low saturation, near-neutral warm grey with a faint olive cast (owner's reference stills). */
 class GradeEffect extends Effect {
@@ -55,6 +56,7 @@ export class Renderer {
     r.shadowMap.enabled = Q.shadows || Q.shadowProxy;
     r.shadowMap.type = THREE.PCFShadowMap; // crisp, hard-edged shadows
     this.renderer = r;
+    setNoiseBakeRenderer(r);
 
     const composer = new EffectComposer(r, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     composer.addPass(new RenderPass(scene, camera));
