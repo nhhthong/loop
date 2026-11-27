@@ -106,6 +106,9 @@ export class Door implements DoorLike {
   /** World position of the knob (for the hand reach / interaction ray). */
   handleWorld(out = new THREE.Vector3()) { return this.handle.getWorldPosition(out); }
 
+  /** open, or still swinging shut */
+  get ajar() { return this.isOpen || this.angle > 0.02; }
+
   open() {
     if (this.isOpen) return;
     this.isOpen = true;

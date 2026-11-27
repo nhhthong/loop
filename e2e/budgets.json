@@ -1,0 +1,7 @@
+{
+  "_doc": "Budgets checked by `npm run bench` (numbers explained in specs/006-performance/budget.md). null = not checked.",
+  "mobile": { "calls": 600, "tris": 500000, "lights": 6, "shadowLights": 0, "mb": 20 },
+  "low": { "calls": 600, "tris": 800000, "lights": null, "shadowLights": 1, "mb": 25 },
+  "medium": { "calls": 900, "tris": 1200000, "lights": null, "shadowLights": 3, "mb": null },
+  "high": { "calls": 900, "tris": 1200000, "lights": null, "shadowLights": 3, "mb": null }
+}

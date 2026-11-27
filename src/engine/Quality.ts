@@ -33,9 +33,11 @@ export interface QualitySettings {
   scaleRange: [number, number];
   /** portal render target size relative to the drawing buffer */
   portalScale: number;
+  /** max shadow maps re-rendered per frame (shadow cache, LightingSystem) */
+  shadowBudget: number;
 }
 
-const DESKTOP = { lightPool: 0, wetLite: false, fpsCap: 0, portalScale: 1 } as const;
+const DESKTOP = { lightPool: 0, wetLite: false, fpsCap: 0, portalScale: 1, shadowBudget: 3 } as const;
 const fixed = (pr: number): [number, number] => [pr, pr];
 const MOBILE_PR = Math.min(window.devicePixelRatio, 2);
 
@@ -46,7 +48,7 @@ const PRESETS: Record<QualityLevel, Omit<QualitySettings, 'level'>> = {
   // phones/tablets: one fixed profile tuned for a stable 30 fps — no shadows or heavy post, pooled lights, adaptive resolution
   mobile: {
     pixelRatio: MOBILE_PR * 0.8, shadows: false, shadowProxy: false, shadowMap: 512, ao: false, aoQuality: 'Performance', dof: false, bloom: false, smaa: false,
-    texDir: '/1k', probeSize: 64, anisotropy: 1, lightPool: 5, wetLite: true, fpsCap: 30, scaleRange: [MOBILE_PR * 0.6, MOBILE_PR], portalScale: 0.5,
+    texDir: '/512', probeSize: 64, anisotropy: 1, lightPool: 5, wetLite: true, fpsCap: 30, scaleRange: [MOBILE_PR * 0.6, MOBILE_PR], portalScale: 0.5, shadowBudget: 0,
   },
 };
 

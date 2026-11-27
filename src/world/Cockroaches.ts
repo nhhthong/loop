@@ -20,6 +20,8 @@ const AX = ['x', 'y', 'z'] as const;
 
 export class Cockroaches {
   private roaches: Roach[] = [];
+  /** the crawling roach roots (moving shadow casters for the shadow cache) */
+  get objects(): THREE.Object3D[] { return this.roaches.map((r) => r.obj); }
   private tmpM = new THREE.Matrix4();
 
   constructor(private readonly parent: THREE.Object3D, private readonly audio: AudioSys) {}
