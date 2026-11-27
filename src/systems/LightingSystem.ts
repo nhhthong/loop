@@ -19,6 +19,8 @@ export class LightingSystem implements System {
   private bulbOut = 0;
   private proxy: THREE.PointLight | null = null;
   private proxyFor = -1;
+  /** overrides the player's eye as the point the pool/shadows care about (probe baking) */
+  private focus: THREE.Vector3 | null = null;
   /** light pool slots: which lamp each pooled light currently shows, and its fade (0..1) */
   private readonly pool: { light: THREE.PointLight; lamp: number; fade: number }[] = [];
   /** other places the pool must light (what a portal shows, an event's spot); each returns null when inactive */
@@ -46,6 +48,15 @@ export class LightingSystem implements System {
     }
   }
 
+  /**
+   * Show the lamps around `pos` at full strength (pooled lights only exist for the lamps near the player, so a reflection
+   * probe baked before the first frame would see a dark house). `null` returns to normal.
+   */
+  focusPool(pos: THREE.Vector3 | null) {
+    this.focus = pos;
+    if (pos && this.pool.length) { this.update(1); this.update(1); } // two steps: assign slots, then fade them in
+  }
+
   /** Re-render every shadow map soon (e.g. after hidden casters became visible again). */
   invalidateShadows() { for (const e of this.shadowed) e.dirty = true; }
 
@@ -54,7 +65,7 @@ export class LightingSystem implements System {
 
   update(dt: number) {
     const t = (this.time += dt);
-    const pp = this.player.eyePos(); // the camera (also right in the menu, where the body stays put)
+    const pp = this.focus ?? this.player.eyePos(); // the camera (also right in the menu, where the body stays put)
     this.lamps.forEach((l, i) => {
       let k = 1;
       const corridor = l.tag === 'corridor';
@@ -108,7 +119,7 @@ export class LightingSystem implements System {
    * rendered by the K pooled lights; a lamp leaving fades out before its slot is reused, a newcomer fades in.
    */
   private updatePool(dt: number) {
-    const p = this.player.eyePos(), qs = this.extraFocus.map((f) => f()).filter((q): q is THREE.Vector3 => !!q);
+    const p = this.focus ?? this.player.eyePos(), qs = this.extraFocus.map((f) => f()).filter((q): q is THREE.Vector3 => !!q);
     const d2 = (v: THREE.Vector3) => qs.reduce((m, q) => Math.min(m, v.distanceToSquared(q)), v.distanceToSquared(p));
     const member = new Set(this.pool.filter((s) => s.lamp >= 0 && s.fade > 0).map((s) => s.lamp));
     const wanted = this.lamps

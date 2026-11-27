@@ -6,9 +6,10 @@ import { CORRIDOR, DIV_Z } from '../data/layout';
  * Bake two reflection probes (house & corridor) so wet concrete and polished wood reflect their surroundings.
  * The house probe is the scene environment; corridor meshes (and loose corridor meshes parented to the scene) get the corridor one.
  */
-export function bakeProbes(renderer: THREE.WebGLRenderer, scene: THREE.Scene, corridorMeshes: THREE.Mesh[]) {
+export function bakeProbes(renderer: THREE.WebGLRenderer, scene: THREE.Scene, corridorMeshes: THREE.Mesh[], prepare: (pos: THREE.Vector3) => void = () => {}) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   const bake = (pos: THREE.Vector3) => {
+    prepare(pos);
     const rt = new THREE.WebGLCubeRenderTarget(Q.probeSize, { type: THREE.HalfFloatType });
     const cam = new THREE.CubeCamera(0.05, 30, rt);
     cam.position.copy(pos);
