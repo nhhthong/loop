@@ -30,6 +30,7 @@ export class Session {
   async sampleMax(sec, probe, slice = 0.1) {
     return this.eval(([sec, src, slice]) => { const f = new Function('game', `return (${src})`); let m = -Infinity; for (let t = 0; t < sec; t += slice) { game.debugAdvance(slice); m = Math.max(m, f(game)); } return m; }, [sec, probe, slice]);
   }
+  async sampleMin(sec, probe, slice = 0.1) { return -(await this.sampleMax(sec, `-(${probe})`, slice)); }
   /** debugView = place + reset camera/control (use between scenes); teleport = place only (keeps running sequences intact) */
   view(x, z, yaw, pitch = 0, y = 0) { return this.eval((a) => { game.debugView(a[0], a[1], a[2], a[3], 1.62, a[4]); game.player.lookEnabled = true; game.debugAdvance(0.1); }, [x, z, yaw, pitch, y]); }
   teleport(x, z, yaw, y = 0) { return this.eval((a) => { game.debugTeleport(...a); game.debugAdvance(0.1); }, [x, z, yaw, y]); }

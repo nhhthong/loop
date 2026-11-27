@@ -13,9 +13,9 @@
 | Topic | Decision |
 |---|---|
 | Reaching loop 3 | Door 9 opens again in loop 2; the same stairwell/portal pass leads into loop 3. |
-| Failing lights | Every house lamp, for the whole of loop 3: irregular flicker, blackouts of 0.2–1 s, rapid on/off bursts, electric crackles nearby. |
-| Door 9 | Wide open at the start of loop 3. Slams shut (loud slam) the moment the player walks past the bathroom door in R2; no camera takeover. Locked afterwards (E only rattles). |
-| Bathroom door | Stays shut and locked from loop 2. After the slam its handle rattles every 1–2 s; once the player has walked away (≥ 3.5 m) and comes back within 1.6 m, the rattling stops, then 5 evenly spaced knocks (leaf jolts with each), then silence. (The slam happens right beside the bathroom, so 'coming close' must follow walking away; if the player lingers nearby, knocks start after 6 s of rattling.) |
+| Failing lights | ~~Every house lamp flickers for the whole loop~~ → (2026-11-27) the house lamps stutter 1.2–3 s, then die for good (crackle); only the R1 wall sconce (`sconceP`) keeps burning low (40 %) with a nervous flicker; the door-9 and stair bulbs stay lit as the lure. Lamp shades' self-glow and the probe fill dim with the lamps. |
+| Door 9 | Wide open at the start of loop 3. ~~Slams when passing the bathroom door~~ → (2026-11-27) slams in the player's face when they come within 2 m of it (stair in view); no camera takeover. Locked afterwards (E only rattles). |
+| Bathroom door | Stays shut and locked from loop 2. ~~Rattles every 1–2 s; 5 slow knocks on coming back close~~ → (2026-11-27) after the slam its handle rattles without pause (locked-door sound) until the player presses E on it: the rattling stops and 5 violent, loud blows within 1.5 s shake the leaf, then silence. |
 | Radio | Silent in loop 3. |
 | End | Door 9 stays locked: end of Phase 3 content. |
 
