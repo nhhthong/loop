@@ -87,3 +87,8 @@ document.getElementById('credits-link')!.addEventListener('click', async (e) => 
   credits.classList.remove('hidden');
 });
 credits.addEventListener('click', () => credits.classList.add('hidden'));
+
+// repeat visits load bundles/models/textures/audio from the service worker cache (sw.js is emitted by vite.config.ts at build)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {}); });
+}
