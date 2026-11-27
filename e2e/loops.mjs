@@ -51,6 +51,16 @@ export const LOOPS = {
       await t.view(14.0, -4.5, EAST, 0, -2.04); await t.advance(1);
       t.check('mobile: stair bulb lit by the pool', await lit(11, 14, -1));
     }
+    if (q === 'low') { // shadow cache (LightingSystem): idle = no re-render; a door swinging (rotation only) near the shadow light = re-render
+      await t.view(8.5, -4.5, EAST); await t.advance(1.5);
+      const r = await t.eval(() => {
+        const L = game.scene.children.find((o) => o.isPointLight && o.castShadow);
+        L.shadow.needsUpdate = false; game.debugAdvance(0.5); const idle = L.shadow.needsUpdate;
+        L.shadow.needsUpdate = false; game.doors.store.open(); game.debugAdvance(0.5); return { idle, moving: L.shadow.needsUpdate };
+      });
+      t.check('shadow cache: idle scene does not re-render, a swinging door does', !r.idle && r.moving, JSON.stringify(r));
+      await t.eval(() => { game.doors.store.close(); game.debugAdvance(3); });
+    }
     await t.view(0, 1.2, NORTH);
     await route(t, async (p) => {
       if (p === 'R2') { const s = await t.state(); t.check('loop 1: no bathroom scene', s.control === 1 && !s.bath.locked); }

@@ -39,3 +39,6 @@ description: "Task list for the performance phase"
 - [X] e2e fix: a held loop no longer clears injected key presses (flaky touch test)
 - Open (next performance round): KTX2 trial (needs `toktx`/basisu), Meshopt, staged loading, service worker, bundle split + parallel shader compile,
   instancing, desktop light pool / wet mask bake, adaptive scale + cheaper AO on desktop. Medium/High need an owner check on real hardware.
+
+## Post-release fixes
+- [X] F001 Shadow cache missed rotation-only movement (door leaves swing about their hinge, fan blades spin in place) → bath door / fan shadows stayed stale: casters are now compared by full world matrix; e2e `shadow cache: idle scene does not re-render, a swinging door does` (fails on the old code)

@@ -7,7 +7,8 @@ import { configureShadow, type Lamp } from '../world/Furnish';
 const SHADOW_REFRESH_DIST = 7;
 const PROXY_HYSTERESIS = 1.3;
 const POOL_FADE = 0.3; // s: a lamp fades in/out when it joins/leaves the light pool
-const MOVE_EPS2 = 1e-6; // m²: a light/caster counts as moved after ~1 mm
+const MOVE_EPS2 = 1e-6; // m²: a light counts as moved after ~1 mm
+const MATRIX_EPS = 1e-4; // a caster counts as moved when any world-matrix element changes by this much
 
 /**
  * Lamp flicker, corridor bulb drop-outs, per-lamp drivers, shadow refresh gating, the `low`-quality shadow proxy and,
@@ -26,7 +27,7 @@ export class LightingSystem implements System {
    * Shadow cache: a shadow map is re-rendered only when its light moved or a registered moving caster (door leaf, fan, roach…)
    * came within its range — at most `Q.shadowBudget` maps per frame, most stale first — instead of every frame.
    */
-  private readonly casters: { get: () => THREE.Object3D[]; last: Map<THREE.Object3D, THREE.Vector3> }[] = [];
+  private readonly casters: { get: () => THREE.Object3D[]; last: Map<THREE.Object3D, Float32Array> }[] = [];
   private readonly shadowed: { light: THREE.PointLight; last: THREE.Vector3 | null; dirty: boolean; age: number }[] = [];
 
   /** `holdCorridor`: while true the corridor bulb burns steady (wake-up). */
@@ -75,17 +76,18 @@ export class LightingSystem implements System {
   }
 
   private readonly movedAt: THREE.Vector3[] = [];
-  private readonly tmp = new THREE.Vector3();
 
   private updateShadowCache(eye: THREE.Vector3) {
     if (!this.shadowed.length) return;
     // which registered casters moved since the last frame?
     this.movedAt.length = 0;
     for (const c of this.casters) for (const o of c.get()) {
-      const p = this.tmp.setFromMatrixPosition(o.matrixWorld);
-      const prev = c.last.get(o);
-      if (!prev) c.last.set(o, p.clone());
-      else if (prev.distanceToSquared(p) > MOVE_EPS2) { prev.copy(p); this.movedAt.push(p.clone()); }
+      // the whole world matrix: a door leaf swings about its hinge and fan blades spin in place — rotation only, the origin stays put
+      const m = o.matrixWorld.elements, prev = c.last.get(o);
+      if (!prev) { c.last.set(o, Float32Array.from(m)); continue; }
+      let moved = false;
+      for (let i = 0; i < 16; i++) if (Math.abs(prev[i] - m[i]) > MATRIX_EPS) { moved = true; break; }
+      if (moved) { prev.set(m); this.movedAt.push(new THREE.Vector3().setFromMatrixPosition(o.matrixWorld)); }
     }
     const due: typeof this.shadowed = [];
     for (const e of this.shadowed) {
