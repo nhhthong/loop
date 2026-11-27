@@ -127,26 +127,29 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   with mutable `base` and optional `driver`), `fixtures` (fan, digital clock, planter, pipes, bulbs), `Probes`, `Cockroaches`, `Atmosphere` (drips).
 - `src/gameplay` — `Interactable` (look-at + E), `DoorInteraction` (open sequence / locked rattle, `shutAndLock`, `onOpen` link), `TriggerZone`, `loops` (per-loop events).
 - `src/systems` — `InteractionSystem`, `TriggerSystem`, `LightingSystem` (flicker, drivers, shadow gating, low-quality shadow proxy), `FanSystem`, `AmbienceSystem`,
-  `PortalSystem` (render-target doorway + `Player.transport`), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`.
-- `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks).
+  `PortalSystem` (render-target doorway + `Player.transport`), `PendantSystem` (swaying bulbs), `WaterSystem` (scrolling water normals), `LoopDirector`,
+  `BrokenLightsSystem` (failing wiring via `Lamp.driver`).
+- `src/sequences` — `MenuScene` (live 3D menu backdrop: R6 alcove, slow camera drift; Start → floor lamp flickers, blackout, intro), `IntroSequence` (wake-up timeline; `start/seek/stop`), `BathDoorSequence` (loop 2: camera turns, door closes slowly, locks), `ToiletKnockSequence` (loop 3: rattling, 5 knocks).
 - `src/ui` — `UI` (lids, prompt, hint, crosshair), `Stats` (`?stats`), `TouchControls` (mobile: left stick → `Input.moveX/Y`, drag → `Input.look`, E → `Input.press`, pause).
 - `src/player` — `Player` (Rapier kinematic capsule, keys + analog stick, footsteps by `surfaceAt`), `Hands` (runtime auto-rig of a photogrammetry hand scan).
-- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`.
+- Dev hooks used by screenshot scripts: `game.debugView(x, z, yaw, pitch, eye?, y?)`, `game.debugIntro(t)`, `game.door` (basement door), `game.director`, `game.portal`, `game.knockScene`.
 
 ### The loop (Phase 2)
 - Pass: door 9 → stairwell (door 9 shuts + locks behind on the stair) → stair-bottom door (opens together with the real basement door)
   → portal → basement doorway → basement door shuts + locks (trigger re-arms every pass) → `LoopDirector.enteredHouse()` → next loop.
 - Per-loop content lives only in `src/gameplay/loops.ts` (`loopEvents`), acting through named handles (`HouseDoors`, `furn.props`,
-  `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`. Door 9 stays locked after the first pass.
+  `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`; door 9 unlocked again.
+  Loop 3: radio silent; all house lamps failing (`BrokenLightsSystem`); door 9 wide open → slams + locks when the player passes the bathroom
+  door; then `ToiletKnockSequence` (handle rattles; after walking away ≥ 3.5 m and coming back within 1.6 m: 5 knocks, silence). Door 9 stays locked: end of Phase 3.
 - New interactions = an `Interactable` in `InteractionSystem`; position events = a `TriggerZone`; timed scripts = a `System` with `seg`/`crossed`.
-- Specs: `specs/002-phase2-loop-two/`.
+- Specs: `specs/002-phase2-loop-two/`, `specs/004-phase3-loop-three/`.
 
 ## Owner decisions (do not change without asking)
 - **Phase 1 = layout of the house only — DONE** (corridor + L-hallway layout, lighting, intro). No gameplay beyond walking and doors:
   the basement door opens with E, swings shut and locks behind the player; every closed door then only rattles (locked) on E.
-- **Phase 2 = the loop + loop 2 events — DONE** (see "The loop"). Ask the owner before adding loop 3 or any other mechanic.
+- **Phase 2 = the loop + loop 2 events — DONE**; **Phase 3 = loop 3 — DONE** (see "The loop"). Ask the owner before adding loop 4 or any other mechanic.
 - No telephone interaction/ringing (the phone is a static prop). No scripted scares except the owner-requested loop events (loop 2:
-  radio static, bathroom door closing on its own). No floating dust motes (owner: they block the view).
+  radio static, bathroom door closing on its own; loop 3: failing lights, door 9 slam, bathroom rattling + 5 knocks). No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds (no floor creaks).
 - Image must be crisp (AAA, not hazy): no fog, subtle grain/CA, bloom only on bright sources, DOF only during the wake-up.
@@ -174,7 +177,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
   no shadows/AO/DOF/bloom/SMAA, light pool of 5 (`Q.lightPool`), lite wet shader (`Q.wetLite`), adaptive resolution (`FrameGovernor`,
   `Q.scaleRange`), half-res portal (`Q.portalScale`). Systems read only profile flags — never `IS_TOUCH` in rendering/lighting code.
   Desktop presets keep the flags at their "off" values (behaviour unchanged). `?stats` shows fps / calls / tris / lights / scale on any device.
-- **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player or via `LightingSystem.extraFocus`);
+- **Checklist for every new phase**: (1) lights used by an event must be pool-relevant (near the player or via `LightingSystem.extraFocus.push(...)`);
   (2) never rely only on shadows for a scare (mobile has none); (3) check mobile budget before merging (headless `?q=mobile`: ≤ ~1,100 calls,
   ≤ 0.6 M tris; owner's phone at 30 FPS with `?stats`); (4) any new heavy effect gets a profile flag.
 - Landscape required: portrait shows a "Rotate your device" overlay; Start requests fullscreen + landscape lock (best effort).

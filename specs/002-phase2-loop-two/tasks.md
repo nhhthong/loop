@@ -27,7 +27,7 @@ description: "Task list for Phase 2 - The Loop (loop 2)"
 
 ## Phase 4: US3 - Bathroom door (P1)
 
-- [X] T011 [US3] `Door.closeSlowly()`
+- [X] T011 [US3] `Door.closeSlowly()` (renamed `swingShut()` in Phase 3)
 - [X] T012 [US3] `BathDoorSequence` + loop-2 R2 trigger; bathroom door locked + interactable afterwards; `UI.cinematic` hides touch UI
 
 ## Phase 5: Verification

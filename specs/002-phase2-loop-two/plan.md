@@ -28,7 +28,7 @@ the bathroom-door scene.
 | Portal | `PortalSystem`: while the bottom door is open, renders the scene from `portalMatrix() × camera` into a target shown on a doorway plane (screen-space UV); when the eye crosses the plane, `Player.transport(map, +90°)` |
 | Linked doors | the stair-bottom `Door` is the basement door mapped by the inverse portal transform; opening it opens the real basement door too |
 | Loop | `LoopDirector` (`portalCrossed`, `enteredHouse`); door-9 shut trigger on the stair; basement shut trigger re-arms every pass |
-| Loop 2 | `gameplay/loops.ts`: radio static on the `radio` prop; R2 trigger → `BathDoorSequence` (camera ease 1 s, `Door.closeSlowly(3 s)`, creak + latch, lock, control back; touch UI hidden) |
+| Loop 2 | `gameplay/loops.ts`: radio static on the `radio` prop; R2 trigger → `BathDoorSequence` (camera ease 1 s, `Door.swingShut(3 s)`, creak + latch, lock, control back; touch UI hidden) |
 
 ## Risks
 

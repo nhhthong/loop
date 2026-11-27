@@ -3,7 +3,7 @@ import { WIN_A, WIN_B, STAIRWELL, type Surface } from './layout';
 /** Every sound file the game uses (`/audio/<id>.mp3`). Single source of truth: preloaded at boot, `SoundId` types every call. */
 export const SOUNDS = [
   'breath_wake', 'clock_tick', 'cockroach_skitter', 'corridor_ambience', 'door_creak', 'door_handle', 'door_locked_1', 'door_locked_2', 'heartbeat',
-  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak', 'radio_static', 'water_trickle',
+  'light_buzz', 'room_ambience', 'water_drip_1', 'water_drip_2', 'wind_window', 'fan_creak', 'radio_static', 'water_trickle', 'door_slam', 'door_knock', 'electric_crackle',
   'step_concrete_1', 'step_concrete_2', 'step_concrete_3', 'step_concrete_4', 'step_wood_1', 'step_wood_2', 'step_wood_3', 'step_wood_4', 'step_wood_5',
 ] as const;
 export type SoundId = (typeof SOUNDS)[number];

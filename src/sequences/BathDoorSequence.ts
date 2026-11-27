@@ -50,7 +50,7 @@ export class BathDoorSequence implements System {
     P.yaw = this.yaw0 + this.dYaw * k;
     P.pitch = this.pitch0 + this.dPitch * k;
     if (crossed(t, dt, CLOSE_AT)) {
-      this.door.closeSlowly(CLOSE_DUR);
+      this.door.swingShut(CLOSE_DUR);
       this.audio.play3D('door_creak', this.door.handle, 0.85, { ref: 0.8, rate: 0.62 });
     }
     if (crossed(t, dt, CLOSE_AT + CLOSE_DUR)) this.audio.play3D('door_handle', this.door.handle, 1.0, { ref: 0.8, rate: 0.85 });
