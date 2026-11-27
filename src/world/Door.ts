@@ -42,6 +42,7 @@ export class Door implements DoorLike {
   isOpen = false;
   locked = false;
   private rattleT = 0;
+  private knockT = 0;
   private slow: { from: number; t: number; dur: number } | null = null;
   readonly leafW: number;
   readonly leafH: number;
@@ -117,14 +118,17 @@ export class Door implements DoorLike {
     this.target = 0;
   }
 
-  /** Swing shut over `dur` seconds (eased), from whatever angle it is at (e.g. ajar). */
-  closeSlowly(dur: number) {
+  /** Swing shut over `dur` seconds (eased), from whatever angle it is at: slow creep (ajar door) or a slam. */
+  swingShut(dur: number) {
     this.slow = { from: this.angle, t: 0, dur };
     this.isOpen = false;
   }
 
   /** Locked: jiggle the handle and shake the leaf in its frame for a moment. */
   rattle() { this.rattleT = 0.6; }
+
+  /** A knock from the other side: the leaf jolts in its frame (handle still). */
+  knock() { this.knockT = 0.18; }
 
   update(dt: number) {
     // critically-damped spring with a slight heavy-door ease
@@ -147,6 +151,10 @@ export class Door implements DoorLike {
       const k = this.rattleT / 0.6;
       shake = Math.sin(this.rattleT * 70) * 0.004 * k;
       this.handle.rotation.z = Math.sin(this.rattleT * 45) * 0.35 * k;
+    }
+    if (this.knockT > 0) {
+      this.knockT = Math.max(0, this.knockT - dt);
+      shake += Math.sin(this.knockT * 110) * 0.006 * (this.knockT / 0.18);
     }
     this.pivot.rotation.y = this.baseYaw + this.openSign * (this.angle + shake);
     this.syncBody();

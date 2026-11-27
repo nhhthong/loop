@@ -31,6 +31,8 @@ import { AmbienceSystem } from '../systems/AmbienceSystem';
 import { IntroSequence } from '../sequences/IntroSequence';
 import { MenuScene } from '../sequences/MenuScene';
 import { BathDoorSequence } from '../sequences/BathDoorSequence';
+import { ToiletKnockSequence } from '../sequences/ToiletKnockSequence';
+import { BrokenLightsSystem } from '../systems/BrokenLightsSystem';
 import { PortalSystem } from '../systems/PortalSystem';
 import { PendantSystem } from '../systems/PendantSystem';
 import { WaterSystem } from '../systems/WaterSystem';
@@ -60,6 +62,7 @@ export class Game {
   ambience!: AmbienceSystem;
   director!: LoopDirector;
   portal!: PortalSystem;
+  knockScene!: ToiletKnockSequence;
   /** basement door (kept for dev scripts) */
   get door() { return this.doors.basement; }
   private systems: System[] = [];
@@ -155,14 +158,17 @@ export class Game {
       D.bath.locked = true;
       interaction.add(new DoorInteraction(D.bath, audio));
     });
-    this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, triggers, bathScene }));
+    const knockScene = this.knockScene = new ToiletKnockSequence(P, D.bath, audio);
+    const brokenLights = new BrokenLightsSystem(P, audio, this.scene);
+    const lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
+    this.director = new LoopDirector(loopEvents({ audio, props: this.furn.props, doors: D, lamps: this.furn.lamps, triggers, lighting, brokenLights, bathScene, knockScene }));
 
     triggers.add(
       // the basement door swings shut behind the player once they are inside and locks (every pass); a pass via
       // the stairwell starts the next loop
       new TriggerZone((p) => p.z < DIV_Z - 1.4 && p.x < STAIRWELL.x0, () => { shutAndLock(D.basement, audio); this.director.enteredHouse(); }, { when: () => D.basement.isOpen && !D.basement.locked }),
-      // door 9 shuts and locks behind the player once they are on the stair
-      new TriggerZone((p) => p.x > STAIRWELL.flightX - 0.2, () => shutAndLock(D.store, audio), { once: true, when: () => D.store.isOpen }),
+      // door 9 shuts and locks behind the player once they are on the stair (every pass)
+      new TriggerZone((p) => p.x > STAIRWELL.flightX - 0.2, () => shutAndLock(D.store, audio), { when: () => D.store.isOpen }),
     );
     interaction.add(
       new DoorInteraction(D.basement, audio),
@@ -179,8 +185,7 @@ export class Game {
     // light leaking under the basement door goes out while it is open
     for (const l of this.furn.lamps) if (l.tag === 'leak') l.driver = () => (D.basement.isOpen ? 0 : 1);
 
-    const lighting = new LightingSystem(this.furn.lamps, P, this.scene, () => this.intro.active);
-    lighting.extraFocus = () => this.portal.viewPoint(); // pooled lights must also light what the portal shows
+    lighting.extraFocus.push(() => this.portal.viewPoint()); // pooled lights must also light what the portal shows
     const fan = new FanSystem(this.furn.fan), pendants = new PendantSystem(this.furn.lamps), water = new WaterSystem(this.level.flowing);
     this.menu = new MenuScene(P, this.renderer, this.ui, this.furn.lamps.find((l) => l.id === 'floorLamp'), () => this.start());
     // the menu backdrop only needs the scene to look alive: camera drift, lights, fan, swaying bulb, water
@@ -188,6 +193,7 @@ export class Game {
     this.systems = [
       this.intro,
       bathScene,
+      knockScene,
       P,
       { update: (dt) => this.physics.step(dt) },
       this.portal,
@@ -198,6 +204,7 @@ export class Game {
       drips,
       // roaches only react once the player can move (they keep crawling around the waking player)
       { update: (dt) => roaches.update(dt, P.control > 0.5 ? P.position : FAR_AWAY) },
+      brokenLights,
       lighting,
       // the stairwell can only be seen from the east hall or through open door 9: skip drawing it elsewhere
       { update: () => { this.level.stairwell.visible = P.position.x > 7 || D.store.isOpen; } },

@@ -19,8 +19,8 @@ export class LightingSystem implements System {
   private proxyFor = -1;
   /** light pool slots: which lamp each pooled light currently shows, and its fade (0..1) */
   private readonly pool: { light: THREE.PointLight; lamp: number; fade: number }[] = [];
-  /** a second place the pool must light (e.g. what a portal shows); null when none */
-  extraFocus: () => THREE.Vector3 | null = () => null;
+  /** other places the pool must light (what a portal shows, an event's spot); each returns null when inactive */
+  readonly extraFocus: (() => THREE.Vector3 | null)[] = [];
 
   /** `holdCorridor`: while true the corridor bulb burns steady (wake-up). */
   constructor(private readonly lamps: Lamp[], private readonly player: Player, scene: THREE.Scene, private readonly holdCorridor: () => boolean) {
@@ -64,8 +64,8 @@ export class LightingSystem implements System {
    * rendered by the K pooled lights; a lamp leaving fades out before its slot is reused, a newcomer fades in.
    */
   private updatePool(dt: number) {
-    const p = this.player.eyePos(), q = this.extraFocus();
-    const d2 = (v: THREE.Vector3) => Math.min(v.distanceToSquared(p), q ? v.distanceToSquared(q) : Infinity);
+    const p = this.player.eyePos(), qs = this.extraFocus.map((f) => f()).filter((q): q is THREE.Vector3 => !!q);
+    const d2 = (v: THREE.Vector3) => qs.reduce((m, q) => Math.min(m, v.distanceToSquared(q)), v.distanceToSquared(p));
     const member = new Set(this.pool.filter((s) => s.lamp >= 0 && s.fade > 0).map((s) => s.lamp));
     const wanted = this.lamps
       .map((l, i) => ({ i, score: (l.light.intensity / (1 + d2(l.light.position))) * (member.has(i) ? PROXY_HYSTERESIS : 1) }))
