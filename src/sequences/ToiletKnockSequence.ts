@@ -3,7 +3,7 @@ import type { Door } from '../world/Door';
 import type { System } from '../core/System';
 import { DOOR_LOCKED, pick } from '../data/audio';
 
-const KNOCKS = 5, KNOCK_GAP = 0.3; // five heavy blows within 1.5 s
+const KNOCKS = 5, KNOCK_GAP = 0.2; // five heavy blows within 1 s
 const KNOCK_JOLT = 3; // leaf shake per blow (× a normal knock)
 
 /**
@@ -38,7 +38,7 @@ export class ToiletKnockSequence implements System {
       this.t = 0.5 + Math.random() * 0.4;
     } else {
       this.door.knock(KNOCK_JOLT);
-      this.audio.play3D('door_knock', this.door.handle, 1.6, { ref: 3, rate: 0.85 + Math.random() * 0.06 });
+      this.audio.play3D('door_knock', this.door.handle, 3.2, { ref: 3, rate: 0.85 + Math.random() * 0.06 });
       this.t = KNOCK_GAP;
       if (++this.knocks >= KNOCKS) this.phase = 'done';
     }

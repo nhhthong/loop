@@ -52,7 +52,7 @@ Data-driven: content lives in `src/data`, builders in `src/world`, behaviour in 
 - Per-loop content lives only in `src/gameplay/loops.ts` (`loopEvents`), acting through named handles (`HouseDoors`, `furn.props`,
   `TriggerSystem`, sequences, `AudioSys`). Loop 2: radio static on the `radio` prop; R2 trigger → `BathDoorSequence`; door 9 unlocked again.
   Loop 3: radio silent; house lamps stutter then die (`BrokenLightsSystem`), one dim R1 sconce left, door-9 + stair bulbs lit; door 9 wide open → slams + locks
-  when the player comes within 2 m; then `ToiletKnockSequence` (handle rattles nonstop until E on the bathroom door → 5 violent knocks in 1.5 s, silence).
+  when the player comes within 2 m; then `ToiletKnockSequence` (handle rattles nonstop until E on the bathroom door → 5 violent knocks in 1 s, silence).
   Door 9 stays locked: end of Phase 3.
 - New interactions = an `Interactable` in `InteractionSystem`; position events = a `TriggerZone`; timed scripts = a `System` with `seg`/`crossed`.
 - Specs: `specs/002-phase2-loop-two/`, `specs/004-phase3-loop-three/`, `specs/005-fast-e2e/`, `specs/006-performance/`, `specs/007-perf-round2/`.
