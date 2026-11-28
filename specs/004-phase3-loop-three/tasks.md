@@ -27,3 +27,4 @@ description: "Task list for Phase 3 - Loop 3"
 - [X] F008 (owner) Loop 3: door 9 slams when the player is within 2 m of it
 - [X] F009 (owner) Loop 3: bathroom rattles nonstop until E on it → 5 loud blows in 1.5 s with a strong leaf shake, then silence; e2e updated
 - [X] F010 (owner) Loop 3 knocks: 1.5× faster (gap 0.3 → 0.2 s, 5 blows within 1 s), volume ×2 (1.6 → 3.2)
+- [X] F011 (owner) Knock sound: swapped for Freesound CC0 "Door Bang 1" (315935) sped up 1.5× (atempo), played once on E (3 bangs, reverb tail); door jolts per bang; level kept as in the file (peak −0.7 dB)

@@ -98,7 +98,7 @@ npm run bench        # performance budgets (e2e/budgets.json; numbers in specs/0
 3. Implement data-first; per-loop content only in `src/gameplay/loops.ts`; assets + manifests.
 4. Verify: `npm run typecheck`, `npm run build`, `npm run e2e -- --q=low` and `-- --q=mobile` (+ `npm run e2e:touch` if input/UI changed);
    new loop content = new scenario in `e2e/loops.mjs`; mobile checklist below.
-5. Commit / PR / merge only when the owner asks; poll CI every 20 s; confirm GitHub Pages deployed the merged commit.
+5. When a change is done and verified, commit, open the PR, poll CI every 20 s, merge and confirm GitHub Pages deployed the merged commit — no need to ask first (owner: git makes it reversible). Never force-push.
 6. Owner reviews on real hardware; later fixes go to the feature's `tasks.md` under "Post-release fixes".
 
 ## Verification policy
@@ -126,7 +126,7 @@ npm run bench        # performance budgets (e2e/budgets.json; numbers in specs/0
   the basement door opens with E, swings shut and locks behind the player; every closed door then only rattles (locked) on E.
 - **Phase 2 = the loop + loop 2 events — DONE**; **Phase 3 = loop 3 — DONE** (see "The loop"). Ask the owner before adding loop 4 or any other mechanic.
 - No telephone interaction/ringing (the phone is a static prop). No scripted scares except the owner-requested loop events (loop 2:
-  radio static, bathroom door slamming shut on its own; loop 3: lights die except one dim R1 sconce + door-9 bulb, door 9 slams near it, bathroom rattles until E → 5 violent knocks). No floating dust motes (owner: they block the view).
+  radio static, bathroom door slamming shut on its own; loop 3: lights die except one dim R1 sconce + door-9 bulb, door 9 slams near it, bathroom rattles until E → violent 3-bang knock). No floating dust motes (owner: they block the view).
 - House is deserted, no damage/debris; walls lightly grimy. The entry corridor stays wet concrete with roaches.
 - Outside the intro there is no visible hand/body: only camera movement + footstep sounds (no floor creaks).
 - Image must be crisp (AAA, not hazy): no fog, subtle grain/CA, bloom only on bright sources, DOF only during the wake-up.

@@ -15,7 +15,7 @@
 | Reaching loop 3 | Door 9 opens again in loop 2; the same stairwell/portal pass leads into loop 3. |
 | Failing lights | ~~Every house lamp flickers for the whole loop~~ → (2026-11-27) the house lamps stutter 1.2–3 s, then die for good (crackle); only the R1 wall sconce (`sconceP`) keeps burning low (40 %) with a nervous flicker; the door-9 and stair bulbs stay lit as the lure. Lamp shades' self-glow and the probe fill dim with the lamps. |
 | Door 9 | Wide open at the start of loop 3. ~~Slams when passing the bathroom door~~ → (2026-11-27) slams in the player's face when they come within 2 m of it (stair in view); no camera takeover. Locked afterwards (E only rattles). |
-| Bathroom door | Stays shut and locked from loop 2. ~~Rattles every 1–2 s; 5 slow knocks on coming back close~~ → (2026-11-27) after the slam its handle rattles without pause (locked-door sound) until the player presses E on it: the rattling stops and 5 violent, loud blows within 1.5 s shake the leaf, then silence. (2026-11-27, owner: 1.5× faster → 5 blows within 1 s, volume ×2.) |
+| Bathroom door | Stays shut and locked from loop 2. ~~Rattles every 1–2 s; 5 slow knocks on coming back close~~ → (2026-11-27) after the slam its handle rattles without pause (locked-door sound) until the player presses E on it: the rattling stops and 5 violent, loud blows within 1.5 s shake the leaf, then silence. (2026-11-27, owner: replaced by the Freesound CC0 clip "Door Bang 1" (id 315935) sped up 1.5×: one play = 3 bangs within 0.6 s plus its natural reverb, leaf jolted on each bang; the old 5-blow count no longer applies.) |
 | Radio | Silent in loop 3. |
 | End | Door 9 stays locked: end of Phase 3 content. |
 
@@ -28,7 +28,7 @@
 1. **Given** loop 2, **When** the player presses E at door 9, **Then** it opens onto the stairwell; the pass leads into loop 3.
 2. **Given** loop 3 starts, **Then** the radio is silent, every house lamp flickers and blacks out irregularly with crackles, the bathroom door is shut and locked, and door 9 stands wide open at the end of the east leg.
 3. **Given** loop 3, **When** the player walks past the bathroom door in R2, **Then** door 9 slams shut with a loud bang and is locked; E at door 9 only rattles.
-4. **Given** door 9 has slammed, **Then** the bathroom handle rattles every 1–2 s; **When** the player walks away and comes back within ~1.6 m, **Then** the rattling stops, five knocks follow (≈0.6 s apart), then nothing more happens.
+4. **Given** door 9 has slammed, **Then** the bathroom handle rattles every 1–2 s; **When** the player walks away and comes back within ~1.6 m, **Then** the rattling stops, the three-bang knock sample plays (leaf jolted per bang), then nothing more happens.
 
 ### Edge Cases
 

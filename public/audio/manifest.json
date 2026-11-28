@@ -197,12 +197,14 @@
  {
   "file": "door_knock.mp3",
   "item": "door_knock",
-  "id": 144943,
-  "name": "Knock_1.wav",
-  "author": "deleted_user_2104797",
+  "id": 315935,
+  "name": "Door Bang 1.wav",
+  "author": "iamslenderman",
   "license": "http://creativecommons.org/publicdomain/zero/1.0/",
-  "url": "https://freesound.org/s/144943/",
-  "duration": 0.5475
+  "url": "https://freesound.org/s/315935/",
+  "duration": 2.3501
+ ,
+  "notes": "sped up 1.5x (atempo, pitch kept), mono 64k mp3, limited to -1 dB; three bangs at ~0.05/0.32/0.59 s (see ToiletKnockSequence)"
  },
  {
   "file": "electric_crackle.mp3",
