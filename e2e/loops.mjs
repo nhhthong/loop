@@ -104,7 +104,7 @@ export const LOOPS = {
     t.check('loop 3: close by, still only rattling (waits for E)', k.knocks === 0 && k.phase === 'rattle', JSON.stringify(k));
     await t.aim('bath'); await t.press('KeyE'); await t.advance(1);
     k = await t.eval(() => ({ knocks: game.knockScene.knocks, phase: game.knockScene.phase }));
-    t.check('loop 3: E on the bathroom door → five blows within 1 s', k.knocks === 5 && k.phase === 'done', JSON.stringify(k));
+    t.check('loop 3: E on the bathroom door → three bangs within 1 s', k.knocks === 3 && k.phase === 'done', JSON.stringify(k));
     const after = await t.sampleMax(3, 'Math.abs(game.doors.bath.handle.rotation.z)', 0.05);
     t.check('loop 3: then silence (no more rattling)', after < 0.01, `rattle=${after.toFixed(3)}`);
     await t.shot('loop3_bath');

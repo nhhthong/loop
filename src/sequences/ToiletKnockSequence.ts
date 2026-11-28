@@ -3,12 +3,13 @@ import type { Door } from '../world/Door';
 import type { System } from '../core/System';
 import { DOOR_LOCKED, pick } from '../data/audio';
 
-const KNOCKS = 5, KNOCK_GAP = 0.2; // five heavy blows within 1 s
+/** `door_knock` (Door Bang 1, sped up 1.5×) holds three bangs; the leaf is jolted on each, then the reverb rings out */
+const BANGS = [0.05, 0.32, 0.59]; // s into the sample
 const KNOCK_JOLT = 3; // leaf shake per blow (× a normal knock)
 
 /**
  * Loop 3: after door 9 slams, someone inside the locked bathroom keeps trying the handle, without pause, until the
- * player presses E on the bathroom door (`answer`): the rattling stops and five violent blows shake the door, then silence.
+ * player presses E on the bathroom door (`answer`): the rattling stops, the three-bang sample plays and each bang shakes the door, then silence.
  */
 export class ToiletKnockSequence implements System {
   private phase: 'idle' | 'rattle' | 'knock' | 'done' = 'idle';
@@ -24,7 +25,8 @@ export class ToiletKnockSequence implements System {
   answer() {
     if (this.phase !== 'rattle') return false;
     this.phase = 'knock';
-    this.t = 0;
+    this.t = BANGS[0];
+    this.audio.play3D('door_knock', this.door.handle, 1, { ref: 3 });
     return true;
   }
 
@@ -38,9 +40,8 @@ export class ToiletKnockSequence implements System {
       this.t = 0.5 + Math.random() * 0.4;
     } else {
       this.door.knock(KNOCK_JOLT);
-      this.audio.play3D('door_knock', this.door.handle, 3.2, { ref: 3, rate: 0.85 + Math.random() * 0.06 });
-      this.t = KNOCK_GAP;
-      if (++this.knocks >= KNOCKS) this.phase = 'done';
+      if (++this.knocks >= BANGS.length) this.phase = 'done';
+      else this.t = BANGS[this.knocks] - BANGS[this.knocks - 1];
     }
   }
 }
